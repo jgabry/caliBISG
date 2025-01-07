@@ -49,7 +49,7 @@ download_data <- function(states = NULL, ...) {
         show_col_types = FALSE,
         progress = FALSE
       )
-      saveRDS(data, file_path)
+      saveRDS(as.data.frame(data), file_path)
       return_code <- 0
       if (return_code == 0) {
         message("Download complete.")

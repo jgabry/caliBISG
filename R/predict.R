@@ -89,14 +89,14 @@
 #' }
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
-  out <- as.data.frame(all_probabilities(name, state, county, year))
+  out <- all_probabilities(name, state, county, year)
   out[, !grepl("bisg_", colnames(out))]
 }
 
 #' @rdname race_probabilities
 #' @export
 compare_race_probabilities <- function(name, state, county, year = 2020) {
-  out <- as.data.frame(all_probabilities(name, state, county, year))
+  out <- all_probabilities(name, state, county, year)
   structure(
     out,
     class = c("raking_bisg", class(out))
@@ -106,7 +106,7 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
 #' @rdname race_probabilities
 #' @export
 predict_race <- function(name, state, county, year = 2020) {
-  prediction <- as.data.frame(race_probabilities(name, state, county, year))
+  prediction <- race_probabilities(name, state, county, year)
   raking_columns <- grepl("rake_", colnames(prediction))
   most_likely <- which.max(prediction[, raking_columns])
   prediction$race <- gsub("rake_", "", names(most_likely))
