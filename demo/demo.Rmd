@@ -18,48 +18,99 @@ delete_all_data()
 
 ## Download data
 
-Right now the download_data() function just pretends to download these and is
-reading them from my laptop and then storing them in the internal package
-directory. In the future, we will actually download these from the internet
-once we decide where to host the files.
+Right now the `download_data()` function just pretends to download these and is
+actually reading them from a folder on my laptop and then storing them in the
+internal package directory. In the future, we will actually download these from
+the internet once we decide where to host the files. 
 
 ```{r}
 download_data(states = c("NC", "WA")) 
 ```
 
-## Predict most likely race
+If the user wants to work directly with the large files instead of using the
+package's convenience functions they can load the data themselves. 
+
 ```{r}
-predict_race("smith", "wa", "king")
-predict_race("lopez", "nc", "burke")
+nc_2020_data <- load_data("NC")
+nrow(nc_2020_data)
 ```
+If the user just wants to use the package's convenience functions they never 
+need to call `load_data()`, but I assume some users will want the option to 
+access the files directly. 
+
+Right now only 2020 is available but eventually we can let the user specify
+which years they want to download/load. 
+
+
+## Predict most likely race
+
+```{r}
+predict_race(name = "smith", state = "WA", county = "king")
+```
+
+It doesn't matter if the names are capitalized or not, they are always lowercase
+in the output for `name` and `county` and uppercase in the output for `state`
+abbreviation. Is that the behavior we want? Just to demonstrate here's an
+extreme example:
+
+```{r}
+predict_race(name = "SMITH", state = "wa", county = "King")
+```
+
+The returned object is just a standard data frame: 
+
+```{r}
+smith_wa_king <- predict_race("smith", "wa", "king")
+str(smith_wa_king)
+```
+
+The `predict_race()` function also takes a `year` argument but right now only
+2020 is available. 
 
 ## Get probabilities for all races
 
-These just return a data frame with many columns so in the printed output it
-sometimes gets split over multiple lines. What should we name these columns?
-These names (e.g., `rake_nh_white`) are the column names Philip gave me but we
-can name them whatever we want in the R package.
+The `race_probabilities()` function gives the raking-based estimates for the
+probabilities of all the races. This function also takes a `year` argument but
+right now only 2020 is available.
+
+Again, the object returned is just a standard data frame: 
 
 ```{r}
-race_probabilities("smith", "wa", "king")
-race_probabilities("lopez", "nc", "burke")
+lopez_nc_burke_probs <- race_probabilities("lopez", "nc", "burke")
+str(lopez_nc_burke_probs)
 ```
+
+What should we name these columns? Right now the names (e.g., `rake_nh_white`)
+are the column names Philip gave me, but we can name them whatever we want in
+the R package.
 
 ## Compare raking-based BISG to "improved BISG"
 
 Based on Philip's latest email it sounds like I have PISG and improved BISG
-estimates (not traditional BISG esimates for now). This function also returns
-a data frame but there's a custom print method that summarizes it into this table:
+estimates (not traditional BISG estimates), so for now I wrote a function to 
+compare those two estimates:  
 
 ```{r}
-compare_race_probabilities("smith", "wa", "king")
 compare_race_probabilities("lopez", "nc", "burke")
+```
 
-# only show 2 digits 
+The number of digits printed in the table can be controlled by calling `print`
+and specifying the `digits` argument. For example, to only show 2 digits:
+
+```{r}
 print(
  compare_race_probabilities("lopez", "nc", "burke"),
  digits = 2
 )
 ```
 
+This function also returns a regular data frame, but that's a bit hidden from
+view due to the custom print method that summarizes it into the table above (I
+added an additional class to the object and defined a print method for that
+class). But it's still just a data frame underneath:
+
+```{r}
+lopez_nc_burke_comparison <- compare_race_probabilities("lopez", "nc", "burke")
+str(lopez_nc_burke_comparison)
+```
 

@@ -359,64 +359,83 @@ display: none;
 
 <div id="download-data" class="section level2">
 <h2>Download data</h2>
-<p>Right now the download_data() function just pretends to download
-these and is reading them from my laptop and then storing them in the
-internal package directory. In the future, we will actually download
-these from the internet once we decide where to host the files.</p>
+<p>Right now the <code>download_data()</code> function just pretends to
+download these and is actually reading them from a folder on my laptop
+and then storing them in the internal package directory. In the future,
+we will actually download these from the internet once we decide where
+to host the files.</p>
 <pre class="r"><code>download_data(states = c(&quot;NC&quot;, &quot;WA&quot;)) </code></pre>
 <pre><code>Downloading data for states: NC, WA</code></pre>
 <pre><code>Downloading data file /Users/jgabry/Desktop/tmp/voter_bisg/nc_2020.csv</code></pre>
 <pre><code>Download complete.</code></pre>
 <pre><code>Downloading data file /Users/jgabry/Desktop/tmp/voter_bisg/wa_2020.csv</code></pre>
 <pre><code>Download complete.</code></pre>
+<p>If the user wants to work directly with the large files instead of
+using the package’s convenience functions they can load the data
+themselves.</p>
+<pre class="r"><code>nc_2020_data &lt;- load_data(&quot;NC&quot;)
+nrow(nc_2020_data)</code></pre>
+<pre><code>[1] 898964</code></pre>
+<p>If the user just wants to use the package’s convenience functions
+they never need to call <code>load_data()</code>, but I assume some
+users will want the option to access the files directly.</p>
+<p>Right now only 2020 is available but eventually we can let the user
+specify which years they want to download/load.</p>
 </div>
 <div id="predict-most-likely-race" class="section level2">
 <h2>Predict most likely race</h2>
-<pre class="r"><code>predict_race(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)</code></pre>
+<pre class="r"><code>predict_race(name = &quot;smith&quot;, state = &quot;WA&quot;, county = &quot;king&quot;)</code></pre>
 <pre><code>   name year state county     race
 1 smith 2020    WA   king nh_white</code></pre>
-<pre class="r"><code>predict_race(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)</code></pre>
+<p>It doesn’t matter if the names are capitalized or not, they are
+always lowercase in the output for <code>name</code> and
+<code>county</code> and uppercase in the output for <code>state</code>
+abbreviation. Is that the behavior we want? Just to demonstrate here’s
+an extreme example:</p>
+<pre class="r"><code>predict_race(name = &quot;SMITH&quot;, state = &quot;wa&quot;, county = &quot;King&quot;)</code></pre>
 <pre><code>   name year state county     race
-1 lopez 2020    NC  burke hispanic</code></pre>
+1 smith 2020    WA   king nh_white</code></pre>
+<p>The returned object is just a standard data frame:</p>
+<pre class="r"><code>smith_wa_king &lt;- predict_race(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)
+str(smith_wa_king)</code></pre>
+<pre><code>&#39;data.frame&#39;:   1 obs. of  5 variables:
+ $ name  : chr &quot;smith&quot;
+ $ year  : num 2020
+ $ state : chr &quot;WA&quot;
+ $ county: chr &quot;king&quot;
+ $ race  : chr &quot;nh_white&quot;</code></pre>
+<p>The <code>predict_race()</code> function also takes a
+<code>year</code> argument but right now only 2020 is available.</p>
 </div>
 <div id="get-probabilities-for-all-races" class="section level2">
 <h2>Get probabilities for all races</h2>
-<p>These just return a data frame with many columns so in the printed
-output it sometimes gets split over multiple lines. What should we name
-these columns? These names (e.g., <code>rake_nh_white</code>) are the
-column names Philip gave me but we can name them whatever we want in the
-R package.</p>
-<pre class="r"><code>race_probabilities(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)</code></pre>
-<pre><code>   name state county year rake_nh_aian rake_nh_api rake_nh_black rake_hispanic
-1 smith    WA   king 2020   0.01288058 0.007257146     0.1388429    0.01480255
-  rake_nh_white rake_other
-1     0.8029404 0.02327643</code></pre>
-<pre class="r"><code>race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)</code></pre>
-<pre><code>   name year state county rake_nh_aian rake_nh_api rake_nh_black rake_hispanic
-1 lopez 2020    NC  burke  0.004460123  0.02005498   0.003373587     0.8866386
-  rake_nh_white  rake_other
-1    0.08387634 0.001596382</code></pre>
+<p>The <code>race_probabilities()</code> function gives the raking-based
+estimates for the probabilities of all the races. This function also
+takes a <code>year</code> argument but right now only 2020 is
+available.</p>
+<p>Again, the object returned is just a standard data frame:</p>
+<pre class="r"><code>lopez_nc_burke_probs &lt;- race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
+str(lopez_nc_burke_probs)</code></pre>
+<pre><code>&#39;data.frame&#39;:   1 obs. of  10 variables:
+ $ name         : chr &quot;lopez&quot;
+ $ year         : num 2020
+ $ state        : chr &quot;NC&quot;
+ $ county       : chr &quot;burke&quot;
+ $ rake_nh_aian : num 0.00446
+ $ rake_nh_api  : num 0.0201
+ $ rake_nh_black: num 0.00337
+ $ rake_hispanic: num 0.887
+ $ rake_nh_white: num 0.0839
+ $ rake_other   : num 0.0016</code></pre>
+<p>What should we name these columns? Right now the names (e.g.,
+<code>rake_nh_white</code>) are the column names Philip gave me, but we
+can name them whatever we want in the R package.</p>
 </div>
 <div id="compare-raking-based-bisg-to-improved-bisg" class="section level2">
 <h2>Compare raking-based BISG to “improved BISG”</h2>
 <p>Based on Philip’s latest email it sounds like I have PISG and
-improved BISG estimates (not traditional BISG esimates for now). This
-function also returns a data frame but there’s a custom print method
-that summarizes it into this table:</p>
-<pre class="r"><code>compare_race_probabilities(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)</code></pre>
-<pre><code>Surname:  Smith     
-State:    WA        
-County:   King      
-Year:     2020      
-
-Race       Pr_raking  Pr_bisg   
------------------------------- 
-AIAN       0.0129     0.0063    
-API        0.0073     0.0050    
-Black      0.1388     0.3521    
-Hispanic   0.0148     0.0110    
-White      0.8029     0.6194    
-Other      0.0233     0.0062    </code></pre>
+improved BISG estimates (not traditional BISG estimates), so for now I
+wrote a function to compare those two estimates:</p>
 <pre class="r"><code>compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)</code></pre>
 <pre><code>Surname:  Lopez     
 State:    NC        
@@ -431,8 +450,10 @@ Black      0.0034     0.0040
 Hispanic   0.8866     0.8308    
 White      0.0839     0.1380    
 Other      0.0016     0.0013    </code></pre>
-<pre class="r"><code># only show 2 digits 
-print(
+<p>The number of digits printed in the table can be controlled by
+calling <code>print</code> and specifying the <code>digits</code>
+argument. For example, to only show 2 digits:</p>
+<pre class="r"><code>print(
  compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;),
  digits = 2
 )</code></pre>
@@ -449,6 +470,30 @@ Black      0.00       0.00
 Hispanic   0.89       0.83      
 White      0.08       0.14      
 Other      0.00       0.00      </code></pre>
+<p>This function also returns a regular data frame, but that’s a bit
+hidden from view due to the custom print method that summarizes it into
+the table above (I added an additional class to the object and defined a
+print method for that class). But it’s still just a data frame
+underneath:</p>
+<pre class="r"><code>lopez_nc_burke_comparison &lt;- compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
+str(lopez_nc_burke_comparison)</code></pre>
+<pre><code>Classes &#39;raking_bisg&#39; and &#39;data.frame&#39;: 1 obs. of  16 variables:
+ $ name         : chr &quot;lopez&quot;
+ $ year         : num 2020
+ $ state        : chr &quot;NC&quot;
+ $ county       : chr &quot;burke&quot;
+ $ bisg_nh_aian : num 0.00494
+ $ bisg_nh_api  : num 0.021
+ $ bisg_nh_black: num 0.00398
+ $ bisg_hispanic: num 0.831
+ $ bisg_nh_white: num 0.138
+ $ bisg_other   : num 0.00131
+ $ rake_nh_aian : num 0.00446
+ $ rake_nh_api  : num 0.0201
+ $ rake_nh_black: num 0.00337
+ $ rake_hispanic: num 0.887
+ $ rake_nh_white: num 0.0839
+ $ rake_other   : num 0.0016</code></pre>
 </div>
 
 
