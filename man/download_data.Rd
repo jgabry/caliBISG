@@ -6,7 +6,7 @@
 \alias{data_dir}
 \alias{available_data}
 \alias{delete_all_data}
-\title{Download data}
+\title{Download and load data files}
 \usage{
 download_data(states = NULL, ...)
 
@@ -49,8 +49,8 @@ data files.
 }
 }
 \description{
-Various functions for downloading and loading data. See
-\strong{Details}.
+Various functions for downloading and loading the data files
+used by the package. See \strong{Details}.
 }
 \details{
 \itemize{

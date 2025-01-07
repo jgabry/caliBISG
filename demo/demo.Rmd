@@ -1,0 +1,65 @@
+---
+title: "PISG demo"
+author: ""
+date: "2025-01-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+```
+
+
+
+```{r, echo=FALSE}
+library(pisg)
+delete_all_data()
+```
+
+## Download data
+
+Right now the download_data() function just pretends to download these and is
+reading them from my laptop and then storing them in the internal package
+directory. In the future, we will actually download these from the internet
+once we decide where to host the files.
+
+```{r}
+download_data(states = c("NC", "WA")) 
+```
+
+## Predict most likely race
+```{r}
+predict_race("smith", "wa", "king")
+predict_race("lopez", "nc", "burke")
+```
+
+## Get probabilities for all races
+
+These just return a data frame with many columns so in the printed output it
+sometimes gets split over multiple lines. What should we name these columns?
+These names (e.g., `rake_nh_white`) are the column names Philip gave me but we
+can name them whatever we want in the R package.
+
+```{r}
+race_probabilities("smith", "wa", "king")
+race_probabilities("lopez", "nc", "burke")
+```
+
+## Compare raking-based BISG to "improved BISG"
+
+Based on Philip's latest email it sounds like I have PISG and improved BISG
+estimates (not traditional BISG esimates for now). This function also returns
+a data frame but there's a custom print method that summarizes it into this table:
+
+```{r}
+compare_race_probabilities("smith", "wa", "king")
+compare_race_probabilities("lopez", "nc", "burke")
+
+# only show 2 digits 
+print(
+ compare_race_probabilities("lopez", "nc", "burke"),
+ digits = 2
+)
+```
+
+

@@ -26,8 +26,12 @@
 #' state-year, then looks up the surname and county and returns the
 #' raking-based probabilities for all of the races.
 #' * `compare_race_probabilities()`: Same as `race_probabilities()` but also
-#' includes traditional BISG estimates and has a custom print method that
-#' produces a table comparing the two sets of estimates.
+#' includes "Improved BISG" estimates and has a custom print method that
+#' produces a table comparing the two sets of estimates. Here, "Improved BISG"
+#' refers to traditional BISG but including an adjustment to those predictions
+#' that accounts for the fact that we’re making predictions on registered
+#' voters, not the general population. It uses the registered voter status x
+#' race distribution and an application of Bayes rule.
 #' * `predict_race()`: Same as `race_probabilities()` but only includes the
 #' single most probable race, not probabilities for all the races.
 #'
@@ -48,12 +52,12 @@
 #' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
 #' but the data frame has a custom class and print method and includes the
 #' following additional columns:
-#'      - `bisg_nh_aian` (numeric): The BISG estimate for non-Hispanic American Indian and Alaskan Native.
-#'      - `bisg_nh_api` (numeric): The BISG estimate for non-Hispanic Asian and Pacific Islander.
-#'      - `bisg_nh_black` (numeric): The BISG estimate for non-Hispanic Black.
-#'      - `bisg_hispanic` (numeric): The BISG estimate for Hispanic.
-#'      - `bisg_nh_white` (numeric): The BISG estimate for non-Hispanic White.
-#'      - `bisg_other` (numeric): The BISG estimate for other.
+#'      - `bisg_nh_aian` (numeric): The improved BISG estimate for non-Hispanic American Indian and Alaskan Native.
+#'      - `bisg_nh_api` (numeric): The improved BISG estimate for non-Hispanic Asian and Pacific Islander.
+#'      - `bisg_nh_black` (numeric): The improved BISG estimate for non-Hispanic Black.
+#'      - `bisg_hispanic` (numeric): The improved BISG estimate for Hispanic.
+#'      - `bisg_nh_white` (numeric): The improved BISG estimate for non-Hispanic White.
+#'      - `bisg_other` (numeric): The improved BISG estimate for other.
 #'
 #' * `predict_race()`: (data frame) A data frame with the following columns:
 #'      - `name` (string): The surname.
@@ -82,18 +86,17 @@
 #'  compare_race_probabilities("lopez", "nc", "burke"),
 #'  digits = 2
 #' )
-#'
 #' }
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
-  out <- all_probabilities(name, state, county, year)
+  out <- as.data.frame(all_probabilities(name, state, county, year))
   out[, !grepl("bisg_", colnames(out))]
 }
 
 #' @rdname race_probabilities
 #' @export
 compare_race_probabilities <- function(name, state, county, year = 2020) {
-  out <- all_probabilities(name, state, county, year)
+  out <- as.data.frame(all_probabilities(name, state, county, year))
   structure(
     out,
     class = c("raking_bisg", class(out))

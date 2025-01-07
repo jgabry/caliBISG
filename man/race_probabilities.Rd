@@ -5,7 +5,7 @@
 \alias{compare_race_probabilities}
 \alias{predict_race}
 \alias{print.raking_bisg}
-\title{Predict race given surname and location.}
+\title{Predict race given surname and location}
 \usage{
 race_probabilities(name, state, county, year = 2020)
 
@@ -52,12 +52,12 @@ row and the following columns:
 but the data frame has a custom class and print method and includes the
 following additional columns:
 \itemize{
-\item \code{bisg_nh_aian} (numeric): The BISG estimate for non-Hispanic American Indian and Alaskan Native.
-\item \code{bisg_nh_api} (numeric): The BISG estimate for non-Hispanic Asian and Pacific Islander.
-\item \code{bisg_nh_black} (numeric): The BISG estimate for non-Hispanic Black.
-\item \code{bisg_hispanic} (numeric): The BISG estimate for Hispanic.
-\item \code{bisg_nh_white} (numeric): The BISG estimate for non-Hispanic White.
-\item \code{bisg_other} (numeric): The BISG estimate for other.
+\item \code{bisg_nh_aian} (numeric): The improved BISG estimate for non-Hispanic American Indian and Alaskan Native.
+\item \code{bisg_nh_api} (numeric): The improved BISG estimate for non-Hispanic Asian and Pacific Islander.
+\item \code{bisg_nh_black} (numeric): The improved BISG estimate for non-Hispanic Black.
+\item \code{bisg_hispanic} (numeric): The improved BISG estimate for Hispanic.
+\item \code{bisg_nh_white} (numeric): The improved BISG estimate for non-Hispanic White.
+\item \code{bisg_other} (numeric): The improved BISG estimate for other.
 }
 \item \code{predict_race()}: (data frame) A data frame with the following columns:
 \itemize{
@@ -85,8 +85,12 @@ files. You can also \link[=load_data]{load} and use the data files directly.
 state-year, then looks up the surname and county and returns the
 raking-based probabilities for all of the races.
 \item \code{compare_race_probabilities()}: Same as \code{race_probabilities()} but also
-includes traditional BISG estimates and has a custom print method that
-produces a table comparing the two sets of estimates.
+includes "Improved BISG" estimates and has a custom print method that
+produces a table comparing the two sets of estimates. Here, "Improved BISG"
+refers to traditional BISG but including an adjustment to those predictions
+that accounts for the fact that we’re making predictions on registered
+voters, not the general population. It uses the registered voter status x
+race distribution and an application of Bayes rule.
 \item \code{predict_race()}: Same as \code{race_probabilities()} but only includes the
 single most probable race, not probabilities for all the races.
 }
@@ -101,11 +105,12 @@ race_probabilities("lopez", "nc", "burke")
 
 compare_race_probabilities("smith", "wa", "king")
 compare_race_probabilities("lopez", "nc", "burke")
+
+# Only use 2 digits when printing the comparison table
 print(
  compare_race_probabilities("lopez", "nc", "burke"),
  digits = 2
 )
-
 }
 
 }
