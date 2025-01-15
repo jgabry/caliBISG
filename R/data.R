@@ -7,6 +7,8 @@
 #' @param states (character vector) The states to download data for. The default
 #'   (`NULL`) is to download for all states. States should be provided as
 #'   two-letter state [abbreviations][datasets::state.abb].
+#' @param years (integer vector) The years to download data for. The default
+#' is to download all years. Currently only 2020 is available.
 #' @param ... Optional arguments (other than `url` and `destfile`) passed to
 #'   [utils::download.file()].
 #'
@@ -22,45 +24,82 @@
 #' * `available_data()`: List the names of the available data files.
 #' * `delete_all_data()`: Delete all the data files stored internally.
 #'
-#' @return * `download_data()`: (character vector) The path(s) to the downloaded
-#'   data file(s), invisibly.
+#' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states = NULL, ...) {
+download_data <- function(states = NULL, years = NULL) {
   if (is.null(states)) {
-    states <- all_states()
-  } else {
-    validate_states(states)
+    states <- .all_states()
   }
-  message("Downloading data for states: ", paste(states, collapse = ", "))
-  succesfully_downloaded <- character()
-  for (state in states) {
-    file_path <- data_path(state)
-    if (file.exists(file_path)) {
-      message(basename(file_path), " already exists, skipping.")
-    } else {
-      message("Downloading data file ", data_download_url(state, year = 2020))
-      # return_code <- utils::download.file(
-      #   url = data_download_url(state, year = 2020),
-      #   destfile = file_path,
-      #   ...
-      # )
-      data <- readr::read_csv(
-        data_download_url(state, year = 2020),
-        show_col_types = FALSE,
-        progress = FALSE
-      )
-      saveRDS(as.data.frame(data), file_path)
-      return_code <- 0
-      if (return_code == 0) {
-        message("Download complete.")
-        succesfully_downloaded <- c(succesfully_downloaded, file_path)
-      } else {
-        message("Download failed.")
+  if (is.null(years)) {
+    years <- .all_years()
+  }
+  .validate_states_years(states, years)
+
+  data_dir <- data_dir()
+  if (!dir.exists(data_dir)) {
+    dir.create(data_dir, recursive = TRUE)
+  }
+
+  for (st in states) {
+    for (yr in years) {
+      rds_name <- paste0(st, "-", yr, ".rds")
+      rds_path <- file.path(data_dir, rds_name)
+
+      if (file.exists(rds_path)) {
+        message(rds_name, " already exists. Skipping.")
+        next
       }
+
+      csv_name <- paste0(st, "-", yr, ".csv")
+      csv_url  <- paste0("https://mydata.org/race/", st, "-", yr, ".csv")  # placeholder
+      csv_path <- file.path(tempdir(), csv_name)
+
+      message("Downloading: ", csv_name, " from ", csv_url)
+      # res <- utils::download.file(csv_url, csv_path, mode = "wb", quiet = TRUE)
+
+      # temporarily read data from local file
+      res <- 0
+      csv_path <- .temporary_local_path(st, yr)
+
+      # Check if download was successful
+      if (res != 0) {
+        warning(
+          "Download of ", csv_url, " failed with code ", res,
+          ". Skipping this file."
+        )
+        next
+      }
+
+      # Attempt to read the CSV
+      df <- tryCatch(
+        readr::read_csv(
+          csv_path,
+          show_col_types = FALSE,
+          progress = FALSE
+        ),
+        error = function(e) {
+          warning("Error reading CSV: ", conditionMessage(e))
+          return(NULL)
+        }
+      )
+
+      # If we couldn't read, remove the CSV file and skip
+      if (is.null(df)) {
+        if (file.exists(csv_path)) file.remove(csv_path)
+        next
+      }
+
+      # Save to RDS
+      saveRDS(as.data.frame(df), file = rds_path)
+      message("Saved data as: ", rds_path)
+
+      # Cleanup
+      # Re-enable this if we're actually downloading files
+      # if (file.exists(csv_path)) file.remove(csv_path)
     }
   }
 
-  invisible(succesfully_downloaded)
+  invisible(TRUE)
 }
 
 #' @rdname download_data
@@ -72,8 +111,8 @@ download_data <- function(states = NULL, ...) {
 load_data <- function(state) {
   year <- 2020
   data_name <- paste0(tolower(state), "_", year)
-  ensure_data_available(state, year)
-  readRDS(data_path(state, year))
+  .ensure_data_available(state, year)
+  readRDS(.data_path(state, year))
 }
 
 #' @rdname download_data
@@ -113,11 +152,11 @@ delete_all_data <- function() {
 #' @param state (string) The state to check.
 #' @return (data frame) A data frame of the data for the specified state.
 #'
-load_data_internal <- function(state, year = 2020) {
+.load_data_internal <- function(state, year = 2020) {
   data_name <- paste0(tolower(state), "_", year)
   if (!exists(data_name, envir = .internal_data_env)) {
-    ensure_data_available(state, year)
-    .internal_data_env[[data_name]] <- readRDS(data_path(state, year))
+    .ensure_data_available(state, year)
+    .internal_data_env[[data_name]] <- readRDS(.data_path(state, year))
   }
   .internal_data_env[[data_name]]
 }
@@ -129,8 +168,8 @@ load_data_internal <- function(state, year = 2020) {
 #'   two-letter state abbreviation.
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
-ensure_data_available <- function(state, year = 2020) {
-  if (!file.exists(data_path(state, year))) {
+.ensure_data_available <- function(state, year = 2020) {
+  if (!file.exists(.data_path(state, year))) {
     stop(
       "Data file for ", state, ", ", year, " not found. ",
       "Use `download_data()` to download it."
@@ -145,8 +184,8 @@ ensure_data_available <- function(state, year = 2020) {
 #' @param state (string) The state.
 #' @return (string) The path to the data file.
 #'
-data_path <- function(state, year = 2020) {
-  file.path(data_dir(), paste0(tolower(state), "_", year, ".rds"))
+.data_path <- function(state, year = 2020) {
+  file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
 
 #' Get the download URL for the data file for a particular state
@@ -156,8 +195,8 @@ data_path <- function(state, year = 2020) {
 #' @param year (integer) The year of the data.
 #' @return (string) The URL to download the data file.
 #'
-data_download_url <- function(state, year = 2020) {
-  paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "_", year, ".csv")
+.temporary_local_path <- function(state, year = 2020) {
+  paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "-", year, ".csv")
 }
 
 #' List the states that are currently available for download
@@ -166,7 +205,7 @@ data_download_url <- function(state, year = 2020) {
 #' @return (character vector) The two-letter state abbreviations of the
 #'   available states.
 #'
-all_states <- function() {
+.all_states <- function() {
   c("NC", "WA")
 }
 
@@ -174,38 +213,31 @@ all_states <- function() {
 #'
 #' @noRd
 #' @return (integer vector) The years of the available data.
-all_years <- function() {
+.all_years <- function() {
   as.integer(c(2020))
 }
 
-#' Validate that user-specified states are available
+#' Validate that user-specified states/years are available
 #'
 #' @noRd
 #' @param states (character vector) The states to validate.
+#' @param years (integer vector) The years to validate.
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
-validate_states <- function(states) {
-  if (!all(states %in% all_states())) {
-    stop(
-      "Invalid state(s) specified. Available states are: ",
-      paste(all_states(), collapse = ", ")
-    )
+.validate_states_years <- function(states, years) {
+  valid_s  <- .all_states()
+  valid_yr <- .all_years()
+
+  bad_states <- setdiff(states, valid_s)
+  if (length(bad_states) > 0) {
+    stop("Invalid states requested: ", paste(bad_states, collapse = ", "))
   }
+
+  bad_years  <- setdiff(years, valid_yr)
+  if (length(bad_years) > 0) {
+    stop("Invalid years requested: ", paste(bad_years, collapse = ", "))
+  }
+
   invisible(TRUE)
 }
 
-#' Validate that user-specified years are available
-#'
-#' @noRd
-#' @param states (integer vector) The years to validate.
-#' @return (logical) `TRUE`, invisibly, if no error.
-#'
-validate_years <- function(years) {
-  if (!all(years %in% all_years())) {
-    stop(
-      "Invalid year(s) specified. Available years are: ",
-      paste(all_years(), collapse = ", ")
-    )
-  }
-  invisible(TRUE)
-}

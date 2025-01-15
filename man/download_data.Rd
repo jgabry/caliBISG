@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load data files}
 \usage{
-download_data(states = NULL, ...)
+download_data(states = NULL, years = NULL)
 
 load_data(state)
 
@@ -23,15 +23,17 @@ delete_all_data()
 (\code{NULL}) is to download for all states. States should be provided as
 two-letter state \link[datasets:state]{abbreviations}.}
 
-\item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
-\code{\link[utils:download.file]{utils::download.file()}}.}
+\item{years}{(integer vector) The years to download data for. The default
+is to download all years. Currently only 2020 is available.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
+
+\item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
+\code{\link[utils:download.file]{utils::download.file()}}.}
 }
 \value{
 \itemize{
-\item \code{download_data()}: (character vector) The path(s) to the downloaded
-data file(s), invisibly.
+\item \code{download_data()}: (logical) \code{TRUE}, invisibly, if no error.
 }
 
 \itemize{
