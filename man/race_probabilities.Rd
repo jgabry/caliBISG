@@ -3,7 +3,7 @@
 \name{race_probabilities}
 \alias{race_probabilities}
 \alias{compare_race_probabilities}
-\alias{predict_race}
+\alias{most_probable_race}
 \alias{print.raking_bisg}
 \title{Predict race given surname and location}
 \usage{
@@ -11,7 +11,7 @@ race_probabilities(name, state, county, year = 2020)
 
 compare_race_probabilities(name, state, county, year = 2020)
 
-predict_race(name, state, county, year = 2020)
+most_probable_race(name, state, county, year = 2020)
 
 \method{print}{raking_bisg}(x, ..., digits = 4)
 }
@@ -59,7 +59,7 @@ following additional columns:
 \item \code{bisg_nh_white} (numeric): The improved BISG estimate for non-Hispanic White.
 \item \code{bisg_other} (numeric): The improved BISG estimate for other.
 }
-\item \code{predict_race()}: (data frame) A data frame with the following columns:
+\item \code{most_probable_race()}: (data frame) A data frame with the following columns:
 \itemize{
 \item \code{name} (string): The surname.
 \item \code{year} (integer): The year of the data used to compute the estimates.
@@ -91,14 +91,14 @@ refers to traditional BISG but including an adjustment to those predictions
 that accounts for the fact that we’re making predictions on registered
 voters, not the general population. It uses the registered voter status x
 race distribution and an application of Bayes rule.
-\item \code{predict_race()}: Same as \code{race_probabilities()} but only includes the
+\item \code{most_probable_race()}: Same as \code{race_probabilities()} but only includes the
 single most probable race, not probabilities for all the races.
 }
 }
 \examples{
 \dontrun{
-predict_race("smith", "wa", "king")
-predict_race("lopez", "nc", "burke")
+most_probable_race("smith", "wa", "king")
+most_probable_race("lopez", "nc", "burke")
 
 race_probabilities("smith", "wa", "king")
 race_probabilities("lopez", "nc", "burke")

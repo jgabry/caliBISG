@@ -32,7 +32,7 @@
 #' that accounts for the fact that we’re making predictions on registered
 #' voters, not the general population. It uses the registered voter status x
 #' race distribution and an application of Bayes rule.
-#' * `predict_race()`: Same as `race_probabilities()` but only includes the
+#' * `most_probable_race()`: Same as `race_probabilities()` but only includes the
 #' single most probable race, not probabilities for all the races.
 #'
 #' @return
@@ -59,7 +59,7 @@
 #'      - `bisg_nh_white` (numeric): The improved BISG estimate for non-Hispanic White.
 #'      - `bisg_other` (numeric): The improved BISG estimate for other.
 #'
-#' * `predict_race()`: (data frame) A data frame with the following columns:
+#' * `most_probable_race()`: (data frame) A data frame with the following columns:
 #'      - `name` (string): The surname.
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
@@ -72,8 +72,8 @@
 #'
 #' @examples
 #' \dontrun{
-#' predict_race("smith", "wa", "king")
-#' predict_race("lopez", "nc", "burke")
+#' most_probable_race("smith", "wa", "king")
+#' most_probable_race("lopez", "nc", "burke")
 #'
 #' race_probabilities("smith", "wa", "king")
 #' race_probabilities("lopez", "nc", "burke")
@@ -103,13 +103,14 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
   )
 }
 
+
 #' @rdname race_probabilities
 #' @export
-predict_race <- function(name, state, county, year = 2020) {
+most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- race_probabilities(name, state, county, year)
   raking_columns <- grepl("rake_", colnames(prediction))
-  most_likely <- which.max(prediction[, raking_columns])
-  prediction$race <- gsub("rake_", "", names(most_likely))
+  most_probable <- which.max(prediction[, raking_columns])
+  prediction$race <- gsub("rake_", "", names(most_probable))
   prediction <- prediction[, c("name", "year", "state", "county", "race")]
   rownames(prediction) <- NULL
   prediction
