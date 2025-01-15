@@ -14,11 +14,11 @@
 #'
 #' @details
 #' * `download_data()`: Download the required data files for the specified
-#' states. The files will be stored internally in a package-specific data
-#' [directory][tools::R_user_dir].
-#' * `load_data()`: Load the data for a particular state. This is only necessary
-#' if you want to work with the full data files directly. When using the
-#' functions provided by this package (e.g. [race_probabilities()]) the data
+#' states and years. The files will be stored internally in a package-specific
+#' data [directory][tools::R_user_dir].
+#' * `load_data()`: Load the data for a particular state-year. This is only
+#' necessary if you want to work with the full data files directly. When using
+#' the functions provided by this package (e.g. [race_probabilities()]) the data
 #' will be loaded internally automatically.
 #' * `data_dir()`: Get the path to the internal data directory.
 #' * `available_data()`: List the names of the available data files.
@@ -26,7 +26,7 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states = NULL, years = NULL) {
+download_data <- function(states = NULL, years = 2020) {
   if (is.null(states)) {
     states <- .all_states()
   }
@@ -36,9 +36,6 @@ download_data <- function(states = NULL, years = NULL) {
   .validate_states_years(states, years)
 
   data_dir <- data_dir()
-  if (!dir.exists(data_dir)) {
-    dir.create(data_dir, recursive = TRUE)
-  }
 
   for (st in states) {
     for (yr in years) {
@@ -105,12 +102,12 @@ download_data <- function(states = NULL, years = NULL) {
 #' @rdname download_data
 #' @export
 #' @param state (string) For `load_data()`, the state to load.
+#' @param year (integer) For `load_data()`, the year to load.
 #' @return * `load_data()`: (data frame) A data frame of the data for the
 #'   specified state.
 #'
-load_data <- function(state) {
-  year <- 2020
-  data_name <- paste0(tolower(state), "_", year)
+load_data <- function(state, year = 2020) {
+  stopifnot(length(state) == 1, length(year) == 1)
   .ensure_data_available(state, year)
   readRDS(.data_path(state, year))
 }
@@ -152,7 +149,7 @@ delete_all_data <- function() {
 #' @param state (string) The state to check.
 #' @return (data frame) A data frame of the data for the specified state.
 #'
-.load_data_internal <- function(state, year = 2020) {
+.load_data_internal <- function(state, year) {
   data_name <- paste0(tolower(state), "_", year)
   if (!exists(data_name, envir = .internal_data_env)) {
     .ensure_data_available(state, year)
@@ -168,7 +165,7 @@ delete_all_data <- function() {
 #'   two-letter state abbreviation.
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
-.ensure_data_available <- function(state, year = 2020) {
+.ensure_data_available <- function(state, year) {
   if (!file.exists(.data_path(state, year))) {
     stop(
       "Data file for ", state, ", ", year, " not found. ",
@@ -184,7 +181,7 @@ delete_all_data <- function() {
 #' @param state (string) The state.
 #' @return (string) The path to the data file.
 #'
-.data_path <- function(state, year = 2020) {
+.data_path <- function(state, year) {
   file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
 
@@ -195,7 +192,7 @@ delete_all_data <- function() {
 #' @param year (integer) The year of the data.
 #' @return (string) The URL to download the data file.
 #'
-.temporary_local_path <- function(state, year = 2020) {
+.temporary_local_path <- function(state, year) {
   paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "-", year, ".csv")
 }
 

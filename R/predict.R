@@ -22,9 +22,8 @@
 #' @param year (integer) The year of the data used to compute the estimates.
 #'   Currently only 2020 is available.
 #' @param ... Currently unused.
-#' @param digits (integer) For printing the output of
-#'   `compare_race_probabilities()`, the number of digits to display in the
-#'   output.
+#' @param digits (integer) For `print_comparison_tables()`, the number of digits
+#'   to display in the output.
 #'
 #' @details
 #' * `most_probable_race()`: The single most probable race according to the
@@ -36,6 +35,10 @@
 #' accounts for the fact that we’re making predictions on registered voters, not
 #' the general population. It uses the registered voter status x race
 #' distribution and an application of Bayes rule.
+#' * `print_comparison_tables()`: Pretty print the output of
+#' `compare_race_probabilities()`. Prints a separate table for each input
+#' record, so this is most useful when only a small number of records were
+#' requested.
 #'
 #' @return
 #' * `most_probable_race()`: (data frame) A data frame with the following columns:
@@ -92,13 +95,6 @@
 #' print_comparison_tables(comp2)
 #' }
 #'
-race_probabilities <- function(name, state, county, year = 2020) {
-  rec <- .get_single_record(name, state, county, year)
-  rec[, c(.demographic_columns(), .rake_columns()), drop = FALSE]
-}
-
-#' @rdname race_probabilities
-#' @export
 most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- race_probabilities(name, state, county, year)
   if (anyNA(prediction)) {
@@ -111,8 +107,15 @@ most_probable_race <- function(name, state, county, year = 2020) {
   prediction
 }
 
+#' @rdname most_probable_race
+#' @export
+race_probabilities <- function(name, state, county, year = 2020) {
+  rec <- .get_single_record(name, state, county, year)
+  rec[, c(.demographic_columns(), .rake_columns()), drop = FALSE]
+}
 
-#' @rdname race_probabilities
+
+#' @rdname most_probable_race
 #' @export
 compare_race_probabilities <- function(name, state, county, year = 2020) {
   if (!(length(state) == length(name) && length(county) == length(name))) {
@@ -126,7 +129,7 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
 }
 
 
-#' @rdname race_probabilities
+#' @rdname most_probable_race
 #' @export
 print_comparison_tables <- function(x, ..., digits = 4) {
   if (!inherits(x, "raking_bisg")) {
