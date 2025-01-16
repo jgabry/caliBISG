@@ -136,6 +136,7 @@ available_data <- function() {
 #' @export
 #'
 delete_all_data <- function() {
+  message("Deleting data files: ", paste(available_data(), collapse = ", "))
   unlink(data_dir(), recursive = TRUE)
 }
 

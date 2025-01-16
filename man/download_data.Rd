@@ -8,9 +8,9 @@
 \alias{delete_all_data}
 \title{Download and load data files}
 \usage{
-download_data(states = NULL, years = NULL)
+download_data(states = NULL, years = 2020)
 
-load_data(state)
+load_data(state, year = 2020)
 
 data_dir()
 
@@ -27,6 +27,8 @@ two-letter state \link[datasets:state]{abbreviations}.}
 is to download all years. Currently only 2020 is available.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
+
+\item{year}{(integer) For \code{load_data()}, the year to load.}
 
 \item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
 \code{\link[utils:download.file]{utils::download.file()}}.}
@@ -57,11 +59,11 @@ used by the package. See \strong{Details}.
 \details{
 \itemize{
 \item \code{download_data()}: Download the required data files for the specified
-states. The files will be stored internally in a package-specific data
-\link[tools:userdir]{directory}.
-\item \code{load_data()}: Load the data for a particular state. This is only necessary
-if you want to work with the full data files directly. When using the
-functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
+states and years. The files will be stored internally in a package-specific
+data \link[tools:userdir]{directory}.
+\item \code{load_data()}: Load the data for a particular state-year. This is only
+necessary if you want to work with the full data files directly. When using
+the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
 will be loaded internally automatically.
 \item \code{data_dir()}: Get the path to the internal data directory.
 \item \code{available_data()}: List the names of the available data files.

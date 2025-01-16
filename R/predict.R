@@ -125,7 +125,18 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
     .get_single_record(name[i], state[i], county[i], year)
   })
   out <- do.call(rbind, out_list)
-  structure(out, class = c("raking_bisg", class(out)))
+  col_order <- c(
+    .demographic_columns(),
+    # interleave rake and bisg columns for easier visual comparison
+    as.vector(rbind(
+      paste0("rake_", .race_column_order()),
+      paste0("bisg_", .race_column_order())
+    ))
+  )
+  structure(
+    out[, col_order, drop = FALSE],
+    class = c("raking_bisg", class(out))
+  )
 }
 
 
@@ -154,20 +165,21 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 
 # internal ----------------------------------------------------------------
 
-
-.demographic_columns <- function() {
-  c("name", "year", "state", "county")
-}
-.rake_columns <- function() {
-  c("rake_nh_aian", "rake_nh_api", "rake_nh_black", "rake_hispanic",
-    "rake_nh_white", "rake_other")
-}
-.bisg_columns <- function() {
-  c("bisg_nh_aian", "bisg_nh_api", "bisg_nh_black", "bisg_hispanic",
-    "bisg_nh_white", "bisg_other")
-}
 .races <- function() {
   c("AIAN", "API", "Black", "Hispanic", "White", "Other")
+}
+.race_column_order <- function() {
+  # Must match the suffixes that appear after "bisg_" or "rake_".
+  c("nh_aian", "nh_api", "nh_black", "hispanic", "nh_white", "other")
+}
+.rake_columns <- function() {
+  paste0("rake_", .race_column_order())
+}
+.bisg_columns <- function() {
+  paste0("bisg_", .race_column_order())
+}
+.demographic_columns <- function() {
+  c("name", "year", "state", "county")
 }
 
 
