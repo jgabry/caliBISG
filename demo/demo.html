@@ -11,7 +11,7 @@
 
 <meta name="author" content />
 
-<meta name="date" content="2025-01-07" />
+<meta name="date" content="2025-01-16" />
 
 <title>PISG demo</title>
 
@@ -352,24 +352,24 @@ display: none;
 
 <h1 class="title toc-ignore">PISG demo</h1>
 <h4 class="author"></h4>
-<h4 class="date">2025-01-07</h4>
+<h4 class="date">2025-01-16</h4>
 
 </div>
 
 
 <div id="download-data" class="section level2">
 <h2>Download data</h2>
-<p>Right now the <code>download_data()</code> function just pretends to
-download these and is actually reading them from a folder on my laptop
-and then storing them in the internal package directory. In the future,
-we will actually download these from the internet once we decide where
-to host the files.</p>
-<pre class="r"><code>download_data(states = c(&quot;NC&quot;, &quot;WA&quot;)) </code></pre>
-<pre><code>Downloading data for states: NC, WA</code></pre>
-<pre><code>Downloading data file /Users/jgabry/Desktop/tmp/voter_bisg/nc_2020.csv</code></pre>
-<pre><code>Download complete.</code></pre>
-<pre><code>Downloading data file /Users/jgabry/Desktop/tmp/voter_bisg/wa_2020.csv</code></pre>
-<pre><code>Download complete.</code></pre>
+<p>In the future, we will actually download these files from the
+internet (once we decide where to host the files). For now, in order to
+demonstrate what the user experience will look like, the
+<code>download_data()</code> function is pretending to download them
+(the URL in the console output is fake) but is actually reading them
+from a folder on my computer.</p>
+<pre class="r"><code>download_data(states = c(&quot;NC&quot;, &quot;WA&quot;), years = 2020) </code></pre>
+<pre><code>Downloading: NC-2020.csv from https://mydata.org/race/NC-2020.csv</code></pre>
+<pre><code>Saved data as: /Users/jgabry/Library/Application Support/org.R-project.R/R/pisg/NC-2020.rds</code></pre>
+<pre><code>Downloading: WA-2020.csv from https://mydata.org/race/WA-2020.csv</code></pre>
+<pre><code>Saved data as: /Users/jgabry/Library/Application Support/org.R-project.R/R/pisg/WA-2020.rds</code></pre>
 <p>If the user wants to work directly with the large files instead of
 using the package’s convenience functions they can load the data
 themselves.</p>
@@ -381,22 +381,32 @@ they never need to call <code>load_data()</code>, but I assume some
 users will want the option to access the files directly.</p>
 <p>Right now only 2020 is available but eventually we can let the user
 specify which years they want to download/load.</p>
+<div id="convenience-functions-for-managing-data" class="section level4">
+<h4>Convenience functions for managing data</h4>
+<p>I’ve also added a few data-related convenience functions.</p>
+<p>The <code>data_dir()</code> function returns the path to the internal
+data storage directory:</p>
+<pre class="r"><code>data_dir()</code></pre>
+<pre><code>[1] &quot;/Users/jgabry/Library/Application Support/org.R-project.R/R/pisg&quot;</code></pre>
+<p>The <code>available_data()</code> function lists the files the user
+has already downloaded that are available for them to query:</p>
+<pre class="r"><code>available_data()</code></pre>
+<pre><code>[1] &quot;NC-2020.rds&quot; &quot;WA-2020.rds&quot;</code></pre>
+<p>The <code>delete_all_data()</code> function deletes all the files in
+the internal data storage directory:</p>
+<pre class="r"><code>delete_all_data()</code></pre>
+<pre><code>Deleting data files: NC-2020.rds, WA-2020.rds</code></pre>
 </div>
-<div id="predict-most-likely-race" class="section level2">
-<h2>Predict most likely race</h2>
-<pre class="r"><code>predict_race(name = &quot;smith&quot;, state = &quot;WA&quot;, county = &quot;king&quot;)</code></pre>
-<pre><code>   name year state county     race
-1 smith 2020    WA   king nh_white</code></pre>
-<p>It doesn’t matter if the names are capitalized or not, they are
-always lowercase in the output for <code>name</code> and
-<code>county</code> and uppercase in the output for <code>state</code>
-abbreviation. Is that the behavior we want? Just to demonstrate here’s
-an extreme example:</p>
-<pre class="r"><code>predict_race(name = &quot;SMITH&quot;, state = &quot;wa&quot;, county = &quot;King&quot;)</code></pre>
+</div>
+<div id="predict-most-probable-race" class="section level2">
+<h2>Predict most probable race</h2>
+<p>The <code>most_probable_race()</code> function provides the single
+most probable race according to PISG.</p>
+<pre class="r"><code>most_probable_race(name = &quot;smith&quot;, state = &quot;WA&quot;, county = &quot;king&quot;)</code></pre>
 <pre><code>   name year state county     race
 1 smith 2020    WA   king nh_white</code></pre>
 <p>The returned object is just a standard data frame:</p>
-<pre class="r"><code>smith_wa_king &lt;- predict_race(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)
+<pre class="r"><code>smith_wa_king &lt;- most_probable_race(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)
 str(smith_wa_king)</code></pre>
 <pre><code>&#39;data.frame&#39;:   1 obs. of  5 variables:
  $ name  : chr &quot;smith&quot;
@@ -404,16 +414,25 @@ str(smith_wa_king)</code></pre>
  $ state : chr &quot;WA&quot;
  $ county: chr &quot;king&quot;
  $ race  : chr &quot;nh_white&quot;</code></pre>
-<p>The <code>predict_race()</code> function also takes a
-<code>year</code> argument but right now only 2020 is available.</p>
+<p>If the the name/state/county combination that the user requests is
+not found we return <code>NA</code> for the <code>race</code> column
+with a warning.</p>
+<pre class="r"><code>most_probable_race(&quot;smith&quot;, &quot;wa&quot;, &quot;not_a_county&quot;)</code></pre>
+<pre><code>Warning in .get_single_record(name, state, county, year): No record found for
+(name=smith, state=wa, county=not_a_county, year=2020). Returning NAs.</code></pre>
+<pre><code>   name year state       county race
+1 smith 2020    wa not_a_county   NA</code></pre>
+<p><strong>Does this seem like the right behavior or do you prefer an
+error in this case?</strong></p>
+<p>The <code>most_probable_race()</code> function also takes a
+<code>year</code> argument but right now only 2020 is available, so we
+default to using 2020.</p>
 </div>
 <div id="get-probabilities-for-all-races" class="section level2">
 <h2>Get probabilities for all races</h2>
-<p>The <code>race_probabilities()</code> function gives the raking-based
-estimates for the probabilities of all the races. This function also
-takes a <code>year</code> argument but right now only 2020 is
-available.</p>
-<p>Again, the object returned is just a standard data frame:</p>
+<p>The <code>race_probabilities()</code> function gives the PISG
+estimates for the probabilities of all the races. Again, the object
+returned is just a standard data frame:</p>
 <pre class="r"><code>lopez_nc_burke_probs &lt;- race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
 str(lopez_nc_burke_probs)</code></pre>
 <pre><code>&#39;data.frame&#39;:   1 obs. of  10 variables:
@@ -427,73 +446,119 @@ str(lopez_nc_burke_probs)</code></pre>
  $ rake_hispanic: num 0.887
  $ rake_nh_white: num 0.0839
  $ rake_other   : num 0.0016</code></pre>
-<p>What should we name these columns? Right now the names (e.g.,
-<code>rake_nh_white</code>) are the column names Philip gave me, but we
-can name them whatever we want in the R package.</p>
+<p><strong>What should we name these columns?</strong> Right now the
+names (e.g., <code>rake_nh_white</code>) are the column names Philip
+gave me, but we can name them whatever we want in the R package.</p>
+<p>Similar to <code>most_probable_race()</code>, if the
+name/state/county combination is not found we return <code>NA</code> for
+all the probabilities with a warning:</p>
+<pre class="r"><code>race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;not_a_county&quot;)</code></pre>
+<pre><code>Warning in .get_single_record(name, state, county, year): No record found for
+(name=lopez, state=nc, county=not_a_county, year=2020). Returning NAs.</code></pre>
+<pre><code>   name year state       county rake_nh_aian rake_nh_api rake_nh_black
+1 lopez 2020    nc not_a_county           NA          NA            NA
+  rake_hispanic rake_nh_white rake_other
+1            NA            NA         NA</code></pre>
+<p><strong>Same question as before: do you like that or do you prefer an
+error?</strong></p>
 </div>
 <div id="compare-raking-based-bisg-to-improved-bisg" class="section level2">
 <h2>Compare raking-based BISG to “improved BISG”</h2>
-<p>Based on Philip’s latest email it sounds like I have PISG and
-improved BISG estimates (not traditional BISG estimates), so for now I
-wrote a function to compare those two estimates:</p>
-<pre class="r"><code>compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)</code></pre>
-<pre><code>Surname:  Lopez     
-State:    NC        
-County:   Burke     
-Year:     2020      
-
-Race       Pr_raking  Pr_bisg   
------------------------------- 
-AIAN       0.0045     0.0049    
-API        0.0201     0.0210    
-Black      0.0034     0.0040    
-Hispanic   0.8866     0.8308    
-White      0.0839     0.1380    
-Other      0.0016     0.0013    </code></pre>
-<p>The number of digits printed in the table can be controlled by
-calling <code>print</code> and specifying the <code>digits</code>
-argument. For example, to only show 2 digits:</p>
-<pre class="r"><code>print(
- compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;),
- digits = 2
-)</code></pre>
-<pre><code>Surname:  Lopez     
-State:    NC        
-County:   Burke     
-Year:     2020      
-
-Race       Pr_raking  Pr_bisg   
------------------------------- 
-AIAN       0.00       0.00      
-API        0.02       0.02      
-Black      0.00       0.00      
-Hispanic   0.89       0.83      
-White      0.08       0.14      
-Other      0.00       0.00      </code></pre>
-<p>This function also returns a regular data frame, but that’s a bit
-hidden from view due to the custom print method that summarizes it into
-the table above (I added an additional class to the object and defined a
-print method for that class). But it’s still just a data frame
-underneath:</p>
-<pre class="r"><code>lopez_nc_burke_comparison &lt;- compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
-str(lopez_nc_burke_comparison)</code></pre>
+<p>The files I have contain PISG and improved BISG estimates but not
+traditional BISG estimates, so for now we can compare those
+estimates:</p>
+<pre class="r"><code>comp1 &lt;- compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
+str(comp1)</code></pre>
 <pre><code>Classes &#39;raking_bisg&#39; and &#39;data.frame&#39;: 1 obs. of  16 variables:
  $ name         : chr &quot;lopez&quot;
  $ year         : num 2020
  $ state        : chr &quot;NC&quot;
  $ county       : chr &quot;burke&quot;
- $ bisg_nh_aian : num 0.00494
- $ bisg_nh_api  : num 0.021
- $ bisg_nh_black: num 0.00398
- $ bisg_hispanic: num 0.831
- $ bisg_nh_white: num 0.138
- $ bisg_other   : num 0.00131
  $ rake_nh_aian : num 0.00446
+ $ bisg_nh_aian : num 0.00494
  $ rake_nh_api  : num 0.0201
+ $ bisg_nh_api  : num 0.021
  $ rake_nh_black: num 0.00337
+ $ bisg_nh_black: num 0.00398
  $ rake_hispanic: num 0.887
+ $ bisg_hispanic: num 0.831
  $ rake_nh_white: num 0.0839
- $ rake_other   : num 0.0016</code></pre>
+ $ bisg_nh_white: num 0.138
+ $ rake_other   : num 0.0016
+ $ bisg_other   : num 0.00131</code></pre>
+<p>This just returns a data frame with <code>bisg</code> columns and
+<code>rake</code> columns, but the columns are interleaved, i.e.,
+ordered to place the races next to each other for easier comparison.
+<strong>Do you like returning a data frame like this? Other
+ideas?</strong></p>
+<div id="multiple-comparisons" class="section level4">
+<h4>Multiple comparisons</h4>
+<p>The <code>compare_race_probabilities()</code> function can also now
+take vectors as inputs and the resulting data frame will have number of
+rows equal to the lengths of the vectors:</p>
+<pre class="r"><code>comp2 &lt;- compare_race_probabilities(
+  name = c(&quot;lopez&quot;, &quot;jackson&quot;), 
+  state = c(&quot;wa&quot;, &quot;nc&quot;), 
+  county = c(&quot;king&quot;, &quot;burke&quot;)
+)
+str(comp2)</code></pre>
+<pre><code>Classes &#39;raking_bisg&#39; and &#39;data.frame&#39;: 2 obs. of  16 variables:
+ $ name         : chr  &quot;lopez&quot; &quot;jackson&quot;
+ $ year         : num  2020 2020
+ $ state        : chr  &quot;WA&quot; &quot;NC&quot;
+ $ county       : chr  &quot;king&quot; &quot;burke&quot;
+ $ rake_nh_aian : num  0.0084 0.0117
+ $ bisg_nh_aian : num  0.00544 0.00881
+ $ rake_nh_api  : num  0.02262 0.00719
+ $ bisg_nh_api  : num  0.02077 0.00514
+ $ rake_nh_black: num  0.00523 0.29442
+ $ bisg_nh_black: num  0.0177 0.2369
+ $ rake_hispanic: num  0.8756 0.0224
+ $ bisg_hispanic: num  0.8682 0.0143
+ $ rake_nh_white: num  0.0841 0.6457
+ $ bisg_nh_white: num  0.0865 0.7244
+ $ rake_other   : num  0.00406 0.01868
+ $ bisg_other   : num  0.00144 0.01044</code></pre>
+</div>
+<div id="printing-comparison-tables" class="section level4">
+<h4>Printing comparison tables</h4>
+<p>Also new is that, instead of automatically printing the formatted
+comparison tables, the user now needs to call a new function
+<code>print_comparison_tables()</code>. This is because if the user asks
+for a comparison of many names, states, and counties, too much would be
+printed in the console. So now if the user has a small number of
+comparisons they can call <code>print_comparison_tables()</code> and it
+will print one table per row of the data frame:</p>
+<pre class="r"><code>print_comparison_tables(comp2)</code></pre>
+<pre><code>Surname:  Lopez     
+State:    WA        
+County:   King      
+Year:     2020      
+
+Race       Pr_raking  Pr_bisg   
+------------------------------ 
+AIAN       0.0084     0.0054    
+API        0.0226     0.0208    
+Black      0.0052     0.0177    
+Hispanic   0.8756     0.8682    
+White      0.0841     0.0865    
+Other      0.0041     0.0014    
+
+
+Surname:  Jackson   
+State:    NC        
+County:   Burke     
+Year:     2020      
+
+Race       Pr_raking  Pr_bisg   
+------------------------------ 
+AIAN       0.0117     0.0088    
+API        0.0072     0.0051    
+Black      0.2944     0.2369    
+Hispanic   0.0224     0.0143    
+White      0.6457     0.7244    
+Other      0.0187     0.0104    </code></pre>
+</div>
 </div>
 
 

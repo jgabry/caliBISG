@@ -1,7 +1,7 @@
 ---
 title: "PISG demo"
 author: ""
-date: "2025-01-07"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -11,20 +11,21 @@ knitr::opts_chunk$set(echo = TRUE, comment = "")
 
 
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, message=FALSE}
 library(pisg)
 delete_all_data()
 ```
 
 ## Download data
 
-Right now the `download_data()` function just pretends to download these and is
-actually reading them from a folder on my laptop and then storing them in the
-internal package directory. In the future, we will actually download these from
-the internet once we decide where to host the files. 
+In the future, we will actually download these files from the internet (once we
+decide where to host the files). For now, in order to demonstrate what the user
+experience will look like, the `download_data()` function is pretending to
+download them (the URL in the console output is fake) but is actually reading
+them from a folder on my computer.
 
 ```{r}
-download_data(states = c("NC", "WA")) 
+download_data(states = c("NC", "WA"), years = 2020) 
 ```
 
 If the user wants to work directly with the large files instead of using the
@@ -41,76 +42,124 @@ access the files directly.
 Right now only 2020 is available but eventually we can let the user specify
 which years they want to download/load. 
 
+#### Convenience functions for managing data
 
-## Predict most likely race
+I've also added a few data-related convenience functions. 
 
-```{r}
-predict_race(name = "smith", state = "WA", county = "king")
-```
-
-It doesn't matter if the names are capitalized or not, they are always lowercase
-in the output for `name` and `county` and uppercase in the output for `state`
-abbreviation. Is that the behavior we want? Just to demonstrate here's an
-extreme example:
+The `data_dir()` function returns the path to the internal data storage directory:
 
 ```{r}
-predict_race(name = "SMITH", state = "wa", county = "King")
+data_dir()
 ```
 
+The `available_data()` function lists the files the user has already downloaded
+that are available for them to query:
+
+```{r}
+available_data()
+```
+
+The `delete_all_data()` function deletes all the files in the internal data
+storage directory:
+
+```{r}
+delete_all_data()
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+download_data(states = c("NC", "WA"), years = 2020)
+```
+
+## Predict most probable race
+
+The `most_probable_race()` function provides the single most probable race
+according to PISG.
+
+```{r}
+most_probable_race(name = "smith", state = "WA", county = "king")
+```
 The returned object is just a standard data frame: 
 
 ```{r}
-smith_wa_king <- predict_race("smith", "wa", "king")
+smith_wa_king <- most_probable_race("smith", "wa", "king")
 str(smith_wa_king)
 ```
 
-The `predict_race()` function also takes a `year` argument but right now only
-2020 is available. 
+If the the name/state/county combination that the user requests is not found
+we return `NA` for the `race` column with a warning. 
+
+```{r}
+most_probable_race("smith", "wa", "not_a_county")
+```
+
+**Does this seem like the right behavior or do you prefer an error in this case?**
+
+The `most_probable_race()` function also takes a `year` argument but right now
+only 2020 is available, so we default to using 2020.
 
 ## Get probabilities for all races
 
-The `race_probabilities()` function gives the raking-based estimates for the
-probabilities of all the races. This function also takes a `year` argument but
-right now only 2020 is available.
-
-Again, the object returned is just a standard data frame: 
+The `race_probabilities()` function gives the PISG estimates for the
+probabilities of all the races. Again, the object returned is just a standard
+data frame:
 
 ```{r}
 lopez_nc_burke_probs <- race_probabilities("lopez", "nc", "burke")
 str(lopez_nc_burke_probs)
 ```
 
-What should we name these columns? Right now the names (e.g., `rake_nh_white`)
+**What should we name these columns?** Right now the names (e.g., `rake_nh_white`)
 are the column names Philip gave me, but we can name them whatever we want in
 the R package.
 
+Similar to `most_probable_race()`, if the name/state/county combination is not
+found we return `NA` for all the probabilities with a warning: 
+
+```{r}
+race_probabilities("lopez", "nc", "not_a_county")
+```
+
+**Same question as before: do you like that or do you prefer an error?**
+
+
 ## Compare raking-based BISG to "improved BISG"
 
-Based on Philip's latest email it sounds like I have PISG and improved BISG
-estimates (not traditional BISG estimates), so for now I wrote a function to 
-compare those two estimates:  
+The files I have contain PISG and improved BISG estimates but not traditional
+BISG estimates, so for now we can compare those estimates:
 
 ```{r}
-compare_race_probabilities("lopez", "nc", "burke")
+comp1 <- compare_race_probabilities("lopez", "nc", "burke")
+str(comp1)
 ```
 
-The number of digits printed in the table can be controlled by calling `print`
-and specifying the `digits` argument. For example, to only show 2 digits:
+This just returns a data frame with `bisg` columns and `rake` columns, but the
+columns are interleaved, i.e., ordered to place the races next to each other for
+easier comparison. **Do you like returning a data frame like this? Other ideas?**
+
+#### Multiple comparisons 
+
+The `compare_race_probabilities()` function can also now take vectors as inputs
+and the resulting data frame will have number of rows equal to the lengths of
+the vectors:
 
 ```{r}
-print(
- compare_race_probabilities("lopez", "nc", "burke"),
- digits = 2
+comp2 <- compare_race_probabilities(
+  name = c("lopez", "jackson"), 
+  state = c("wa", "nc"), 
+  county = c("king", "burke")
 )
+str(comp2)
 ```
 
-This function also returns a regular data frame, but that's a bit hidden from
-view due to the custom print method that summarizes it into the table above (I
-added an additional class to the object and defined a print method for that
-class). But it's still just a data frame underneath:
+#### Printing comparison tables 
+
+Also new is that, instead of automatically printing the formatted comparison
+tables, the user now needs to call a new function `print_comparison_tables()`.
+This is because if the user asks for a comparison of many names, states, and
+counties, too much would be printed in the console. So now if the user has a
+small number of comparisons they can call `print_comparison_tables()` and it
+will print one table per row of the data frame:
 
 ```{r}
-lopez_nc_burke_comparison <- compare_race_probabilities("lopez", "nc", "burke")
-str(lopez_nc_burke_comparison)
+print_comparison_tables(comp2)
 ```
-
