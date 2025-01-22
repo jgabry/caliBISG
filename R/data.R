@@ -63,7 +63,8 @@ download_data <- function(states = NULL, years = 2020) {
       if (res != 0) {
         warning(
           "Download of ", csv_url, " failed with code ", res,
-          ". Skipping this file."
+          ". Skipping this file.",
+          call. = FALSE
         )
         next
       }
@@ -90,6 +91,7 @@ download_data <- function(states = NULL, years = 2020) {
       # Add year and state and order the columns
       df$year <- yr
       df$state <- st
+      colnames(df) <- gsub("bisg_bayes", "bisg", colnames(df))
       col_order <- c(.demographic_columns(), .rake_columns(), .bisg_columns())
       df <- df[, col_order]
 
@@ -180,7 +182,8 @@ delete_all_data <- function() {
   if (!file.exists(.data_path(state, year))) {
     stop(
       "Data file for ", state, ", ", year, " not found. ",
-      "Use `download_data()` to download it."
+      "Use `download_data()` to download it.",
+      call. = FALSE
     )
   }
   invisible(TRUE)
@@ -236,7 +239,8 @@ delete_all_data <- function() {
   if (length(bad_states) > 0) {
     stop(
       "Invalid states requested: ", paste(bad_states, collapse = ", "),
-      "\n  Available states are: ", paste(valid_states, collapse = ", ")
+      "\n  Available states are: ", paste(valid_states, collapse = ", "),
+      call. = FALSE
     )
   }
 
@@ -244,7 +248,8 @@ delete_all_data <- function() {
   if (length(bad_years) > 0) {
     stop(
       "Invalid years requested: ", paste(bad_years, collapse = ", "),
-      "\n  Available years are: ", paste(valid_years, collapse = ", ")
+      "\n  Available years are: ", paste(valid_years, collapse = ", "),
+      call. = FALSE
     )
   }
 

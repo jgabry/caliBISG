@@ -9,16 +9,16 @@
 #'   These functions are just convenience functions for querying the large data
 #'   files. You can also [load][load_data()] and use the data files directly.
 #'
+#'   NOTE: the first query for a particular `state` and `year` may take a few
+#'   seconds to first load the data internally. Subsequent calls for the same
+#'   `state` and `year` will be faster.
+#'
 #' @export
-#' @param name (character vector) For `most_probable_race()` and
-#'   `race_probabilities()`, a single surname. Can be a vector of surnames for
-#'   `compare_race_probabilities()`. Coerced to lowercase internally.
-#' @param state (character vector) For `most_probable_race()` and
-#'   `race_probabilities()`, a single state abbreviation. Can be a vector of state
-#'   abbreviations for `compare_race_probabilities()`.
-#' @param county (character vector) For `most_probable_race()` and
-#'   `race_probabilities()`, a single county. Can be a vector of counties for
-#'   `compare_race_probabilities()`. Coerced to lowercase internally.
+#' @param name (character vector) A vector of surnames. Coerced to lowercase
+#'   internally.
+#' @param state (character vector) A vector of state abbreviations.
+#' @param county (character vector) A vector of counties. Coerced to lowercase
+#'   internally.
 #' @param year (integer) The year of the data used to compute the estimates.
 #'   Currently only 2020 is available.
 #' @param ... Currently unused.
@@ -48,8 +48,7 @@
 #'      - `county` (string): The county.
 #'      - `race` (string): The most probable race based on the raking estimates.
 #'
-#' * `race_probabilities()`: (data frame) A data frame with one
-#' row and the following columns:
+#' * `race_probabilities()`: (data frame) A data frame with the following columns:
 #'      - `name` (string): The surname.
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
@@ -78,9 +77,20 @@
 #' \dontrun{
 #' most_probable_race("smith", "wa", "king")
 #' most_probable_race("lopez", "nc", "burke")
+#' most_probable_race(
+#'   name = c("Lopez", "Jackson"),
+#'   state = c("NC", "WA"),
+#'   county = c("Burke", "King")
+#' )
 #'
 #' race_probabilities("smith", "wa", "king")
 #' race_probabilities("lopez", "nc", "burke")
+#' probs2 <- race_probabilities(
+#'   name = c("Lopez", "Jackson"),
+#'   state = c("NC", "WA"),
+#'   county = c("Burke", "King")
+#' )
+#' str(probs2)
 #'
 #' comp1 <- compare_race_probabilities("smith", "wa", "king")
 #' str(comp1)
@@ -97,34 +107,63 @@
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- race_probabilities(name, state, county, year)
-  if (anyNA(prediction)) {
-    return(cbind(prediction[, .demographic_columns()], race = NA))
-  }
-  most_probable <- which.max(prediction[, .rake_columns()])
-  prediction$race <- gsub("rake_", "", names(most_probable))
-  prediction <- prediction[, c(.demographic_columns(), "race")]
-  rownames(prediction) <- NULL
-  prediction
+  prediction$race <- apply(
+    prediction[, .rake_columns()], 1, function(probs) {
+    if (all(is.na(probs))) {
+      NA_character_
+    } else {
+      # For each row, find the race with the highest probability
+      idx <- which.max(probs)
+      sub("^rake_", "", names(probs)[idx])
+    }
+  })
+  prediction[, c(.demographic_columns(), "race")]
 }
 
 #' @rdname most_probable_race
 #' @export
 race_probabilities <- function(name, state, county, year = 2020) {
-  rec <- .get_single_record(name, state, county, year)
-  rec[, c(.demographic_columns(), .rake_columns()), drop = FALSE]
+  stopifnot(is.numeric(year), length(year) == 1)
+  if (!(length(state) == length(name) && length(county) == length(name))) {
+    stop("`name`, `state`, and `county` must all have the same length.")
+  }
+  out_list <- lapply(seq_along(name), function(i) {
+    .get_single_record(name[i], state[i], county[i], year, quiet = TRUE)
+  })
+  out <- do.call(rbind, out_list)
+  not_found_count <- sum(!out$.found)
+  if (not_found_count > 0) {
+    warning(
+      "No record found for ",
+      not_found_count,
+      " input(s). Returning NAs for those cases.",
+      call. = FALSE
+    )
+  }
+  out[, c(.demographic_columns(), .rake_columns())]
 }
 
 
 #' @rdname most_probable_race
 #' @export
 compare_race_probabilities <- function(name, state, county, year = 2020) {
+  stopifnot(is.numeric(year), length(year) == 1)
   if (!(length(state) == length(name) && length(county) == length(name))) {
     stop("`name`, `state`, and `county` must all have the same length.")
   }
   out_list <- lapply(seq_along(name), function(i) {
-    .get_single_record(name[i], state[i], county[i], year)
+    .get_single_record(name[i], state[i], county[i], year, quiet = TRUE)
   })
   out <- do.call(rbind, out_list)
+  not_found_count <- sum(!out$.found)
+  if (not_found_count > 0) {
+    warning(
+      "No record found for ",
+      not_found_count,
+      " input(s). Returning NAs for those cases.",
+      call. = FALSE
+    )
+  }
   col_order <- c(
     .demographic_columns(),
     # interleave rake and bisg columns for easier visual comparison
@@ -144,7 +183,8 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
 #' @export
 print_comparison_tables <- function(x, ..., digits = 4) {
   if (!inherits(x, "raking_bisg")) {
-    stop("Input must be an object returned by compare_race_probabilities().")
+    stop("Input must be an object returned by compare_race_probabilities().",
+         call. = FALSE)
   }
   for (j in seq_len(nrow(x))) {
     cat(
@@ -187,9 +227,11 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #'
 #' @noRd
 #' @param name,state,county,year Same as above.
+#' @param quiet Whether to suppress warnings.
 #' @return A data frame with all available columns (both BISG and raking
-#'   estimates)
-.get_single_record <- function(name, state, county, year) {
+#'   estimates) plus a column `.found` indicating if the requested record was
+#'   found.
+.get_single_record <- function(name, state, county, year, quiet = FALSE) {
   stopifnot(
     is.character(name), length(name) == 1,
     is.character(county), length(county) == 1,
@@ -215,13 +257,17 @@ print_comparison_tables <- function(x, ..., digits = 4) {
     for (col in c(.rake_columns(), .bisg_columns())) {
       out[[col]] <- NA_real_
     }
-    warning(
-      "No record found for (name=", name,
-      ", state=", state,
-      ", county=", county,
-      ", year=", year,
-      "). Returning NAs."
-    )
+    out$.found <- FALSE
+    if (!quiet) {
+      warning(
+        "No record found for (name=", name,
+        ", state=", state,
+        ", county=", county,
+        ", year=", year,
+        "). Returning NAs.",
+        call. = FALSE
+      )
+    }
     return(out)
   }
 
@@ -229,11 +275,13 @@ print_comparison_tables <- function(x, ..., digits = 4) {
     warning(
       "Multiple rows found for (name=", name,
       ", state=", state, ", county=", county, ", year=", year, "). ",
-      "Returning the first match."
+      "Returning the first match.",
+      call. = FALSE
     )
     subset_df <- subset_df[1, ]
   }
 
+  subset_df$.found <- TRUE
   subset_df
 }
 
