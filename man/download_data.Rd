@@ -21,10 +21,11 @@ delete_all_data()
 \arguments{
 \item{states}{(character vector) The states to download data for. The default
 (\code{NULL}) is to download for all states. States should be provided as
-two-letter state \link[datasets:state]{abbreviations}.}
+uppercase two-letter state \link[datasets:state]{abbreviations}.}
 
-\item{years}{(integer vector) The years to download data for. The default
-is to download all years. Currently only 2020 is available.}
+\item{years}{(integer vector) The years to download data for. The default is
+to download all years. Currently only 2020 is available but more years will
+be added eventually.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
@@ -61,7 +62,7 @@ used by the package. See \strong{Details}.
 \item \code{download_data()}: Download the required data files for the specified
 states and years. The files will be stored internally in a package-specific
 data \link[tools:userdir]{directory}.
-\item \code{load_data()}: Load the data for a particular state-year. This is only
+\item \code{load_data()}: Load the data for a particular \code{state}-\code{year}. This is only
 necessary if you want to work with the full data files directly. When using
 the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
 will be loaded internally automatically.
