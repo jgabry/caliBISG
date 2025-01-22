@@ -6,9 +6,10 @@
 #' @export
 #' @param states (character vector) The states to download data for. The default
 #'   (`NULL`) is to download for all states. States should be provided as
-#'   two-letter state [abbreviations][datasets::state.abb].
-#' @param years (integer vector) The years to download data for. The default
-#' is to download all years. Currently only 2020 is available.
+#'   uppercase two-letter state [abbreviations][datasets::state.abb].
+#' @param years (integer vector) The years to download data for. The default is
+#'   to download all years. Currently only 2020 is available but more years will
+#'   be added eventually.
 #' @param ... Optional arguments (other than `url` and `destfile`) passed to
 #'   [utils::download.file()].
 #'
@@ -16,7 +17,7 @@
 #' * `download_data()`: Download the required data files for the specified
 #' states and years. The files will be stored internally in a package-specific
 #' data [directory][tools::R_user_dir].
-#' * `load_data()`: Load the data for a particular state-year. This is only
+#' * `load_data()`: Load the data for a particular `state`-`year`. This is only
 #' necessary if you want to work with the full data files directly. When using
 #' the functions provided by this package (e.g. [race_probabilities()]) the data
 #' will be loaded internally automatically.
@@ -86,6 +87,12 @@ download_data <- function(states = NULL, years = 2020) {
         next
       }
 
+      # Add year and state and order the columns
+      df$year <- yr
+      df$state <- st
+      col_order <- c(.demographic_columns(), .rake_columns(), .bisg_columns())
+      df <- df[, col_order]
+
       # Save to RDS
       saveRDS(as.data.frame(df), file = rds_path)
       message("Saved data as: ", rds_path)
@@ -107,7 +114,10 @@ download_data <- function(states = NULL, years = 2020) {
 #'   specified state.
 #'
 load_data <- function(state, year = 2020) {
-  stopifnot(length(state) == 1, length(year) == 1)
+  stopifnot(
+    is.character(state), length(state) == 1,
+    is.numeric(year), length(year) == 1
+  )
   .ensure_data_available(state, year)
   readRDS(.data_path(state, year))
 }
@@ -186,13 +196,9 @@ delete_all_data <- function() {
   file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
 
-#' Get the download URL for the data file for a particular state
-#'
+#' Get the temporarly local path the data files. Will replace this with
+#' downloading them eventually.
 #' @noRd
-#' @param state (string) The state.
-#' @param year (integer) The year of the data.
-#' @return (string) The URL to download the data file.
-#'
 .temporary_local_path <- function(state, year) {
   paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "-", year, ".csv")
 }
@@ -223,17 +229,23 @@ delete_all_data <- function() {
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
 .validate_states_years <- function(states, years) {
-  valid_s  <- .all_states()
-  valid_yr <- .all_years()
+  valid_states  <- .all_states()
+  valid_years <- .all_years()
 
-  bad_states <- setdiff(states, valid_s)
+  bad_states <- setdiff(states, valid_states)
   if (length(bad_states) > 0) {
-    stop("Invalid states requested: ", paste(bad_states, collapse = ", "))
+    stop(
+      "Invalid states requested: ", paste(bad_states, collapse = ", "),
+      "\n  Available states are: ", paste(valid_states, collapse = ", ")
+    )
   }
 
-  bad_years  <- setdiff(years, valid_yr)
+  bad_years  <- setdiff(years, valid_years)
   if (length(bad_years) > 0) {
-    stop("Invalid years requested: ", paste(bad_years, collapse = ", "))
+    stop(
+      "Invalid years requested: ", paste(bad_years, collapse = ", "),
+      "\n  Available years are: ", paste(valid_years, collapse = ", ")
+    )
   }
 
   invisible(TRUE)
