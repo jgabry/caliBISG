@@ -28,39 +28,37 @@ them from a folder on my computer.
 download_data(states = c("NC", "WA"), years = 2020) 
 ```
 
-If the user wants to work directly with the large files instead of using the
-package's convenience functions they can load the data themselves. 
+If the user just wants to use the package's convenience functions they never
+need to load these data files manually after downloading them. However, if the
+user wants to work directly with the large files instead of using the package's
+convenience functions they can load the data themselves with `load_data()`.
 
 ```{r}
 nc_2020_data <- load_data("NC")
 nrow(nc_2020_data)
 ```
-If the user just wants to use the package's convenience functions they never 
-need to call `load_data()`, but I assume some users will want the option to 
-access the files directly. 
 
-Right now only 2020 is available but eventually we can let the user specify
-which years they want to download/load. 
+Currently only 2020 data can be downloaded but eventually multiple years will be
+available.
 
 #### Convenience functions for managing data
 
-I've also added a few data-related convenience functions. 
-
-The `data_dir()` function returns the path to the internal data storage directory:
+The `data_dir()` function returns the path to the internal data storage
+directory.
 
 ```{r}
 data_dir()
 ```
 
 The `available_data()` function lists the files the user has already downloaded
-that are available for them to query:
+that are available for them to query. 
 
 ```{r}
 available_data()
 ```
 
 The `delete_all_data()` function deletes all the files in the internal data
-storage directory:
+storage directory. 
 
 ```{r}
 delete_all_data()
@@ -70,56 +68,58 @@ delete_all_data()
 download_data(states = c("NC", "WA"), years = 2020)
 ```
 
-## Predict most probable race
+## Predict the most probable race based on surname and geolocation
 
 The `most_probable_race()` function provides the single most probable race
-according to PISG.
+according to the raking based approach to BISG from Greengard and Gelman (2024).
 
 ```{r}
 most_probable_race(name = "smith", state = "WA", county = "king")
 ```
-The returned object is just a standard data frame: 
+
+The returned object is a standard data frame with the number of rows equal to
+the length of the input vectors.
 
 ```{r}
-smith_wa_king <- most_probable_race("smith", "wa", "king")
-str(smith_wa_king)
+most_probable_race(
+  name = c("smith", "lopez"), 
+  state = c("WA", "WA"), 
+  county = c("king", "king")
+)
 ```
 
 If the the name/state/county combination that the user requests is not found
-we return `NA` for the `race` column with a warning. 
+the `race` column will contain an `NA` and a warning will be thrown. 
 
 ```{r}
 most_probable_race("smith", "wa", "not_a_county")
 ```
 
-**Does this seem like the right behavior or do you prefer an error in this case?**
+The `most_probable_race()` function also takes a `year` argument but currently
+only 2020 is available. 
 
-The `most_probable_race()` function also takes a `year` argument but right now
-only 2020 is available, so we default to using 2020.
-
-## Get probabilities for all races
+## Get probabilities for all races based on surname and geolocation
 
 The `race_probabilities()` function gives the PISG estimates for the
 probabilities of all the races. Again, the object returned is just a standard
-data frame:
+data frame, but the columns are the probabilities for each race, computed
+using the raking based approach to BISG from Greengard and Gelman (2024).
 
 ```{r}
-lopez_nc_burke_probs <- race_probabilities("lopez", "nc", "burke")
+lopez_nc_burke_probs <- race_probabilities(
+  name = c("smith", "lopez"), 
+  state = c("WA", "NC"), 
+  county = c("king", "burke")
+)
 str(lopez_nc_burke_probs)
 ```
 
-**What should we name these columns?** Right now the names (e.g., `rake_nh_white`)
-are the column names Philip gave me, but we can name them whatever we want in
-the R package.
-
 Similar to `most_probable_race()`, if the name/state/county combination is not
-found we return `NA` for all the probabilities with a warning: 
+found an `NA` is returned for all the probabilities and a warning is thrown. 
 
 ```{r}
 race_probabilities("lopez", "nc", "not_a_county")
 ```
-
-**Same question as before: do you like that or do you prefer an error?**
 
 
 ## Compare raking-based BISG to "improved BISG"
@@ -132,15 +132,14 @@ comp1 <- compare_race_probabilities("lopez", "nc", "burke")
 str(comp1)
 ```
 
-This just returns a data frame with `bisg` columns and `rake` columns, but the
-columns are interleaved, i.e., ordered to place the races next to each other for
-easier comparison. **Do you like returning a data frame like this? Other ideas?**
+The object returned is again a standard data frame, however there are additional
+columns prefixed with `bisg_` and the `bisg_` and `rake_` columns are
+interleaved, i.e., ordered to place the races next to each other for easier
+comparison.
 
-#### Multiple comparisons 
-
-The `compare_race_probabilities()` function can also now take vectors as inputs
+The `compare_race_probabilities()` function can also take vectors as inputs
 and the resulting data frame will have number of rows equal to the lengths of
-the vectors:
+the vectors. 
 
 ```{r}
 comp2 <- compare_race_probabilities(
@@ -151,15 +150,15 @@ comp2 <- compare_race_probabilities(
 str(comp2)
 ```
 
-#### Printing comparison tables 
-
-Also new is that, instead of automatically printing the formatted comparison
-tables, the user now needs to call a new function `print_comparison_tables()`.
-This is because if the user asks for a comparison of many names, states, and
-counties, too much would be printed in the console. So now if the user has a
-small number of comparisons they can call `print_comparison_tables()` and it
-will print one table per row of the data frame:
+If the user has a small number of comparisons they can use
+`print_comparison_tables()` to print nice tables in the console.
 
 ```{r}
 print_comparison_tables(comp2)
 ```
+
+## References
+
+Philip Greengard and Andrew Gelman (2024). An improved BISG for inferring race
+from surname and geolocation. https://arxiv.org/abs/2304.09126.
+
