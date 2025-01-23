@@ -16,17 +16,14 @@ compare_race_probabilities(name, state, county, year = 2020)
 print_comparison_tables(x, ..., digits = 4)
 }
 \arguments{
-\item{name}{(character vector) For \code{most_probable_race()} and
-\code{race_probabilities()}, a single surname. Can be a vector of surnames for
-\code{compare_race_probabilities()}. Coerced to lowercase internally.}
+\item{name}{(character vector) A vector of surnames. Coerced to lowercase
+internally.}
 
-\item{state}{(character vector) For \code{most_probable_race()} and
-\code{race_probabilities()}, a single state abbreviation. Can be a vector of state
-abbreviations for \code{compare_race_probabilities()}.}
+\item{state}{(character vector) A vector of state abbreviations. Coerced to
+uppercase internally.}
 
-\item{county}{(character vector) For \code{most_probable_race()} and
-\code{race_probabilities()}, a single county. Can be a vector of counties for
-\code{compare_race_probabilities()}. Coerced to lowercase internally.}
+\item{county}{(character vector) A vector of counties. Coerced to lowercase
+internally.}
 
 \item{year}{(integer) The year of the data used to compute the estimates.
 Currently only 2020 is available.}
@@ -46,8 +43,7 @@ to display in the output.}
 \item \code{county} (string): The county.
 \item \code{race} (string): The most probable race based on the raking estimates.
 }
-\item \code{race_probabilities()}: (data frame) A data frame with one
-row and the following columns:
+\item \code{race_probabilities()}: (data frame) A data frame with the following columns:
 \itemize{
 \item \code{name} (string): The surname.
 \item \code{year} (integer): The year of the data used to compute the estimates.
@@ -81,6 +77,10 @@ must be downloaded using \code{\link[=download_data]{download_data()}}.
 
 These functions are just convenience functions for querying the large data
 files. You can also \link[=load_data]{load} and use the data files directly.
+
+NOTE: the first query for a particular \code{state} and \code{year} may take a few
+seconds to first load the data internally. Subsequent calls for the same
+\code{state} and \code{year} will be faster.
 }
 \details{
 \itemize{
@@ -102,10 +102,20 @@ requested.
 \examples{
 \dontrun{
 most_probable_race("smith", "wa", "king")
-most_probable_race("lopez", "nc", "burke")
+most_probable_race(
+  name = c("Lopez", "Jackson"),
+  state = c("NC", "WA"),
+  county = c("Burke", "King")
+)
 
 race_probabilities("smith", "wa", "king")
 race_probabilities("lopez", "nc", "burke")
+probs2 <- race_probabilities(
+  name = c("Smith", "Lopez"),
+  state = c("NC", "WA"),
+  county = c("Burke", "King")
+)
+str(probs2)
 
 comp1 <- compare_race_probabilities("smith", "wa", "king")
 str(comp1)
@@ -118,6 +128,7 @@ comp2 <- compare_race_probabilities(
 )
 str(comp2)
 print_comparison_tables(comp2)
+print_comparison_tables(comp2, digits = 2)
 }
 
 }

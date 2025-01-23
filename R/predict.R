@@ -16,7 +16,8 @@
 #' @export
 #' @param name (character vector) A vector of surnames. Coerced to lowercase
 #'   internally.
-#' @param state (character vector) A vector of state abbreviations.
+#' @param state (character vector) A vector of state abbreviations. Coerced to
+#'   uppercase internally.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally.
 #' @param year (integer) The year of the data used to compute the estimates.
@@ -76,7 +77,6 @@
 #' @examples
 #' \dontrun{
 #' most_probable_race("smith", "wa", "king")
-#' most_probable_race("lopez", "nc", "burke")
 #' most_probable_race(
 #'   name = c("Lopez", "Jackson"),
 #'   state = c("NC", "WA"),
@@ -86,7 +86,7 @@
 #' race_probabilities("smith", "wa", "king")
 #' race_probabilities("lopez", "nc", "burke")
 #' probs2 <- race_probabilities(
-#'   name = c("Lopez", "Jackson"),
+#'   name = c("Smith", "Lopez"),
 #'   state = c("NC", "WA"),
 #'   county = c("Burke", "King")
 #' )
@@ -103,6 +103,7 @@
 #' )
 #' str(comp2)
 #' print_comparison_tables(comp2)
+#' print_comparison_tables(comp2, digits = 2)
 #' }
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
@@ -196,8 +197,8 @@ print_comparison_tables <- function(x, ..., digits = 4) {
         x$year[j]
       )
     )
-    .pretty_table(x[j, ], digits)
-    cat("\n\n")
+    .print_table(x[j, ], digits)
+    cat("\n")
   }
   invisible(x)
 }
@@ -302,47 +303,21 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #' @param digits (integer) The number of digits to display in the output.
 #' @return The input data, invisibly.
 #'
-.pretty_table <- function(data, digits) {
-  row_labels <- .races()
-  raking_values <- NULL
-  bisg_values <- NULL
-  has_raking_estimates <- any(grepl("rake_", colnames(data)))
-  has_bisg_estimates <- any(grepl("bisg_", colnames(data)))
-  if (has_raking_estimates) {
-    raking_values <- sapply(.rake_columns(), function(var) data[[var]])
-  }
-  if (has_bisg_estimates) {
-    bisg_values <- sapply(.bisg_columns(), function(var) data[[var]])
-  }
+.print_table <- function(data, digits) {
+  raking_values <- sapply(.rake_columns(), function(var) data[[var]])
+  bisg_values <- sapply(.bisg_columns(), function(var) data[[var]])
 
   # Ensure values are formatted to the correct number of digits
   format_string <- paste0("%.", digits, "f")
-  if (!is.null(raking_values)) {
-    raking_values <- sprintf(format_string, raking_values)
-  }
-  if (!is.null(bisg_values)) {
-    bisg_values <- sprintf(format_string, bisg_values)
-  }
+  raking_values <- sprintf(format_string, raking_values)
+  bisg_values <- sprintf(format_string, bisg_values)
 
-  # Pretty print the table based on available estimates
-  if (has_raking_estimates && has_bisg_estimates) {
-    cat(sprintf("\n%-10s %-10s %-10s\n", "Race", "Pr_raking", "Pr_bisg"))
-    cat(strrep("-", 30), "\n")
-    for (i in seq_along(row_labels)) {
-      cat(sprintf("%-10s %-10s %-10s\n", row_labels[i], raking_values[i], bisg_values[i]))
-    }
-  } else if (has_raking_estimates) {
-    cat(sprintf("\n%-10s %-10s\n", "Race", "Pr_raking"))
-    cat(strrep("-", 20), "\n")
-    for (i in seq_along(row_labels)) {
-      cat(sprintf("%-10s %-10s\n", row_labels[i], raking_values[i]))
-    }
-  } else if (has_bisg_estimates) {
-    cat(sprintf("\n%-10s %-10s\n", "Race", "Pr_bisg"))
-    cat(strrep("-", 20), "\n")
-    for (i in seq_along(row_labels)) {
-      cat(sprintf("%-10s %-10s\n", row_labels[i], bisg_values[i]))
-    }
+  row_labels <- .races()
+  cat(sprintf("\n%-10s %-10s %-10s\n", "Race", "Pr_raking", "Pr_bisg"))
+  cat(strrep("-", 30), "\n")
+  for (i in seq_along(row_labels)) {
+    cat(sprintf("%-10s %-10s %-10s\n", row_labels[i], raking_values[i], bisg_values[i]))
   }
+  cat(strrep("-", 30), "\n")
   invisible(data)
 }
