@@ -42,6 +42,7 @@ to display in the output.}
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
 \item \code{race} (string): The most probable race based on the raking estimates.
+\item \code{in_census} (logical): Whether the surname was found in the census surname list.
 }
 \item \code{race_probabilities()}: (data frame) A data frame with the following columns:
 \itemize{
@@ -49,28 +50,23 @@ to display in the output.}
 \item \code{year} (integer): The year of the data used to compute the estimates.
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
-\item \code{rake_nh_aian} (numeric): The raking estimate for non-Hispanic American Indian and Alaskan Native.
-\item \code{rake_nh_api} (numeric): The raking estimate for non-Hispanic Asian and Pacific Islander.
-\item \code{rake_nh_black} (numeric): The raking estimate for non-Hispanic Black.
+\item \code{rake_aian} (numeric): The raking estimate for American Indian and Alaskan Native.
+\item \code{rake_api} (numeric): The raking estimate for Asian and Pacific Islander.
+\item \code{rake_black_nh} (numeric): The raking estimate for non-Hispanic Black.
 \item \code{rake_hispanic} (numeric): The raking estimate for Hispanic.
-\item \code{rake_nh_white} (numeric): The raking estimate for non-Hispanic White.
+\item \code{rake_white_nh} (numeric): The raking estimate for non-Hispanic White.
 \item \code{rake_other} (numeric): The raking estimate for other.
+\item \code{in_census} (logical): Whether the surname was found in the census surname list.
 }
 \item \code{compare_race_probabilities}: (data frame) Same as \code{race_probabilities()}
-but with the following additional columns:
-\itemize{
-\item \code{bisg_nh_aian} (numeric): The improved BISG estimate for non-Hispanic American Indian and Alaskan Native.
-\item \code{bisg_nh_api} (numeric): The improved BISG estimate for non-Hispanic Asian and Pacific Islander.
-\item \code{bisg_nh_black} (numeric): The improved BISG estimate for non-Hispanic Black.
-\item \code{bisg_hispanic} (numeric): The improved BISG estimate for Hispanic.
-\item \code{bisg_nh_white} (numeric): The improved BISG estimate for non-Hispanic White.
-\item \code{bisg_other} (numeric): The improved BISG estimate for other.
-}
+but with two additional columns for each race, one for the traditional BISG
+(prefixed with \code{bisg_}) and one for "improved BISG" (prefixed with
+\code{voter_bisg_}). See \strong{Details}.
 }
 }
 \description{
-Predict race given surname and location using the improved
-raking-based BISG method from Greengard and Gelman (2024). See \strong{Details}.
+Predict race given surname and location using the raking-based
+BISG method from Greengard and Gelman (2024). See \strong{Details}.
 
 Before these functions can be used, the data files for the relevant states
 must be downloaded using \code{\link[=download_data]{download_data()}}.
@@ -85,14 +81,16 @@ seconds to first load the data internally. Subsequent calls for the same
 \details{
 \itemize{
 \item \code{most_probable_race()}: The single most probable race according to the
-raking-based approach.
+raking-based approach to BISG.
 \item \code{race_probabilities()}: Raking-based probabilities for all of the races.
 \item \code{compare_race_probabilities()}: Same as \code{race_probabilities()} but also
-includes "Improved BISG" estimates. Here, "Improved BISG" refers to
-traditional BISG but including an adjustment to those predictions that
-accounts for the fact that we’re making predictions on registered voters, not
-the general population. It uses the registered voter status x race
-distribution and an application of Bayes rule.
+includes traditional BISG estimates and "improved" BISG estimates for
+comparison purposes. Here, "improved BISG" refers to traditional BISG but
+including an adjustment to those predictions that accounts for the fact that
+we’re making predictions on registered voters, not the general population. It
+uses the registered voter status x race distribution and an application of
+Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
+to be an improvement over both traditional and "improved" BISG.
 \item \code{print_comparison_tables()}: Pretty print the output of
 \code{compare_race_probabilities()}. Prints a separate table for each input
 record, so this is most useful when only a small number of records were

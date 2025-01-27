@@ -3,7 +3,7 @@ test_that("most_probable_race() returns correct columns and handles multiple inp
   single_out <- most_probable_race("lopez", "nc", "burke", 2020)
   expect_s3_class(single_out, "data.frame")
   expect_equal(nrow(single_out), 1)
-  expect_named(single_out, c(.demographic_columns(), "race"))
+  expect_named(single_out, c(.demographic_columns(), "race", "in_census"))
 
   # Multiple inputs (1 found, 1 not found)
   expect_warning(
@@ -43,7 +43,7 @@ test_that("race_probabilities() returns correct columns for valid inputs", {
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
-  expect_named(out, c(.demographic_columns(), .rake_columns()))
+  expect_named(out, c(.demographic_columns(), .rake_columns(), "in_census"))
 })
 
 test_that("race_probabilities() handles multiple inputs, including a non-match", {
@@ -81,7 +81,7 @@ test_that("compare_race_probabilities() errors on length mismatch", {
   )
 })
 
-test_that("compare_race_probabilities() returns both bisg and rake columns", {
+test_that("compare_race_probabilities() returns all columns", {
   out <- compare_race_probabilities(
     name   = c("lopez", "smith"),
     state  = c("nc", "nc"),
@@ -92,7 +92,13 @@ test_that("compare_race_probabilities() returns both bisg and rake columns", {
   expect_s3_class(out, "raking_bisg")
   expect_equal(nrow(out), 2)
 
-  expected_cols <- c(.demographic_columns(), .bisg_columns(), .rake_columns())
+  expected_cols <- c(
+    .demographic_columns(),
+    .voter_bisg_columns(),
+    .bisg_columns(),
+    .rake_columns(),
+    "in_census"
+  )
   expect_true(all(expected_cols %in% names(out)))
 })
 
@@ -109,7 +115,7 @@ test_that("compare_race_probabilities() aggregates warnings for non-matches", {
   )
   expect_equal(nrow(out), 3)
 
-  # For the row with no match, check if BISG & RAKE columns are NA
-  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .rake_columns())])))
+  # For the row with no match, check for NAs
+  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .voter_bisg_columns(), .rake_columns())])))
 })
 

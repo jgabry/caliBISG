@@ -1,7 +1,7 @@
 #' Predict race given surname and location
 #'
-#' @description Predict race given surname and location using the improved
-#'   raking-based BISG method from Greengard and Gelman (2024). See **Details**.
+#' @description Predict race given surname and location using the raking-based
+#'   BISG method from Greengard and Gelman (2024). See **Details**.
 #'
 #'   Before these functions can be used, the data files for the relevant states
 #'   must be downloaded using [download_data()].
@@ -28,14 +28,16 @@
 #'
 #' @details
 #' * `most_probable_race()`: The single most probable race according to the
-#' raking-based approach.
+#' raking-based approach to BISG.
 #' * `race_probabilities()`: Raking-based probabilities for all of the races.
 #' * `compare_race_probabilities()`: Same as `race_probabilities()` but also
-#' includes "Improved BISG" estimates. Here, "Improved BISG" refers to
-#' traditional BISG but including an adjustment to those predictions that
-#' accounts for the fact that we’re making predictions on registered voters, not
-#' the general population. It uses the registered voter status x race
-#' distribution and an application of Bayes rule.
+#' includes traditional BISG estimates and "improved" BISG estimates for
+#' comparison purposes. Here, "improved BISG" refers to traditional BISG but
+#' including an adjustment to those predictions that accounts for the fact that
+#' we’re making predictions on registered voters, not the general population. It
+#' uses the registered voter status x race distribution and an application of
+#' Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
+#' to be an improvement over both traditional and "improved" BISG.
 #' * `print_comparison_tables()`: Pretty print the output of
 #' `compare_race_probabilities()`. Prints a separate table for each input
 #' record, so this is most useful when only a small number of records were
@@ -48,27 +50,25 @@
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
 #'      - `race` (string): The most probable race based on the raking estimates.
+#'      - `in_census` (logical): Whether the surname was found in the census surname list.
 #'
 #' * `race_probabilities()`: (data frame) A data frame with the following columns:
 #'      - `name` (string): The surname.
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
-#'      - `rake_nh_aian` (numeric): The raking estimate for non-Hispanic American Indian and Alaskan Native.
-#'      - `rake_nh_api` (numeric): The raking estimate for non-Hispanic Asian and Pacific Islander.
-#'      - `rake_nh_black` (numeric): The raking estimate for non-Hispanic Black.
+#'      - `rake_aian` (numeric): The raking estimate for American Indian and Alaskan Native.
+#'      - `rake_api` (numeric): The raking estimate for Asian and Pacific Islander.
+#'      - `rake_black_nh` (numeric): The raking estimate for non-Hispanic Black.
 #'      - `rake_hispanic` (numeric): The raking estimate for Hispanic.
-#'      - `rake_nh_white` (numeric): The raking estimate for non-Hispanic White.
+#'      - `rake_white_nh` (numeric): The raking estimate for non-Hispanic White.
 #'      - `rake_other` (numeric): The raking estimate for other.
+#'      - `in_census` (logical): Whether the surname was found in the census surname list.
 #'
 #' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
-#' but with the following additional columns:
-#'      - `bisg_nh_aian` (numeric): The improved BISG estimate for non-Hispanic American Indian and Alaskan Native.
-#'      - `bisg_nh_api` (numeric): The improved BISG estimate for non-Hispanic Asian and Pacific Islander.
-#'      - `bisg_nh_black` (numeric): The improved BISG estimate for non-Hispanic Black.
-#'      - `bisg_hispanic` (numeric): The improved BISG estimate for Hispanic.
-#'      - `bisg_nh_white` (numeric): The improved BISG estimate for non-Hispanic White.
-#'      - `bisg_other` (numeric): The improved BISG estimate for other.
+#' but with two additional columns for each race, one for the traditional BISG
+#' (prefixed with `bisg_`) and one for "improved BISG" (prefixed with
+#' `voter_bisg_`). See **Details**.
 #'
 #' @references Philip Greengard and Andrew Gelman (2024). An improved BISG for
 #'   inferring race from surname and geolocation.
@@ -118,7 +118,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
       sub("^rake_", "", names(probs)[idx])
     }
   })
-  prediction[, c(.demographic_columns(), "race")]
+  prediction[, c(.demographic_columns(), "race", "in_census")]
 }
 
 #' @rdname most_probable_race
@@ -141,7 +141,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
       call. = FALSE
     )
   }
-  out[, c(.demographic_columns(), .rake_columns())]
+  out[, c(.demographic_columns(), .rake_columns(), "in_census")]
 }
 
 
@@ -170,13 +170,12 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
     # interleave rake and bisg columns for easier visual comparison
     as.vector(rbind(
       paste0("rake_", .race_column_order()),
+      paste0("voter_bisg_", .race_column_order()),
       paste0("bisg_", .race_column_order())
-    ))
+    )),
+    "in_census"
   )
-  structure(
-    out[, col_order, drop = FALSE],
-    class = c("raking_bisg", class(out))
-  )
+  structure(out[, col_order], class = c("raking_bisg", class(out)))
 }
 
 
@@ -211,13 +210,16 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 }
 .race_column_order <- function() {
   # Must match the suffixes that appear after "bisg_" or "rake_".
-  c("nh_aian", "nh_api", "nh_black", "hispanic", "nh_white", "other")
+  c("aian", "api", "black_nh", "hispanic", "white_nh", "other")
 }
 .rake_columns <- function() {
   paste0("rake_", .race_column_order())
 }
 .bisg_columns <- function() {
   paste0("bisg_", .race_column_order())
+}
+.voter_bisg_columns <- function() {
+  paste0("voter_bisg_", .race_column_order())
 }
 .demographic_columns <- function() {
   c("name", "year", "state", "county")
@@ -241,7 +243,7 @@ print_comparison_tables <- function(x, ..., digits = 4) {
   )
   name <- tolower(name)
   county <- tolower(county)
-  state <- tolower(state)
+  state <- toupper(state)
 
   df <- .load_data_internal(state, year)
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
@@ -255,9 +257,10 @@ print_comparison_tables <- function(x, ..., digits = 4) {
       year   = year,
       stringsAsFactors = FALSE
     )
-    for (col in c(.rake_columns(), .bisg_columns())) {
+    for (col in c(.rake_columns(), .voter_bisg_columns(), .bisg_columns())) {
       out[[col]] <- NA_real_
     }
+    out$in_census <- NA
     out$.found <- FALSE
     if (!quiet) {
       warning(

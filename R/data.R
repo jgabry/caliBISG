@@ -89,14 +89,13 @@ download_data <- function(states = NULL, years = 2020) {
       }
 
       # Add year and state and order the columns
+      df <- as.data.frame(df)
       df$year <- yr
       df$state <- st
-      colnames(df) <- gsub("bisg_bayes", "bisg", colnames(df))
-      col_order <- c(.demographic_columns(), .rake_columns(), .bisg_columns())
-      df <- df[, col_order]
+      df <- .rename_columns(df)
 
       # Save to RDS
-      saveRDS(as.data.frame(df), file = rds_path)
+      saveRDS(df, file = rds_path)
       message("Saved data as: ", rds_path)
 
       # Cleanup
@@ -203,7 +202,7 @@ delete_all_data <- function() {
 #' downloading them eventually.
 #' @noRd
 .temporary_local_path <- function(state, year) {
-  paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "-", year, ".csv")
+  paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "_", year, ".csv")
 }
 
 #' List the states that are currently available for download
@@ -256,3 +255,26 @@ delete_all_data <- function() {
   invisible(TRUE)
 }
 
+#' Rename and order columns in imported data
+#'
+#' @noRd
+#' @param data (data frame) The data frame to rename columns in.
+#' @return (data frame) The data frame with renamed columns.
+#'
+.rename_columns <- function(data) {
+  colnames(data) <- gsub("bisg_bayes", "voter_bisg", colnames(data))
+  colnames(data) <- gsub("bisg_cen_county", "bisg", colnames(data))
+  colnames(data) <- gsub("nh_aian", "aian", colnames(data))
+  colnames(data) <- gsub("nh_api", "api", colnames(data))
+  colnames(data) <- gsub("nh_black", "black_nh", colnames(data))
+  colnames(data) <- gsub("nh_white", "white_nh", colnames(data))
+  colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
+  col_order <- c(
+    .demographic_columns(),
+    .rake_columns(),
+    .voter_bisg_columns(),
+    .bisg_columns(),
+    "in_census"
+  )
+  data[, col_order]
+}
