@@ -34,7 +34,7 @@
 #' includes traditional BISG estimates and "improved" BISG estimates for
 #' comparison purposes. Here, "improved BISG" refers to traditional BISG but
 #' including an adjustment to those predictions that accounts for the fact that
-#' we’re making predictions on registered voters, not the general population. It
+#' we're making predictions on registered voters, not the general population. It
 #' uses the registered voter status x race distribution and an application of
 #' Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
 #' to be an improvement over both traditional and "improved" BISG.
@@ -302,25 +302,34 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #' Pretty print the table of estimates
 #'
 #' @noRd
-#' @param data (data frame) The data frame with the estimates.
+#' @param data (data frame) The single-row data frame with the estimates.
 #' @param digits (integer) The number of digits to display in the output.
-#' @return The input data, invisibly.
+#' @return (data frame) The input data, invisibly.
 #'
 .print_table <- function(data, digits) {
-  raking_values <- sapply(.rake_columns(), function(var) data[[var]])
-  bisg_values <- sapply(.bisg_columns(), function(var) data[[var]])
+  rake_vals <- sapply(.rake_columns(),       function(col) data[[col]])
+  voter_bisg_vals <- sapply(.voter_bisg_columns(), function(col) data[[col]])
+  bisg_vals <- sapply(.bisg_columns(),       function(col) data[[col]])
 
-  # Ensure values are formatted to the correct number of digits
-  format_string <- paste0("%.", digits, "f")
-  raking_values <- sprintf(format_string, raking_values)
-  bisg_values <- sprintf(format_string, bisg_values)
+  # Format them with the desired number of digits
+  fmt <- paste0("%.", digits, "f")
+  rake_vals <- sprintf(fmt, rake_vals)
+  voter_bisg_vals <- sprintf(fmt, voter_bisg_vals)
+  bisg_vals <- sprintf(fmt, bisg_vals)
 
   row_labels <- .races()
-  cat(sprintf("\n%-10s %-10s %-10s\n", "Race", "Pr_raking", "Pr_bisg"))
-  cat(strrep("-", 30), "\n")
+  cat(sprintf("\n%-10s %-12s %-15s %-10s\n",
+              "Race", "Pr_rake_bisg", "Pr_voter_bisg", "Pr_bisg"))
+  cat(strrep("-", 55), "\n")
   for (i in seq_along(row_labels)) {
-    cat(sprintf("%-10s %-10s %-10s\n", row_labels[i], raking_values[i], bisg_values[i]))
+    cat(sprintf(
+      "%-10s %-12s %-15s %-10s\n",
+      row_labels[i],
+      rake_vals[i],
+      voter_bisg_vals[i],
+      bisg_vals[i]
+    ))
   }
-  cat(strrep("-", 30), "\n")
+  cat(strrep("-", 55), "\n")
   invisible(data)
 }
