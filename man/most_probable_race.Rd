@@ -28,6 +28,9 @@ internally.}
 \item{year}{(integer) The year of the data used to compute the estimates.
 Currently only 2020 is available.}
 
+\item{x}{For \code{print_comparison_tables()}, the object returned by
+\code{compare_race_probabilities()}.}
+
 \item{...}{Currently unused.}
 
 \item{digits}{(integer) For \code{print_comparison_tables()}, the number of digits
@@ -42,21 +45,19 @@ to display in the output.}
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
 \item \code{race} (string): The most probable race based on the raking estimates.
-\item \code{in_census} (logical): Whether the surname was found in the census surname list.
+\item \code{in_census} (logical): Whether the surname is found in the list of
+names that appear at least 100 times in the census.
 }
-\item \code{race_probabilities()}: (data frame) A data frame with the following columns:
+\item \code{race_probabilities()}: (data frame) A data frame with the same columns
+as \code{most_probable_race()}, except the \code{race} column is replaced with the
+following columns that give the raking-based probabilities:
 \itemize{
-\item \code{name} (string): The surname.
-\item \code{year} (integer): The year of the data used to compute the estimates.
-\item \code{state} (string): The state.
-\item \code{county} (string): The county.
 \item \code{rake_aian} (numeric): The raking estimate for American Indian and Alaskan Native.
 \item \code{rake_api} (numeric): The raking estimate for Asian and Pacific Islander.
 \item \code{rake_black_nh} (numeric): The raking estimate for non-Hispanic Black.
 \item \code{rake_hispanic} (numeric): The raking estimate for Hispanic.
 \item \code{rake_white_nh} (numeric): The raking estimate for non-Hispanic White.
 \item \code{rake_other} (numeric): The raking estimate for other.
-\item \code{in_census} (logical): Whether the surname was found in the census surname list.
 }
 \item \code{compare_race_probabilities}: (data frame) Same as \code{race_probabilities()}
 but with two additional columns for each race, one for the traditional BISG
@@ -87,7 +88,7 @@ raking-based approach to BISG.
 includes traditional BISG estimates and "improved" BISG estimates for
 comparison purposes. Here, "improved BISG" refers to traditional BISG but
 including an adjustment to those predictions that accounts for the fact that
-we’re making predictions on registered voters, not the general population. It
+we're making predictions on registered voters, not the general population. It
 uses the registered voter status x race distribution and an application of
 Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
 to be an improvement over both traditional and "improved" BISG.

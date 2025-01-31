@@ -22,9 +22,6 @@
 #'   internally.
 #' @param year (integer) The year of the data used to compute the estimates.
 #'   Currently only 2020 is available.
-#' @param ... Currently unused.
-#' @param digits (integer) For `print_comparison_tables()`, the number of digits
-#'   to display in the output.
 #'
 #' @details
 #' * `most_probable_race()`: The single most probable race according to the
@@ -50,20 +47,18 @@
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
 #'      - `race` (string): The most probable race based on the raking estimates.
-#'      - `in_census` (logical): Whether the surname was found in the census surname list.
+#'      - `in_census` (logical): Whether the surname is found in the list of
+#'         names that appear at least 100 times in the census.
 #'
-#' * `race_probabilities()`: (data frame) A data frame with the following columns:
-#'      - `name` (string): The surname.
-#'      - `year` (integer): The year of the data used to compute the estimates.
-#'      - `state` (string): The state.
-#'      - `county` (string): The county.
+#' * `race_probabilities()`: (data frame) A data frame with the same columns
+#' as `most_probable_race()`, except the `race` column is replaced with the
+#' following columns that give the raking-based probabilities:
 #'      - `rake_aian` (numeric): The raking estimate for American Indian and Alaskan Native.
 #'      - `rake_api` (numeric): The raking estimate for Asian and Pacific Islander.
 #'      - `rake_black_nh` (numeric): The raking estimate for non-Hispanic Black.
 #'      - `rake_hispanic` (numeric): The raking estimate for Hispanic.
 #'      - `rake_white_nh` (numeric): The raking estimate for non-Hispanic White.
 #'      - `rake_other` (numeric): The raking estimate for other.
-#'      - `in_census` (logical): Whether the surname was found in the census surname list.
 #'
 #' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
 #' but with two additional columns for each race, one for the traditional BISG
@@ -181,6 +176,11 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
 
 #' @rdname most_probable_race
 #' @export
+#' @param x For `print_comparison_tables()`, the object returned by
+#'   `compare_race_probabilities()`.
+#' @param ... Currently unused.
+#' @param digits (integer) For `print_comparison_tables()`, the number of digits
+#'   to display in the output.
 print_comparison_tables <- function(x, ..., digits = 4) {
   if (!inherits(x, "raking_bisg")) {
     stop("Input must be an object returned by compare_race_probabilities().",

@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load data files}
 \usage{
-download_data(states = NULL, years = 2020)
+download_data(states = NULL, years = 2020, ...)
 
 load_data(state, year = 2020)
 
@@ -27,12 +27,12 @@ uppercase two-letter state \link[datasets:state]{abbreviations}.}
 to download all years. Currently only 2020 is available but more years will
 be added eventually.}
 
+\item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
+\code{\link[utils:download.file]{utils::download.file()}}.}
+
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
 \item{year}{(integer) For \code{load_data()}, the year to load.}
-
-\item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
-\code{\link[utils:download.file]{utils::download.file()}}.}
 }
 \value{
 \itemize{

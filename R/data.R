@@ -27,7 +27,7 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states = NULL, years = 2020) {
+download_data <- function(states = NULL, years = 2020, ...) {
   if (is.null(states)) {
     states <- .all_states()
   }
@@ -53,7 +53,7 @@ download_data <- function(states = NULL, years = 2020) {
       csv_path <- file.path(tempdir(), csv_name)
 
       message("Downloading: ", csv_name, " from ", csv_url)
-      # res <- utils::download.file(csv_url, csv_path, mode = "wb", quiet = TRUE)
+      # res <- utils::download.file(csv_url, csv_path, mode = "wb", ...)
 
       # temporarily read data from local file
       res <- 0
