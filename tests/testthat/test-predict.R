@@ -1,3 +1,5 @@
+suppressMessages(download_data())
+
 test_that("most_probable_race() returns correct columns and handles multiple inputs", {
   # Single input
   single_out <- most_probable_race("lopez", "nc", "burke", 2020)

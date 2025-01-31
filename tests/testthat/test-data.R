@@ -1,4 +1,6 @@
-suppressMessages(delete_all_data())
+test_that("data_dir() returns a valid directory", {
+  expect_true(dir.exists(data_dir()))
+})
 
 test_that("load_data() errors if not downloaded", {
   expect_error(
@@ -6,11 +8,6 @@ test_that("load_data() errors if not downloaded", {
     "Data file for NC, 2020 not found. Use `download_data()` to download it.",
     fixed = TRUE
   )
-})
-
-test_that("data_dir() returns a valid directory", {
-  dir_path <- data_dir()
-  expect_true(dir.exists(dir_path))
 })
 
 test_that("download_data() works as expected", {
