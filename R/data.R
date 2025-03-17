@@ -128,7 +128,7 @@ load_data <- function(state, year = 2020) {
 #' @return * `data_dir()`: (string) The path to the data directory.
 #'
 data_dir <- function() {
-  dir <- tools::R_user_dir("pisg", "data")
+  dir <- tools::R_user_dir("caliBISG", "data")
   if (!dir.exists(dir)) {
     dir.create(dir, recursive = TRUE)
   }
@@ -262,6 +262,7 @@ delete_all_data <- function() {
 #' @return (data frame) The data frame with renamed columns.
 #'
 .rename_columns <- function(data) {
+  colnames(data) <- gsub("rake", "calibisg", colnames(data))
   colnames(data) <- gsub("bisg_bayes", "voter_bisg", colnames(data))
   colnames(data) <- gsub("bisg_cen_county", "bisg", colnames(data))
   colnames(data) <- gsub("nh_aian", "aian", colnames(data))
@@ -271,7 +272,7 @@ delete_all_data <- function() {
   colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
   col_order <- c(
     .demographic_columns(),
-    .rake_columns(),
+    .calibisg_columns(),
     .voter_bisg_columns(),
     .bisg_columns(),
     "in_census"

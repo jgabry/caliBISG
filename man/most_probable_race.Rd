@@ -44,7 +44,7 @@ to display in the output.}
 \item \code{year} (integer): The year of the data used to compute the estimates.
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
-\item \code{race} (string): The most probable race based on the raking estimates.
+\item \code{race} (string): The most probable race based on the caliBISG estimates.
 \item \code{in_census} (logical): Whether the surname is found in the list of
 names that appear at least 100 times in the census.
 }
@@ -52,12 +52,12 @@ names that appear at least 100 times in the census.
 as \code{most_probable_race()}, except the \code{race} column is replaced with the
 following columns that give the raking-based probabilities:
 \itemize{
-\item \code{rake_aian} (numeric): The raking estimate for American Indian and Alaskan Native.
-\item \code{rake_api} (numeric): The raking estimate for Asian and Pacific Islander.
-\item \code{rake_black_nh} (numeric): The raking estimate for non-Hispanic Black.
-\item \code{rake_hispanic} (numeric): The raking estimate for Hispanic.
-\item \code{rake_white_nh} (numeric): The raking estimate for non-Hispanic White.
-\item \code{rake_other} (numeric): The raking estimate for other.
+\item \code{calibisg_aian} (numeric): The caliBISG estimate for American Indian and Alaskan Native.
+\item \code{calibisg_api} (numeric): The caliBISG estimate for Asian and Pacific Islander.
+\item \code{calibisg_black_nh} (numeric): The caliBISG estimate for non-Hispanic Black.
+\item \code{calibisg_hispanic} (numeric): The caliBISG estimate for Hispanic.
+\item \code{calibisg_white_nh} (numeric): The caliBISG estimate for non-Hispanic White.
+\item \code{calibisg_other} (numeric): The caliBISG estimate for other.
 }
 \item \code{compare_race_probabilities}: (data frame) Same as \code{race_probabilities()}
 but with two additional columns for each race, one for the traditional BISG
@@ -67,7 +67,8 @@ but with two additional columns for each race, one for the traditional BISG
 }
 \description{
 Predict race given surname and location using the raking-based
-BISG method from Greengard and Gelman (2024). See \strong{Details}.
+Calibrated BISG (caliBISG) method from Greengard and Gelman (2024). See
+\strong{Details}.
 
 Before these functions can be used, the data files for the relevant states
 must be downloaded using \code{\link[=download_data]{download_data()}}.
@@ -82,8 +83,9 @@ seconds to first load the data internally. Subsequent calls for the same
 \details{
 \itemize{
 \item \code{most_probable_race()}: The single most probable race according to the
-raking-based approach to BISG.
-\item \code{race_probabilities()}: Raking-based probabilities for all of the races.
+caliBISG method.
+\item \code{race_probabilities()}: Probabilities for all of the races based on the
+caliBISG method.
 \item \code{compare_race_probabilities()}: Same as \code{race_probabilities()} but also
 includes traditional BISG estimates and "improved" BISG estimates for
 comparison purposes. Here, "improved BISG" refers to traditional BISG but

@@ -45,7 +45,7 @@ test_that("race_probabilities() returns correct columns for valid inputs", {
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
-  expect_named(out, c(.demographic_columns(), .rake_columns(), "in_census"))
+  expect_named(out, c(.demographic_columns(), .calibisg_columns(), "in_census"))
 })
 
 test_that("race_probabilities() handles multiple inputs, including a non-match", {
@@ -64,11 +64,11 @@ test_that("race_probabilities() handles multiple inputs, including a non-match",
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 3)
 
-  # 1st row: non-NA raking columns
-  # other rows: all raking columns = NA
-  rake_cols <- .rake_columns()
-  expect_false(all(is.na(out[1, rake_cols])))
-  expect_true(all(is.na(out[2, rake_cols])))
+  # 1st row: non-NA calibisg columns
+  # other rows: all calibisg columns = NA
+  calibisg_cols <- .calibisg_columns()
+  expect_false(all(is.na(out[1, calibisg_cols])))
+  expect_true(all(is.na(out[2, calibisg_cols])))
 })
 
 test_that("compare_race_probabilities() errors on length mismatch", {
@@ -91,14 +91,14 @@ test_that("compare_race_probabilities() returns all columns", {
     year   = 2020
   )
   expect_s3_class(out, "data.frame")
-  expect_s3_class(out, "raking_bisg")
+  expect_s3_class(out, "compare_bisg")
   expect_equal(nrow(out), 2)
 
   expected_cols <- c(
     .demographic_columns(),
     .voter_bisg_columns(),
     .bisg_columns(),
-    .rake_columns(),
+    .calibisg_columns(),
     "in_census"
   )
   expect_true(all(expected_cols %in% names(out)))
@@ -118,6 +118,6 @@ test_that("compare_race_probabilities() aggregates warnings for non-matches", {
   expect_equal(nrow(out), 3)
 
   # For the row with no match, check for NAs
-  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .voter_bisg_columns(), .rake_columns())])))
+  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .voter_bisg_columns(), .calibisg_columns())])))
 })
 

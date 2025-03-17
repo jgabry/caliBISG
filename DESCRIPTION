@@ -1,6 +1,6 @@
-Package: pisg
+Package: caliBISG
 Type: Package
-Title: An Improved BISG for Inferring Race from Surname and Geolocation
+Title: A Better Calibrated BISG for Inferring Race from Surname and Geolocation
 Version: 0.1.0
 Authors@R:
     c(person(given = "Jonah", family = "Gabry", role = c("aut", "cre"),
@@ -17,11 +17,13 @@ Description: Provides a raking-based improvement to Bayesian Improved Surname
     surname and geolocation within racial/ethnic categories in the United States 
     results in biases for minority subpopulations. We augment the data used by 
     standard BISG (distributions of race by geolocation and race by surname) 
-    with the distribution of surname by geolocation obtained from state voter files. 
+    with the distribution of surname by geolocation obtained from state voter 
+    files. The result is easily interpretable, and is more accurate and better 
+    calibrated than BISG.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
 Suggests: 
     testthat (>= 3.0.0)

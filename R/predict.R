@@ -1,7 +1,8 @@
 #' Predict race given surname and location
 #'
 #' @description Predict race given surname and location using the raking-based
-#'   BISG method from Greengard and Gelman (2024). See **Details**.
+#'   Calibrated BISG (caliBISG) method from Greengard and Gelman (2024). See
+#'   **Details**.
 #'
 #'   Before these functions can be used, the data files for the relevant states
 #'   must be downloaded using [download_data()].
@@ -25,8 +26,9 @@
 #'
 #' @details
 #' * `most_probable_race()`: The single most probable race according to the
-#' raking-based approach to BISG.
-#' * `race_probabilities()`: Raking-based probabilities for all of the races.
+#' caliBISG method.
+#' * `race_probabilities()`: Probabilities for all of the races based on the
+#' caliBISG method.
 #' * `compare_race_probabilities()`: Same as `race_probabilities()` but also
 #' includes traditional BISG estimates and "improved" BISG estimates for
 #' comparison purposes. Here, "improved BISG" refers to traditional BISG but
@@ -46,19 +48,19 @@
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
-#'      - `race` (string): The most probable race based on the raking estimates.
+#'      - `race` (string): The most probable race based on the caliBISG estimates.
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
 #' * `race_probabilities()`: (data frame) A data frame with the same columns
 #' as `most_probable_race()`, except the `race` column is replaced with the
 #' following columns that give the raking-based probabilities:
-#'      - `rake_aian` (numeric): The raking estimate for American Indian and Alaskan Native.
-#'      - `rake_api` (numeric): The raking estimate for Asian and Pacific Islander.
-#'      - `rake_black_nh` (numeric): The raking estimate for non-Hispanic Black.
-#'      - `rake_hispanic` (numeric): The raking estimate for Hispanic.
-#'      - `rake_white_nh` (numeric): The raking estimate for non-Hispanic White.
-#'      - `rake_other` (numeric): The raking estimate for other.
+#'      - `calibisg_aian` (numeric): The caliBISG estimate for American Indian and Alaskan Native.
+#'      - `calibisg_api` (numeric): The caliBISG estimate for Asian and Pacific Islander.
+#'      - `calibisg_black_nh` (numeric): The caliBISG estimate for non-Hispanic Black.
+#'      - `calibisg_hispanic` (numeric): The caliBISG estimate for Hispanic.
+#'      - `calibisg_white_nh` (numeric): The caliBISG estimate for non-Hispanic White.
+#'      - `calibisg_other` (numeric): The caliBISG estimate for other.
 #'
 #' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
 #' but with two additional columns for each race, one for the traditional BISG
@@ -104,13 +106,13 @@
 most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- race_probabilities(name, state, county, year)
   prediction$race <- apply(
-    prediction[, .rake_columns()], 1, function(probs) {
+    prediction[, .calibisg_columns()], 1, function(probs) {
     if (all(is.na(probs))) {
       NA_character_
     } else {
       # For each row, find the race with the highest probability
       idx <- which.max(probs)
-      sub("^rake_", "", names(probs)[idx])
+      sub("^calibisg_", "", names(probs)[idx])
     }
   })
   prediction[, c(.demographic_columns(), "race", "in_census")]
@@ -136,7 +138,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
       call. = FALSE
     )
   }
-  out[, c(.demographic_columns(), .rake_columns(), "in_census")]
+  out[, c(.demographic_columns(), .calibisg_columns(), "in_census")]
 }
 
 
@@ -162,15 +164,15 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
   }
   col_order <- c(
     .demographic_columns(),
-    # interleave rake and bisg columns for easier visual comparison
+    # interleave calibisg and bisg columns for easier visual comparison
     as.vector(rbind(
-      paste0("rake_", .race_column_order()),
+      paste0("calibisg_", .race_column_order()),
       paste0("voter_bisg_", .race_column_order()),
       paste0("bisg_", .race_column_order())
     )),
     "in_census"
   )
-  structure(out[, col_order], class = c("raking_bisg", class(out)))
+  structure(out[, col_order], class = c("compare_bisg", class(out)))
 }
 
 
@@ -182,7 +184,7 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
 #' @param digits (integer) For `print_comparison_tables()`, the number of digits
 #'   to display in the output.
 print_comparison_tables <- function(x, ..., digits = 4) {
-  if (!inherits(x, "raking_bisg")) {
+  if (!inherits(x, "compare_bisg")) {
     stop("Input must be an object returned by compare_race_probabilities().",
          call. = FALSE)
   }
@@ -209,11 +211,11 @@ print_comparison_tables <- function(x, ..., digits = 4) {
   c("AIAN", "API", "Black", "Hispanic", "White", "Other")
 }
 .race_column_order <- function() {
-  # Must match the suffixes that appear after "bisg_" or "rake_".
+  # Must match the suffixes that appear after "bisg_" or "calibisg_".
   c("aian", "api", "black_nh", "hispanic", "white_nh", "other")
 }
-.rake_columns <- function() {
-  paste0("rake_", .race_column_order())
+.calibisg_columns <- function() {
+  paste0("calibisg_", .race_column_order())
 }
 .bisg_columns <- function() {
   paste0("bisg_", .race_column_order())
@@ -257,7 +259,7 @@ print_comparison_tables <- function(x, ..., digits = 4) {
       year   = year,
       stringsAsFactors = FALSE
     )
-    for (col in c(.rake_columns(), .voter_bisg_columns(), .bisg_columns())) {
+    for (col in c(.calibisg_columns(), .voter_bisg_columns(), .bisg_columns())) {
       out[[col]] <- NA_real_
     }
     out$in_census <- NA
@@ -307,25 +309,25 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #' @return (data frame) The input data, invisibly.
 #'
 .print_table <- function(data, digits) {
-  rake_vals <- sapply(.rake_columns(),       function(col) data[[col]])
+  calibisg_vals <- sapply(.calibisg_columns(),       function(col) data[[col]])
   voter_bisg_vals <- sapply(.voter_bisg_columns(), function(col) data[[col]])
   bisg_vals <- sapply(.bisg_columns(),       function(col) data[[col]])
 
   # Format them with the desired number of digits
   fmt <- paste0("%.", digits, "f")
-  rake_vals <- sprintf(fmt, rake_vals)
+  calibisg_vals <- sprintf(fmt, calibisg_vals)
   voter_bisg_vals <- sprintf(fmt, voter_bisg_vals)
   bisg_vals <- sprintf(fmt, bisg_vals)
 
   row_labels <- .races()
   cat(sprintf("\n%-10s %-12s %-15s %-10s\n",
-              "Race", "Pr_rake_bisg", "Pr_voter_bisg", "Pr_bisg"))
+              "Race", "Pr_calibisg", "Pr_voter_bisg", "Pr_bisg"))
   cat(strrep("-", 55), "\n")
   for (i in seq_along(row_labels)) {
     cat(sprintf(
       "%-10s %-12s %-15s %-10s\n",
       row_labels[i],
-      rake_vals[i],
+      calibisg_vals[i],
       voter_bisg_vals[i],
       bisg_vals[i]
     ))
