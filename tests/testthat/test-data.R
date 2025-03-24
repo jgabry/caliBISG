@@ -43,6 +43,6 @@ test_that("load_data() works as expected", {
   expect_true(is.data.frame(wa_2020_data))
   expect_named(
     wa_2020_data,
-    c(.demographic_columns(), .calibisg_columns(), .voter_bisg_columns(), .bisg_columns(), "in_census")
+    c(.demographic_columns(), .calibisg_columns(), .bisg_columns(), "in_census")
   )
 })

@@ -96,7 +96,6 @@ test_that("compare_race_probabilities() returns all columns", {
 
   expected_cols <- c(
     .demographic_columns(),
-    .voter_bisg_columns(),
     .bisg_columns(),
     .calibisg_columns(),
     "in_census"
@@ -118,6 +117,6 @@ test_that("compare_race_probabilities() aggregates warnings for non-matches", {
   expect_equal(nrow(out), 3)
 
   # For the row with no match, check for NAs
-  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .voter_bisg_columns(), .calibisg_columns())])))
+  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .calibisg_columns())])))
 })
 

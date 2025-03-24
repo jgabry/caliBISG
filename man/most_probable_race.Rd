@@ -60,9 +60,8 @@ following columns that give the raking-based probabilities:
 \item \code{calibisg_other} (numeric): The caliBISG estimate for other.
 }
 \item \code{compare_race_probabilities}: (data frame) Same as \code{race_probabilities()}
-but with two additional columns for each race, one for the traditional BISG
-(prefixed with \code{bisg_}) and one for "improved BISG" (prefixed with
-\code{voter_bisg_}). See \strong{Details}.
+but with additional columns for each race containing the traditional BISG
+estimates (prefixed with \code{bisg_}).
 }
 }
 \description{
@@ -87,13 +86,7 @@ caliBISG method.
 \item \code{race_probabilities()}: Probabilities for all of the races based on the
 caliBISG method.
 \item \code{compare_race_probabilities()}: Same as \code{race_probabilities()} but also
-includes traditional BISG estimates and "improved" BISG estimates for
-comparison purposes. Here, "improved BISG" refers to traditional BISG but
-including an adjustment to those predictions that accounts for the fact that
-we're making predictions on registered voters, not the general population. It
-uses the registered voter status x race distribution and an application of
-Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
-to be an improvement over both traditional and "improved" BISG.
+includes traditional BISG estimates for comparison purposes.
 \item \code{print_comparison_tables()}: Pretty print the output of
 \code{compare_race_probabilities()}. Prints a separate table for each input
 record, so this is most useful when only a small number of records were

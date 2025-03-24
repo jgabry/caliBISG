@@ -71,7 +71,7 @@ download_data(states = c("NC", "WA"), years = 2020)
 ## Predict the most probable race based on surname and geolocation
 
 The `most_probable_race()` function provides the single most probable race
-according to the raking based approach to BISG from Greengard and Gelman (2024).
+according to the raking-based caliBISG approach from Greengard and Gelman (2024).
 
 ```{r}
 most_probable_race(name = "smith", state = "WA", county = "king")
@@ -106,7 +106,7 @@ only 2020 is available.
 The `race_probabilities()` function gives the caliBISG estimates for the
 probabilities of all the races. Again, the object returned is just a standard
 data frame, but the columns are the probabilities for each race, computed
-using the raking based approach to BISG from Greengard and Gelman (2024).
+using the raking-based approach to BISG from Greengard and Gelman (2024).
 
 ```{r}
 lopez_nc_burke_probs <- race_probabilities(
@@ -125,17 +125,11 @@ race_probabilities("lopez", "nc", "not_a_county")
 ```
 
 
-## Compare raking-based BISG to traditional BISG and "improved" BISG
+## Compare raking-based caliBISG to traditional BISG 
 
 The `compare_race_probabilities()` function allows the user to compare the
-raking-based BISG probabilities from Greengard and Gelman (2024) to the
-traditional BISG probabilities as well as to the "improved" BISG probabilities.
-Here, "improved BISG" refers to traditional BISG but including an adjustment to
-those predictions that accounts for the fact that we're making predictions on
-registered voters, not the general population. It uses the registered voter
-status x race distribution and an application of Bayes rule. Greengard and
-Gelman (2024) considers the raking-based approach to be an improvement over both
-traditional and "improved" BISG.
+raking-based caliBISG probabilities from Greengard and Gelman (2024) to the
+traditional BISG probabilities.
 
 ```{r}
 comp1 <- compare_race_probabilities("lopez", "nc", "burke")
@@ -143,8 +137,8 @@ str(comp1)
 ```
 
 The object returned is again a standard data frame, however there are additional
-columns prefixed with `bisg_` (traditional) and `voter_bisg` (improved). The
-`bisg_`, `voter_bisg_` and `rake_` columns are also interleaved, i.e., ordered
+columns prefixed with `bisg_` (traditional BISG). The
+`bisg_` and `calibisg_` columns are also interleaved, i.e., ordered
 to place the races next to each other for easier comparison.
 
 The `compare_race_probabilities()` function can also take vectors as inputs

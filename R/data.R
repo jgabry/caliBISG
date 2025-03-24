@@ -92,7 +92,7 @@ download_data <- function(states = NULL, years = 2020, ...) {
       df <- as.data.frame(df)
       df$year <- yr
       df$state <- st
-      df <- .rename_columns(df)
+      df <- .clean_data(df)
 
       # Save to RDS
       saveRDS(df, file = rds_path)
@@ -255,25 +255,32 @@ delete_all_data <- function() {
   invisible(TRUE)
 }
 
-#' Rename and order columns in imported data
+#' Rename, order, and drop (if necessary) columns in the imported data
 #'
 #' @noRd
-#' @param data (data frame) The data frame to rename columns in.
-#' @return (data frame) The data frame with renamed columns.
+#' @param data (data frame) The data frame to process.
+#' @return (data frame) The updated data frame.
 #'
-.rename_columns <- function(data) {
+.clean_data <- function(data) {
+  # drop voter_bisg columns
+  # these are "improved" BISG that we're not going to use anymore
+  # eventually we should remove these columns from the files before uploading them
+  data <- data[, !grepl("^voter_bisg", colnames(data))]
+
+  # rename columns for now
+  # eventually we should rename these columns in the files before uploading them
   colnames(data) <- gsub("rake", "calibisg", colnames(data))
-  colnames(data) <- gsub("bisg_bayes", "voter_bisg", colnames(data))
   colnames(data) <- gsub("bisg_cen_county", "bisg", colnames(data))
   colnames(data) <- gsub("nh_aian", "aian", colnames(data))
   colnames(data) <- gsub("nh_api", "api", colnames(data))
   colnames(data) <- gsub("nh_black", "black_nh", colnames(data))
   colnames(data) <- gsub("nh_white", "white_nh", colnames(data))
   colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
+
+
   col_order <- c(
     .demographic_columns(),
     .calibisg_columns(),
-    .voter_bisg_columns(),
     .bisg_columns(),
     "in_census"
   )

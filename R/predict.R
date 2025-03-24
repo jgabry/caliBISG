@@ -30,13 +30,7 @@
 #' * `race_probabilities()`: Probabilities for all of the races based on the
 #' caliBISG method.
 #' * `compare_race_probabilities()`: Same as `race_probabilities()` but also
-#' includes traditional BISG estimates and "improved" BISG estimates for
-#' comparison purposes. Here, "improved BISG" refers to traditional BISG but
-#' including an adjustment to those predictions that accounts for the fact that
-#' we're making predictions on registered voters, not the general population. It
-#' uses the registered voter status x race distribution and an application of
-#' Bayes rule. Greengard and Gelman (2024) considers the raking-based approach
-#' to be an improvement over both traditional and "improved" BISG.
+#' includes traditional BISG estimates for comparison purposes.
 #' * `print_comparison_tables()`: Pretty print the output of
 #' `compare_race_probabilities()`. Prints a separate table for each input
 #' record, so this is most useful when only a small number of records were
@@ -63,9 +57,8 @@
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
 #'
 #' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
-#' but with two additional columns for each race, one for the traditional BISG
-#' (prefixed with `bisg_`) and one for "improved BISG" (prefixed with
-#' `voter_bisg_`). See **Details**.
+#' but with additional columns for each race containing the traditional BISG
+#' estimates (prefixed with `bisg_`).
 #'
 #' @references Philip Greengard and Andrew Gelman (2024). An improved BISG for
 #'   inferring race from surname and geolocation.
@@ -167,7 +160,6 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
     # interleave calibisg and bisg columns for easier visual comparison
     as.vector(rbind(
       paste0("calibisg_", .race_column_order()),
-      paste0("voter_bisg_", .race_column_order()),
       paste0("bisg_", .race_column_order())
     )),
     "in_census"
@@ -220,9 +212,6 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 .bisg_columns <- function() {
   paste0("bisg_", .race_column_order())
 }
-.voter_bisg_columns <- function() {
-  paste0("voter_bisg_", .race_column_order())
-}
 .demographic_columns <- function() {
   c("name", "year", "state", "county")
 }
@@ -259,7 +248,7 @@ print_comparison_tables <- function(x, ..., digits = 4) {
       year   = year,
       stringsAsFactors = FALSE
     )
-    for (col in c(.calibisg_columns(), .voter_bisg_columns(), .bisg_columns())) {
+    for (col in c(.calibisg_columns(), .bisg_columns())) {
       out[[col]] <- NA_real_
     }
     out$in_census <- NA
@@ -309,29 +298,26 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #' @return (data frame) The input data, invisibly.
 #'
 .print_table <- function(data, digits) {
-  calibisg_vals <- sapply(.calibisg_columns(),       function(col) data[[col]])
-  voter_bisg_vals <- sapply(.voter_bisg_columns(), function(col) data[[col]])
-  bisg_vals <- sapply(.bisg_columns(),       function(col) data[[col]])
+  calibisg_vals <- sapply(.calibisg_columns(), function(col) data[[col]])
+  bisg_vals <- sapply(.bisg_columns(), function(col) data[[col]])
 
   # Format them with the desired number of digits
   fmt <- paste0("%.", digits, "f")
   calibisg_vals <- sprintf(fmt, calibisg_vals)
-  voter_bisg_vals <- sprintf(fmt, voter_bisg_vals)
   bisg_vals <- sprintf(fmt, bisg_vals)
 
   row_labels <- .races()
-  cat(sprintf("\n%-10s %-12s %-15s %-10s\n",
-              "Race", "Pr_calibisg", "Pr_voter_bisg", "Pr_bisg"))
-  cat(strrep("-", 55), "\n")
+  cat(sprintf("\n%-10s %-12s %-10s\n",
+              "Race", "Pr_calibisg", "Pr_bisg"))
+  cat(strrep("-", 40), "\n")
   for (i in seq_along(row_labels)) {
     cat(sprintf(
-      "%-10s %-12s %-15s %-10s\n",
+      "%-10s %-12s %-10s\n",
       row_labels[i],
       calibisg_vals[i],
-      voter_bisg_vals[i],
       bisg_vals[i]
     ))
   }
-  cat(strrep("-", 55), "\n")
+  cat(strrep("-", 40), "\n")
   invisible(data)
 }
