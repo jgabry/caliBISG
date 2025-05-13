@@ -1,4 +1,4 @@
-#' BISG prediction from vectors of names + counties
+#' Compute traditional BISG
 #'
 #' @description Compute Bayesian Improved Surname Geocoding (BISG) race‐probability
 #' estimates using census surname and county reference tables.
@@ -9,8 +9,9 @@
 #'   internally.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally.
-#' @param state (string) A state abbreviation.
-#' @param year (integer) The year of the data used to compute the estimates.
+#' @param state (character vector) A vector of state abbreviations. Coerced to
+#'   uppercase internally.
+#' @param year (integer) The year of the data to use to compute the estimates.
 #'   Currently only 2020 is available.
 #'
 #' @return (data frame) A data frame with colums `name`, `year`, `state`,

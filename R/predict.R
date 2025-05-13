@@ -21,7 +21,7 @@
 #'   uppercase internally.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally.
-#' @param year (integer) The year of the data used to compute the estimates.
+#' @param year (integer) The year of the data to use to compute the estimates.
 #'   Currently only 2020 is available.
 #'
 #' @details

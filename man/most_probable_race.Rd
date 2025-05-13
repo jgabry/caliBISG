@@ -22,7 +22,7 @@ uppercase internally.}
 \item{county}{(character vector) A vector of counties. Coerced to lowercase
 internally.}
 
-\item{year}{(integer) The year of the data used to compute the estimates.
+\item{year}{(integer) The year of the data to use to compute the estimates.
 Currently only 2020 is available.}
 
 \item{x}{For \code{print_comparison_tables()}, the object returned by
