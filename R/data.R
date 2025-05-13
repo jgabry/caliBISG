@@ -57,7 +57,7 @@ download_data <- function(states = NULL, years = 2020, ...) {
 
       # temporarily read data from local file
       res <- 0
-      csv_path <- .temporary_local_path(st, yr)
+      csv_path <- .temporary_local_calibisg_download_path(st, yr)
 
       # Check if download was successful
       if (res != 0) {
@@ -92,7 +92,8 @@ download_data <- function(states = NULL, years = 2020, ...) {
       df <- as.data.frame(df)
       df$year <- yr
       df$state <- st
-      df <- .clean_data(df)
+      df <- .rename_data(df)
+      df <- .reorder_data(df)
 
       # Save to RDS
       saveRDS(df, file = rds_path)
@@ -198,11 +199,16 @@ delete_all_data <- function() {
   file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
 
-#' Get the temporarly local path the data files. Will replace this with
+
+
+#' Get the temporarly local path to the data files. Will replace this with
 #' downloading them eventually.
 #' @noRd
-.temporary_local_path <- function(state, year) {
-  paste0("/Users/jgabry/Desktop/tmp/voter_bisg/", tolower(state), "_", year, ".csv")
+.temporary_local_directory <- function() {
+  "/Users/jgabry/Desktop/tmp/voter_bisg/"
+}
+.temporary_local_calibisg_download_path <- function(state, year) {
+  paste0(.temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
 }
 
 #' List the states that are currently available for download
@@ -212,7 +218,7 @@ delete_all_data <- function() {
 #'   available states.
 #'
 .all_states <- function() {
-  c("NC", "WA")
+  c("WA", "VT")
 }
 
 #' List the years that are currently available for download
@@ -261,28 +267,23 @@ delete_all_data <- function() {
 #' @param data (data frame) The data frame to process.
 #' @return (data frame) The updated data frame.
 #'
-.clean_data <- function(data) {
-  # drop voter_bisg columns
-  # these are "improved" BISG that we're not going to use anymore
-  # eventually we should remove these columns from the files before uploading them
-  data <- data[, !grepl("^voter_bisg", colnames(data))]
-
+.rename_data <- function(data) {
   # rename columns for now
   # eventually we should rename these columns in the files before uploading them
-  colnames(data) <- gsub("rake", "calibisg", colnames(data))
-  colnames(data) <- gsub("bisg_cen_county", "bisg", colnames(data))
   colnames(data) <- gsub("nh_aian", "aian", colnames(data))
   colnames(data) <- gsub("nh_api", "api", colnames(data))
   colnames(data) <- gsub("nh_black", "black_nh", colnames(data))
   colnames(data) <- gsub("nh_white", "white_nh", colnames(data))
   colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
-
-
+  data
+}
+.reorder_data <- function(data) {
   col_order <- c(
     .demographic_columns(),
     .calibisg_columns(),
-    .bisg_columns(),
     "in_census"
   )
   data[, col_order]
 }
+
+
