@@ -47,29 +47,32 @@ to display in the output.}
 names that appear at least 100 times in the census.
 }
 \item \code{race_probabilities()}: (data frame) A data frame with the same columns
-as \code{most_probable_race()}, except the \code{race} column is replaced with the
-following columns that give the raking-based probabilities:
+as \code{most_probable_race()}, except the \code{calibisg_race} and \code{bisg_race} columns
+are each replaced by multiple columns giving the probabilities of the various
+races, not just the single most probable race. The columns are:
 \itemize{
 \item \code{calibisg_aian} (numeric): The caliBISG estimate for American Indian and Alaskan Native.
+\item \code{bisg_aian} (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
 \item \code{calibisg_api} (numeric): The caliBISG estimate for Asian and Pacific Islander.
+\item \code{bisg_api} (numeric): The traditional BISG estimate for Asian and Pacific Islander.
 \item \code{calibisg_black_nh} (numeric): The caliBISG estimate for non-Hispanic Black.
+\item \code{bisg_black_nh} (numeric): The traditional BISG estimate for non-Hispanic Black.
 \item \code{calibisg_hispanic} (numeric): The caliBISG estimate for Hispanic.
+\item \code{bisg_hispanic} (numeric): The traditional BISG estimate for Hispanic.
 \item \code{calibisg_white_nh} (numeric): The caliBISG estimate for non-Hispanic White.
+\item \code{bisg_white_nh} (numeric): The traditional BISG estimate for non-Hispanic
 \item \code{calibisg_other} (numeric): The caliBISG estimate for other.
-\item There is also a \verb{bisg_*} column for each race giving the traditional BISG estimate.
+\item \code{bisg_other} (numeric): The traditional BISG estimate for other.
 }
 }
 }
 \description{
 Predict race given surname and location using the raking-based
-Calibrated BISG (caliBISG) method from Greengard and Gelman (2024). See
-\strong{Details}.
+Calibrated BISG (caliBISG) method from Greengard and Gelman (2024).
+Traditional BISG estimates are also provided. See \strong{Details}.
 
 Before these functions can be used, the data files for the relevant states
 must be downloaded using \code{\link[=download_data]{download_data()}}.
-
-These functions are just convenience functions for querying the large data
-files. You can also \link[=load_data]{load} and use the data files directly.
 
 NOTE: the first query for a particular \code{state} and \code{year} may take a few
 seconds to first load the data internally. Subsequent calls for the same
@@ -86,6 +89,10 @@ caliBISG method and traditional BISG.
 record, so this is most useful when only a small number of records were
 requested.
 }
+
+NOTE: For some state, county, surname combinations the caliBISG estimate will
+not be available. In those cases we still provide the traditional BISG
+estimates as long as the state and county are valid.
 }
 \examples{
 \dontrun{

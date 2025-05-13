@@ -1,14 +1,11 @@
 #' Predict race given surname and location
 #'
 #' @description Predict race given surname and location using the raking-based
-#'   Calibrated BISG (caliBISG) method from Greengard and Gelman (2024). See
-#'   **Details**.
+#'   Calibrated BISG (caliBISG) method from Greengard and Gelman (2024).
+#'   Traditional BISG estimates are also provided. See **Details**.
 #'
 #'   Before these functions can be used, the data files for the relevant states
 #'   must be downloaded using [download_data()].
-#'
-#'   These functions are just convenience functions for querying the large data
-#'   files. You can also [load][load_data()] and use the data files directly.
 #'
 #'   NOTE: the first query for a particular `state` and `year` may take a few
 #'   seconds to first load the data internally. Subsequent calls for the same
@@ -34,6 +31,10 @@
 #' record, so this is most useful when only a small number of records were
 #' requested.
 #'
+#' NOTE: For some state, county, surname combinations the caliBISG estimate will
+#' not be available. In those cases we still provide the traditional BISG
+#' estimates as long as the state and county are valid.
+#'
 #' @return
 #' * `most_probable_race()`: (data frame) A data frame with the following columns:
 #'      - `name` (string): The surname.
@@ -46,15 +47,21 @@
 #'         names that appear at least 100 times in the census.
 #'
 #' * `race_probabilities()`: (data frame) A data frame with the same columns
-#' as `most_probable_race()`, except the `race` column is replaced with the
-#' following columns that give the raking-based probabilities:
+#' as `most_probable_race()`, except the `calibisg_race` and `bisg_race` columns
+#' are each replaced by multiple columns giving the probabilities of the various
+#' races, not just the single most probable race. The columns are:
 #'      - `calibisg_aian` (numeric): The caliBISG estimate for American Indian and Alaskan Native.
+#'      - `bisg_aian` (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
 #'      - `calibisg_api` (numeric): The caliBISG estimate for Asian and Pacific Islander.
+#'      - `bisg_api` (numeric): The traditional BISG estimate for Asian and Pacific Islander.
 #'      - `calibisg_black_nh` (numeric): The caliBISG estimate for non-Hispanic Black.
+#'      - `bisg_black_nh` (numeric): The traditional BISG estimate for non-Hispanic Black.
 #'      - `calibisg_hispanic` (numeric): The caliBISG estimate for Hispanic.
+#'      - `bisg_hispanic` (numeric): The traditional BISG estimate for Hispanic.
 #'      - `calibisg_white_nh` (numeric): The caliBISG estimate for non-Hispanic White.
+#'      - `bisg_white_nh` (numeric): The traditional BISG estimate for non-Hispanic
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
-#'      - There is also a `bisg_*` column for each race giving the traditional BISG estimate.
+#'      - `bisg_other` (numeric): The traditional BISG estimate for other.
 #'
 #' @references Philip Greengard and Andrew Gelman (2024). An improved BISG for
 #'   inferring race from surname and geolocation.
@@ -83,7 +90,7 @@
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- race_probabilities(name, state, county, year)
-  prediction$race <- apply(
+  prediction$calibisg_race <- apply(
     prediction[, .calibisg_columns()], 1, function(probs) {
     if (all(is.na(probs))) {
       NA_character_
@@ -92,6 +99,15 @@ most_probable_race <- function(name, state, county, year = 2020) {
       idx <- which.max(probs)
       sub("^calibisg_", "", names(probs)[idx])
     }
+  })
+  prediction$bisg_race <- apply(
+    prediction[, .bisg_columns()], 1, function(probs) {
+      if (all(is.na(probs))) {
+        NA_character_
+      } else {
+        idx <- which.max(probs)
+        sub("^bisg_", "", names(probs)[idx])
+      }
   })
   prediction[, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census")]
 }
