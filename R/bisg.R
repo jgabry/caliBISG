@@ -24,6 +24,7 @@
 #'      * `bisg_other`
 #'
 #' @examples
+#' \dontrun{
 #' bisg(
 #'   name = c("Lopez", "Jackson", "Smith"),
 #'   county = c("King", "King", "Chittenden"),

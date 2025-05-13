@@ -33,4 +33,15 @@ Currently only 2020 is available.}
 Compute Bayesian Improved Surname Geocoding (BISG) race‐probability
 estimates using census surname and county reference tables.
 }
+\examples{
+\dontrun{
+bisg(
+  name = c("Lopez", "Jackson", "Smith"),
+  county = c("King", "King", "Chittenden"),
+  state = c("WA", "WA", "VT"),
+  year = 2020
+)
+}
+
+}
 \keyword{internal}
