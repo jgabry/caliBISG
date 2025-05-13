@@ -24,7 +24,7 @@
 #'      * `bisg_other`
 #'
 #' @examples
-#' predict_bisg(
+#' bisg(
 #'   name = c("Lopez", "Jackson", "Smith"),
 #'   county = c("King", "King", "Chittenden"),
 #'   state = c("WA", "WA", "VT"),
@@ -32,7 +32,7 @@
 #' )
 #' }
 #'
-predict_bisg <- function(name, county, state, year = 2020) {
+bisg <- function(name, county, state, year = 2020) {
   if (!is.character(name)   || !is.character(county)) {
     stop("`name` and `county` must both be character vectors.", call. = FALSE)
   }
@@ -168,7 +168,7 @@ race_x_usa_data <- function(year) {
 
 
 # Version for a single state
-# predict_bisg <- function(name,
+# bisg <- function(name,
 #                          county,
 #                          state,
 #                          year = 2020) {
