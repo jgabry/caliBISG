@@ -93,7 +93,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
       sub("^calibisg_", "", names(probs)[idx])
     }
   })
-  prediction[, c(.demographic_columns(), "race", "in_census")]
+  prediction[, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census")]
 }
 
 #' @rdname most_probable_race
@@ -103,25 +103,35 @@ race_probabilities <- function(name, state, county, year = 2020) {
   if (!(length(state) == length(name) && length(county) == length(name))) {
     stop("`name`, `state`, and `county` must all have the same length.")
   }
-  out_list <- lapply(seq_along(name), function(i) {
+  calibisg_out_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year, quiet = TRUE)
   })
-  out <- do.call(rbind, out_list)
-  not_found_count <- sum(!out$.found)
+  calibisg_out <- do.call(rbind, calibisg_out_list)
+  not_found_count <- sum(!calibisg_out$.found)
   if (not_found_count > 0) {
     warning(
       "No record found for ",
       not_found_count,
-      " input(s). Returning NAs for those cases.",
+      " input(s). Returning NAs for caliBISG those cases.",
       call. = FALSE
     )
   }
+
+  # add traditional bisg estimates
+  bisg_out <- bisg(
+    name   = calibisg_out$name,
+    state  = calibisg_out$state,
+    county = calibisg_out$county,
+    year   = unique(calibisg_out$year)
+  )
+  out <- merge(calibisg_out, bisg_out, by = c("name", "state", "county", "year"), all = TRUE)
+
   col_order <- c(
     .demographic_columns(),
     # interleave calibisg and bisg columns for easier visual comparison
     as.vector(rbind(
-      paste0("calibisg_", .race_column_order())
-      # , paste0("bisg_", .race_column_order())
+      paste0("calibisg_", .race_column_order()),
+      paste0("bisg_", .race_column_order())
     )),
     "in_census"
   )

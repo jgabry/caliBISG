@@ -47,8 +47,7 @@ test_that("race_probabilities() returns correct columns for valid inputs", {
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
   expect_named(out, c(.demographic_columns(),
-                      .calibisg_columns(),
-                      #.bisg_columns()
+                      as.vector(rbind(.calibisg_columns(), .bisg_columns())),
                       "in_census"))
 })
 
@@ -90,7 +89,6 @@ test_that("race_probabilities() aggregates warnings for non-matches", {
   expect_equal(nrow(out), 3)
 
   # For the row with no match, check for NAs
-  expect_true(all(is.na(out[2:3, c(.calibisg_columns())])))
-  # expect_true(all(is.na(out[2:3, c(.bisg_columns(), .calibisg_columns())])))
+  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .calibisg_columns())])))
 })
 

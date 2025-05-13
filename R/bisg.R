@@ -132,9 +132,9 @@ bisg <- function(name, county, state, year = 2020) {
 
   out <- data.frame(
     name   = df$name,
-    county = df$county,
-    state  = df$state,
     year   = year,
+    state  = df$state,
+    county = df$county,
     bisg_mat,
     stringsAsFactors = FALSE
   )
