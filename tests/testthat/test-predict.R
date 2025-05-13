@@ -2,17 +2,18 @@ suppressMessages(download_data())
 
 test_that("most_probable_race() returns correct columns and handles multiple inputs", {
   # Single input
-  single_out <- most_probable_race("lopez", "nc", "burke", 2020)
+  single_out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
   expect_s3_class(single_out, "data.frame")
   expect_equal(nrow(single_out), 1)
   expect_named(single_out, c(.demographic_columns(), "race", "in_census"))
+  # expect_named(single_out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
 
   # Multiple inputs (1 found, 1 not found)
   expect_warning(
     multi_out <- most_probable_race(
       name   = c("lopez", "noname"),
-      state  = c("nc", "nc"),
-      county = c("burke", "dummy"),
+      state  = c("VT", "VT"),
+      county = c("Chittenden", "dummy"),
       year   = 2020
     ),
     regexp = "No record found for 1 input"
@@ -28,8 +29,8 @@ test_that("race_probabilities() errors if lengths are mismatched", {
   expect_error(
     race_probabilities(
       name   = c("smith", "lopez"),
-      state  = "nc",
-      county = "burke",
+      state  = "VT",
+      county = "Chittenden",
       year   = 2020
     ),
     "`name`, `state`, and `county` must all have the same length."
@@ -39,29 +40,33 @@ test_that("race_probabilities() errors if lengths are mismatched", {
 test_that("race_probabilities() returns correct columns for valid inputs", {
   out <- race_probabilities(
     name   = "lopez",
-    state  = "NC",
-    county = "burke",
+    state  = "VT",
+    county = "Chittenden",
     year   = 2020
   )
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
-  expect_named(out, c(.demographic_columns(), .calibisg_columns(), "in_census"))
+  expect_named(out, c(.demographic_columns(),
+                      .calibisg_columns(),
+                      #.bisg_columns()
+                      "in_census"))
 })
 
 test_that("race_probabilities() handles multiple inputs, including a non-match", {
-  # Suppose "lopez, NC, burke" is a match, but the other two are not
+  # Suppose "lopez, VT, Chittenden" is a match, but the other two are not
   # We expect one aggregated warning, not two separate ones
   expect_warning(
     out <- race_probabilities(
       name   = c("lopez", "noname", "noname2"),
-      state  = c("nc", "nc", "nc"),
-      county = c("burke", "dummy", "dummy"),
+      state  = c("VT", "VT", "VT"),
+      county = c("Chittenden", "dummy", "dummy"),
       year   = 2020
     ),
     regexp = "No record found for 2 input(s)",
     fixed = TRUE
   )
   expect_s3_class(out, "data.frame")
+  expect_s3_class(out, "compare_bisg")
   expect_equal(nrow(out), 3)
 
   # 1st row: non-NA calibisg columns
@@ -71,44 +76,12 @@ test_that("race_probabilities() handles multiple inputs, including a non-match",
   expect_true(all(is.na(out[2, calibisg_cols])))
 })
 
-test_that("compare_race_probabilities() errors on length mismatch", {
-  expect_error(
-    compare_race_probabilities(
-      name   = c("lopez", "smith"),
-      state  = "nc",
-      county = "burke",
-      year   = 2020
-    ),
-    "`name`, `state`, and `county` must all have the same length."
-  )
-})
-
-test_that("compare_race_probabilities() returns all columns", {
-  out <- compare_race_probabilities(
-    name   = c("lopez", "smith"),
-    state  = c("nc", "nc"),
-    county = c("burke", "wake"),
-    year   = 2020
-  )
-  expect_s3_class(out, "data.frame")
-  expect_s3_class(out, "compare_bisg")
-  expect_equal(nrow(out), 2)
-
-  expected_cols <- c(
-    .demographic_columns(),
-    .bisg_columns(),
-    .calibisg_columns(),
-    "in_census"
-  )
-  expect_true(all(expected_cols %in% names(out)))
-})
-
-test_that("compare_race_probabilities() aggregates warnings for non-matches", {
+test_that("race_probabilities() aggregates warnings for non-matches", {
   expect_warning(
-    out <- compare_race_probabilities(
+    out <- race_probabilities(
       name   = c("lopez", "noname", "noname2"),
-      state  = c("nc", "nc", "nc"),
-      county = c("burke", "dummy", "dummy"),
+      state  = c("VT", "VT", "VT"),
+      county = c("Chittenden", "dummy", "dummy"),
       year   = 2020
     ),
     regexp = "No record found for 2 input(s)",
@@ -117,6 +90,7 @@ test_that("compare_race_probabilities() aggregates warnings for non-matches", {
   expect_equal(nrow(out), 3)
 
   # For the row with no match, check for NAs
-  expect_true(all(is.na(out[2:3, c(.bisg_columns(), .calibisg_columns())])))
+  expect_true(all(is.na(out[2:3, c(.calibisg_columns())])))
+  # expect_true(all(is.na(out[2:3, c(.bisg_columns(), .calibisg_columns())])))
 })
 

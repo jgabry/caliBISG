@@ -4,23 +4,23 @@ test_that("data_dir() returns a valid directory", {
 
 test_that("load_data() errors if not downloaded", {
   expect_error(
-    load_data("NC", 2020),
-    "Data file for NC, 2020 not found. Use `download_data()` to download it.",
+    load_data("VT", 2020),
+    "Data file for VT, 2020 not found. Use `download_data()` to download it.",
     fixed = TRUE
   )
 })
 
 test_that("download_data() works as expected", {
   expect_message({
-    res <- download_data("NC", 2020)
+    res <- download_data("VT", 2020)
     expect_true(isTRUE(res))
-  }, "Downloading: NC-2020.csv")
+  }, "Downloading: VT-2020.csv")
 
   expect_message(
     expect_message({
-      res <- download_data(c("NC", "WA"), 2020)
+      res <- download_data(c("VT", "WA"), 2020)
       expect_true(isTRUE(res))
-    }, "NC-2020.rds already exists. Skipping."),
+    }, "VT-2020.rds already exists. Skipping."),
     "Downloading: WA-2020.csv"
   )
 
@@ -35,7 +35,7 @@ test_that("download_data() works as expected", {
 })
 
 test_that("available_data() returns a character vector", {
-  expect_equal(available_data(), c("NC-2020.rds", "WA-2020.rds"))
+  expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
 })
 
 test_that("load_data() works as expected", {
@@ -43,6 +43,13 @@ test_that("load_data() works as expected", {
   expect_true(is.data.frame(wa_2020_data))
   expect_named(
     wa_2020_data,
-    c(.demographic_columns(), .calibisg_columns(), .bisg_columns(), "in_census")
+    c(.demographic_columns(), .calibisg_columns(), "in_census")
+  )
+
+  vt_2020_data <- load_data("VT", 2020)
+  expect_true(is.data.frame(vt_2020_data))
+  expect_named(
+    vt_2020_data,
+    c(.demographic_columns(), .calibisg_columns(), "in_census")
   )
 })

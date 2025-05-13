@@ -208,7 +208,7 @@ print_comparison_tables <- function(x, ..., digits = 4) {
       year   = year,
       stringsAsFactors = FALSE
     )
-    for (col in c(.calibisg_columns(), .bisg_columns())) {
+    for (col in .calibisg_columns()) {
       out[[col]] <- NA_real_
     }
     out$in_census <- NA
