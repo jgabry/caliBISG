@@ -49,7 +49,7 @@ download_data <- function(states = NULL, years = 2020, ...) {
       }
 
       csv_name <- paste0(st, "-", yr, ".csv")
-      csv_url  <- paste0("https://mydata.org/race/", st, "-", yr, ".csv")  # placeholder
+      csv_url  <- paste0("https://temporary-fake-url/", st, "-", yr, ".csv")  # placeholder
       csv_path <- file.path(tempdir(), csv_name)
 
       message("Downloading: ", csv_name, " from ", csv_url)
@@ -201,14 +201,22 @@ delete_all_data <- function() {
 
 
 
-#' Get the temporarly local path to the data files. Will replace this with
-#' downloading them eventually.
+#' Set and get the temporarly local path to the data files. Will replace this
+#' with downloading them eventually.
 #' @noRd
-.temporary_local_directory <- function() {
-  "/Users/jgabry/Desktop/tmp/voter_bisg/"
+#' @export
+set_temporary_local_directory <- function(dir = NULL) {
+  .internal_data_env$temporary_local_directory <- dir
+}
+.get_temporary_local_directory <- function() {
+  dir <- .internal_data_env$temporary_local_directory
+  if (is.null(dir)) {
+    dir <- "/Users/jgabry/Desktop/tmp/voter_bisg/"
+  }
+  dir
 }
 .temporary_local_calibisg_download_path <- function(state, year) {
-  paste0(.temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
+  paste0(.get_temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
 }
 
 #' List the states that are currently available for download
