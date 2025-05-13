@@ -26,13 +26,11 @@
 #'
 #' @details
 #' * `most_probable_race()`: The single most probable race according to the
-#' caliBISG method.
+#' caliBISG method and traditional BISG.
 #' * `race_probabilities()`: Probabilities for all of the races based on the
-#' caliBISG method.
-#' * `compare_race_probabilities()`: Same as `race_probabilities()` but also
-#' includes traditional BISG estimates for comparison purposes.
+#' caliBISG method and traditional BISG.
 #' * `print_comparison_tables()`: Pretty print the output of
-#' `compare_race_probabilities()`. Prints a separate table for each input
+#' `race_probabilities()`. Prints a separate table for each input
 #' record, so this is most useful when only a small number of records were
 #' requested.
 #'
@@ -42,7 +40,8 @@
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
-#'      - `race` (string): The most probable race based on the caliBISG estimates.
+#'      - `calibisg_race` (string): The most probable race based on the caliBISG estimates.
+#'      - `bisg_race` (string): The most probable race based on the caliBISG estimates.
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
@@ -55,10 +54,7 @@
 #'      - `calibisg_hispanic` (numeric): The caliBISG estimate for Hispanic.
 #'      - `calibisg_white_nh` (numeric): The caliBISG estimate for non-Hispanic White.
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
-#'
-#' * `compare_race_probabilities`: (data frame) Same as `race_probabilities()`
-#' but with additional columns for each race containing the traditional BISG
-#' estimates (prefixed with `bisg_`).
+#'      - There is also a `bisg_*` column for each race giving the traditional BISG estimate.
 #'
 #' @references Philip Greengard and Andrew Gelman (2024). An improved BISG for
 #'   inferring race from surname and geolocation.
@@ -69,31 +65,20 @@
 #' most_probable_race("smith", "wa", "king")
 #' most_probable_race(
 #'   name = c("Lopez", "Jackson"),
-#'   state = c("NC", "WA"),
-#'   county = c("Burke", "King")
+#'   state = c("VT", "WA"),
+#'   county = c("Chittenden", "King")
 #' )
 #'
 #' race_probabilities("smith", "wa", "king")
-#' race_probabilities("lopez", "nc", "burke")
+#' race_probabilities("lopez", "vt", "chittenden")
 #' probs2 <- race_probabilities(
-#'   name = c("Smith", "Lopez"),
-#'   state = c("NC", "WA"),
-#'   county = c("Burke", "King")
+#'   name = c("Lopez", "Smith"),
+#'   state = c("VT", "WA"),
+#'   county = c("Chittenden", "King")
 #' )
-#' str(probs2)
-#'
-#' comp1 <- compare_race_probabilities("smith", "wa", "king")
-#' str(comp1)
-#' print_comparison_tables(comp1)
-#'
-#' comp2 <- compare_race_probabilities(
-#'   name = c("Lopez", "Jackson"),
-#'   state = c("NC", "WA"),
-#'   county = c("Burke", "King")
-#' )
-#' str(comp2)
-#' print_comparison_tables(comp2)
-#' print_comparison_tables(comp2, digits = 2)
+#
+#' print_comparison_tables(race_probabilities("smith", "wa", "king"))
+#' print_comparison_tables(probs2, digits = 2)
 #' }
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
@@ -119,31 +104,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
     stop("`name`, `state`, and `county` must all have the same length.")
   }
   out_list <- lapply(seq_along(name), function(i) {
-    .get_single_record(name[i], state[i], county[i], year, quiet = TRUE)
-  })
-  out <- do.call(rbind, out_list)
-  not_found_count <- sum(!out$.found)
-  if (not_found_count > 0) {
-    warning(
-      "No record found for ",
-      not_found_count,
-      " input(s). Returning NAs for those cases.",
-      call. = FALSE
-    )
-  }
-  out[, c(.demographic_columns(), .calibisg_columns(), "in_census")]
-}
-
-
-#' @rdname most_probable_race
-#' @export
-compare_race_probabilities <- function(name, state, county, year = 2020) {
-  stopifnot(is.numeric(year), length(year) == 1)
-  if (!(length(state) == length(name) && length(county) == length(name))) {
-    stop("`name`, `state`, and `county` must all have the same length.")
-  }
-  out_list <- lapply(seq_along(name), function(i) {
-    .get_single_record(name[i], state[i], county[i], year, quiet = TRUE)
+    .get_single_calibisg_record(name[i], state[i], county[i], year, quiet = TRUE)
   })
   out <- do.call(rbind, out_list)
   not_found_count <- sum(!out$.found)
@@ -159,14 +120,13 @@ compare_race_probabilities <- function(name, state, county, year = 2020) {
     .demographic_columns(),
     # interleave calibisg and bisg columns for easier visual comparison
     as.vector(rbind(
-      paste0("calibisg_", .race_column_order()),
-      paste0("bisg_", .race_column_order())
+      paste0("calibisg_", .race_column_order())
+      # , paste0("bisg_", .race_column_order())
     )),
     "in_census"
   )
   structure(out[, col_order], class = c("compare_bisg", class(out)))
 }
-
 
 #' @rdname most_probable_race
 #' @export
@@ -225,7 +185,7 @@ print_comparison_tables <- function(x, ..., digits = 4) {
 #' @return A data frame with all available columns (both BISG and raking
 #'   estimates) plus a column `.found` indicating if the requested record was
 #'   found.
-.get_single_record <- function(name, state, county, year, quiet = FALSE) {
+.get_single_calibisg_record <- function(name, state, county, year, quiet = FALSE) {
   stopifnot(
     is.character(name), length(name) == 1,
     is.character(county), length(county) == 1,

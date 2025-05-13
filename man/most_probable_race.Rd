@@ -3,15 +3,12 @@
 \name{most_probable_race}
 \alias{most_probable_race}
 \alias{race_probabilities}
-\alias{compare_race_probabilities}
 \alias{print_comparison_tables}
 \title{Predict race given surname and location}
 \usage{
 most_probable_race(name, state, county, year = 2020)
 
 race_probabilities(name, state, county, year = 2020)
-
-compare_race_probabilities(name, state, county, year = 2020)
 
 print_comparison_tables(x, ..., digits = 4)
 }
@@ -44,7 +41,8 @@ to display in the output.}
 \item \code{year} (integer): The year of the data used to compute the estimates.
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
-\item \code{race} (string): The most probable race based on the caliBISG estimates.
+\item \code{calibisg_race} (string): The most probable race based on the caliBISG estimates.
+\item \code{bisg_race} (string): The most probable race based on the caliBISG estimates.
 \item \code{in_census} (logical): Whether the surname is found in the list of
 names that appear at least 100 times in the census.
 }
@@ -58,10 +56,8 @@ following columns that give the raking-based probabilities:
 \item \code{calibisg_hispanic} (numeric): The caliBISG estimate for Hispanic.
 \item \code{calibisg_white_nh} (numeric): The caliBISG estimate for non-Hispanic White.
 \item \code{calibisg_other} (numeric): The caliBISG estimate for other.
+\item There is also a \verb{bisg_*} column for each race giving the traditional BISG estimate.
 }
-\item \code{compare_race_probabilities}: (data frame) Same as \code{race_probabilities()}
-but with additional columns for each race containing the traditional BISG
-estimates (prefixed with \code{bisg_}).
 }
 }
 \description{
@@ -82,13 +78,11 @@ seconds to first load the data internally. Subsequent calls for the same
 \details{
 \itemize{
 \item \code{most_probable_race()}: The single most probable race according to the
-caliBISG method.
+caliBISG method and traditional BISG.
 \item \code{race_probabilities()}: Probabilities for all of the races based on the
-caliBISG method.
-\item \code{compare_race_probabilities()}: Same as \code{race_probabilities()} but also
-includes traditional BISG estimates for comparison purposes.
+caliBISG method and traditional BISG.
 \item \code{print_comparison_tables()}: Pretty print the output of
-\code{compare_race_probabilities()}. Prints a separate table for each input
+\code{race_probabilities()}. Prints a separate table for each input
 record, so this is most useful when only a small number of records were
 requested.
 }
@@ -98,31 +92,19 @@ requested.
 most_probable_race("smith", "wa", "king")
 most_probable_race(
   name = c("Lopez", "Jackson"),
-  state = c("NC", "WA"),
-  county = c("Burke", "King")
+  state = c("VT", "WA"),
+  county = c("Chittenden", "King")
 )
 
 race_probabilities("smith", "wa", "king")
-race_probabilities("lopez", "nc", "burke")
+race_probabilities("lopez", "vt", "chittenden")
 probs2 <- race_probabilities(
-  name = c("Smith", "Lopez"),
-  state = c("NC", "WA"),
-  county = c("Burke", "King")
+  name = c("Lopez", "Smith"),
+  state = c("VT", "WA"),
+  county = c("Chittenden", "King")
 )
-str(probs2)
-
-comp1 <- compare_race_probabilities("smith", "wa", "king")
-str(comp1)
-print_comparison_tables(comp1)
-
-comp2 <- compare_race_probabilities(
-  name = c("Lopez", "Jackson"),
-  state = c("NC", "WA"),
-  county = c("Burke", "King")
-)
-str(comp2)
-print_comparison_tables(comp2)
-print_comparison_tables(comp2, digits = 2)
+print_comparison_tables(race_probabilities("smith", "wa", "king"))
+print_comparison_tables(probs2, digits = 2)
 }
 
 }
