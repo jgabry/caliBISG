@@ -4,7 +4,7 @@ This R package implements the raking-based Calibrated BISG method from Greengard
 The package is currently a work in progress. To install the development version from Github use
 
 ```r
-# install.package("pak")
+# install.packages("pak")
 pak::pak("jgabry/caliBISG")
 ```
 
