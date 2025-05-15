@@ -36,57 +36,19 @@ download_data <- function(states = NULL, years = 2020, ...) {
   }
   .validate_states_years(states, years)
 
-  data_dir <- data_dir()
-
   for (st in states) {
     for (yr in years) {
       rds_name <- paste0(st, "-", yr, ".rds")
-      rds_path <- file.path(data_dir, rds_name)
+      rds_path <- file.path(data_dir(), rds_name)
 
       if (file.exists(rds_path)) {
-        message(rds_name, " already exists. Skipping.")
+        message("* ", rds_name, " already exists. Skipping.")
         next
       }
 
-      csv_name <- paste0(st, "-", yr, ".csv")
-      csv_url  <- paste0("https://temporary-fake-url/", st, "-", yr, ".csv")  # placeholder
-      csv_path <- file.path(tempdir(), csv_name)
-
-      message("Downloading: ", csv_name, " from ", csv_url)
-      # res <- utils::download.file(csv_url, csv_path, mode = "wb", ...)
-
-      # temporarily read data from local file
-      res <- 0
-      csv_path <- .temporary_local_calibisg_download_path(st, yr)
-
-      # Check if download was successful
-      if (res != 0) {
-        warning(
-          "Download of ", csv_url, " failed with code ", res,
-          ". Skipping this file.",
-          call. = FALSE
-        )
-        next
-      }
-
-      # Attempt to read the CSV
-      df <- tryCatch(
-        readr::read_csv(
-          csv_path,
-          show_col_types = FALSE,
-          progress = FALSE
-        ),
-        error = function(e) {
-          warning("Error reading CSV: ", conditionMessage(e))
-          return(NULL)
-        }
-      )
-
-      # If we couldn't read, remove the CSV file and skip
-      if (is.null(df)) {
-        if (file.exists(csv_path)) file.remove(csv_path)
-        next
-      }
+      csv_url  <- .temporary_local_calibisg_download_path(st, yr)
+      message("* Reading file: ", csv_url)
+      df <-  readr::read_csv(csv_url, show_col_types = FALSE, progress = FALSE)
 
       # Add year and state and order the columns
       df <- as.data.frame(df)
@@ -95,13 +57,8 @@ download_data <- function(states = NULL, years = 2020, ...) {
       df <- .rename_data(df)
       df <- .reorder_data(df)
 
-      # Save to RDS
+      message("* Saving data to: ", rds_path)
       saveRDS(df, file = rds_path)
-      message("Saved data as: ", rds_path)
-
-      # Cleanup
-      # Re-enable this if we're actually downloading files
-      # if (file.exists(csv_path)) file.remove(csv_path)
     }
   }
 
@@ -218,6 +175,7 @@ set_temporary_local_directory <- function(dir = NULL) {
 .temporary_local_calibisg_download_path <- function(state, year) {
   paste0(.get_temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
 }
+
 
 #' List the states that are currently available for download
 #'
