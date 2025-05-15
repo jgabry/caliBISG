@@ -13,15 +13,15 @@ test_that("load_data() errors if not downloaded", {
 test_that("download_data() works as expected", {
   expect_message({
     res <- download_data("VT", 2020)
-    expect_true(isTRUE(res))
-  }, "Downloading: VT-2020.csv")
+    expect_true(res)
+  }, "calibisg_vt2020.csv")
 
   expect_message(
     expect_message({
       res <- download_data(c("VT", "WA"), 2020)
-      expect_true(isTRUE(res))
+      expect_true(res)
     }, "VT-2020.rds already exists. Skipping."),
-    "Downloading: WA-2020.csv"
+    "calibisg_wa2020.csv"
   )
 
   expect_error(
