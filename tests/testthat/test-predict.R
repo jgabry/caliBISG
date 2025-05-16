@@ -27,9 +27,9 @@ test_that("most_probable_race() returns correct columns and handles multiple inp
   expect_equal(multi_out$state, c("VT", "VT", "WA"))
   expect_equal(multi_out$county, c("chittenden", "windsor", "king"))
   expect_equal(multi_out$year, c(2020, 2020, 2020))
-  expect_equal(single_out$calibisg_race, c("white_nh", "hispanic", "white_nh"))
-  expect_equal(single_out$bisg_race, c("white_nh", "hispanic", "white_nh"))
-  expect_equal(single_out$in_census, c(TRUE, TRUE, TRUE))
+  expect_equal(multi_out$calibisg_race, c("hispanic", "white_nh" , "white_nh"))
+  expect_equal(multi_out$bisg_race, c("hispanic", "white_nh" , "white_nh"))
+  expect_equal(multi_out$in_census, c(TRUE, TRUE, TRUE))
 })
 
 test_that("most_probable_race() handles missing records correctly", {

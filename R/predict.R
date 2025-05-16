@@ -140,7 +140,14 @@ race_probabilities <- function(name, state, county, year = 2020) {
     county = calibisg_out$county,
     year   = unique(calibisg_out$year)
   )
-  out <- merge(calibisg_out, bisg_out, by = c("name", "state", "county", "year"), all = TRUE)
+
+  out <- merge(
+    calibisg_out,
+    bisg_out,
+    by = c("name", "state", "county", "year"),
+    all = TRUE,
+    sort = FALSE
+  )
 
   col_order <- c(
     .demographic_columns(),
