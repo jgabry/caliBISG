@@ -33,7 +33,7 @@
 #' )
 #' }
 #'
-bisg <- function(name, county, state, year = 2020) {
+bisg <- function(name, state, county, year = 2020) {
   if (!is.character(name)   || !is.character(county)) {
     stop("`name` and `county` must both be character vectors.", call. = FALSE)
   }
@@ -76,6 +76,7 @@ bisg <- function(name, county, state, year = 2020) {
   cen_cols  <- paste0("cen_r_given_sur_", race_suffixes)
   prob_cols <- paste0("prob_", race_suffixes)
   bisg_cols <- paste0("bisg_", race_suffixes)
+
   stopifnot(
     identical(colnames(df_surnames[-1]), cen_cols),
     identical(colnames(df_national), prob_cols),
@@ -154,15 +155,15 @@ bisg <- function(name, county, state, year = 2020) {
 #' @return A data frame / tibble
 #' @noRd
 race_x_county_data <- function(state, year) {
-  get(paste0(".race_x_county_", tolower(state), "_", year))
+  get(paste0(".race_x_county_list_", year))[[tolower(state)]]
 }
 #' @noRd
 race_x_surname_data <- function() {
-  .race_x_surname
+  .race_x_surname_df
 }
 #' @noRd
 race_x_usa_data <- function(year) {
-  get(paste0(".race_x_usa_", year))
+  get(paste0(".race_x_usa_df_", year))
 }
 
 

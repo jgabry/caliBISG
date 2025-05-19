@@ -135,10 +135,10 @@ race_probabilities <- function(name, state, county, year = 2020) {
 
   # add traditional bisg estimates
   bisg_out <- bisg(
-    name   = calibisg_out$name,
-    state  = calibisg_out$state,
+    name = calibisg_out$name,
+    state = calibisg_out$state,
     county = calibisg_out$county,
-    year   = unique(calibisg_out$year)
+    year = unique(calibisg_out$year)
   )
 
   out <- merge(

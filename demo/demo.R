@@ -1,5 +1,7 @@
+# install from github
 install.packages("pak")
 pak::pak("jgabry/caliBISG")
+
 
 library(caliBISG)
 
@@ -11,20 +13,34 @@ set_temporary_local_directory(PATH)
 # reads the CSVs (eventually will download them too)
 download_data(states = c("VT", "WA"), years = 2020)
 
-most_probable_race("smith", "wa", "king")
+# get most probable race according to calibisg and bisg
+most_probable_race("smith", "wa", "king", year = 2020)
+
+# can handle vectors of names, states, and counties
+# year defaults to 2020 since that's the only one we have right now
 most_probable_race(
   name = c("Lopez", "Jackson"),
   state = c("VT", "WA"),
   county = c("Chittenden", "King")
 )
 
+# if we don't have calibisg_race we can still get bisg_race by using the "all
+# other names" distribution as long as we have a valid state/county/year
+most_probable_race("no_name", "WA", "King")
+
+
+# get the actual probabilities, not just most probable
 race_probabilities("smith", "wa", "king")
-race_probabilities("lopez", "vt", "chittenden")
+
+probs1 <- race_probabilities("lopez", "vt", "chittenden")
+print_comparison_tables(probs1)
+
 probs2 <- race_probabilities(
   name = c("Lopez", "Smith"),
   state = c("VT", "WA"),
   county = c("Chittenden", "King")
 )
-print_comparison_tables(race_probabilities("smith", "wa", "king"))
-print_comparison_tables(probs2, digits = 2)
+print_comparison_tables(probs2)
+
+
 

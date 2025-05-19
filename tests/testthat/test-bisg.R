@@ -105,8 +105,8 @@ precomputed_bisg <- structure(
 test_that("predict_bisg() returns expected values", {
   bisg <- bisg(
     name = precomputed_bisg$name,
-    county = precomputed_bisg$county,
     state = "WA",
+    county = precomputed_bisg$county,
     year = 2020
   )
   expect_equal(

@@ -168,7 +168,7 @@ set_temporary_local_directory <- function(dir = NULL) {
 .get_temporary_local_directory <- function() {
   dir <- .internal_data_env$temporary_local_directory
   if (is.null(dir)) {
-    dir <- "/Users/jgabry/Desktop/tmp/voter_bisg/"
+    dir <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
   }
   dir
 }
@@ -184,7 +184,7 @@ set_temporary_local_directory <- function(dir = NULL) {
 #'   available states.
 #'
 .all_states <- function() {
-  c("WA", "VT")
+  c("FL", "GA", "NC", "NY", "OH", "OK", "VT", "WA")
 }
 
 #' List the years that are currently available for download
