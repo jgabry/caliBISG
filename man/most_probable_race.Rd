@@ -10,7 +10,7 @@ most_probable_race(name, state, county, year = 2020)
 
 race_probabilities(name, state, county, year = 2020)
 
-print_comparison_tables(x, ..., digits = 4)
+print_comparison_tables(x, ..., digits = 2)
 }
 \arguments{
 \item{name}{(character vector) A vector of surnames. Coerced to lowercase
@@ -31,7 +31,7 @@ Currently only 2020 is available.}
 \item{...}{Currently unused.}
 
 \item{digits}{(integer) For \code{print_comparison_tables()}, the number of digits
-to display in the output.}
+to display in the output. The default is \code{2}.}
 }
 \value{
 \itemize{

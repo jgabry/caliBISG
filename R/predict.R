@@ -167,8 +167,8 @@ race_probabilities <- function(name, state, county, year = 2020) {
 #'   `compare_race_probabilities()`.
 #' @param ... Currently unused.
 #' @param digits (integer) For `print_comparison_tables()`, the number of digits
-#'   to display in the output.
-print_comparison_tables <- function(x, ..., digits = 4) {
+#'   to display in the output. The default is `2`.
+print_comparison_tables <- function(x, ..., digits = 2) {
   if (!inherits(x, "compare_bisg")) {
     stop("Input must be an object returned by compare_race_probabilities().",
          call. = FALSE)
