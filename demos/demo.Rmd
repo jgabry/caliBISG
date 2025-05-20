@@ -25,7 +25,7 @@ download them (the URL in the console output is fake) but is actually reading
 them from a folder on my computer.
 
 ```{r}
-download_data(states = c("NC", "WA"), years = 2020) 
+download_data(states = c("VT", "WA"), years = 2020) 
 ```
 
 If the user just wants to use the package's convenience functions they never
@@ -34,8 +34,8 @@ user wants to work directly with the large files instead of using the package's
 convenience functions they can load the data themselves with `load_data()`.
 
 ```{r}
-nc_2020_data <- load_data("NC")
-nrow(nc_2020_data)
+vt_2020_data <- load_data("VT")
+nrow(vt_2020_data)
 ```
 
 Currently only 2020 data can be downloaded but eventually multiple years will be
@@ -65,7 +65,7 @@ delete_all_data()
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-download_data(states = c("NC", "WA"), years = 2020)
+download_data(states = c("VT", "WA"), years = 2020)
 ```
 
 ## Predict the most probable race based on surname and geolocation
@@ -109,19 +109,19 @@ data frame, but the columns are the probabilities for each race, computed
 using the raking-based approach to BISG from Greengard and Gelman (2024).
 
 ```{r}
-lopez_nc_burke_probs <- race_probabilities(
+probs <- race_probabilities(
   name = c("smith", "lopez"), 
-  state = c("WA", "NC"), 
-  county = c("king", "burke")
+  state = c("WA", "VT"), 
+  county = c("king", "chittenden")
 )
-str(lopez_nc_burke_probs)
+str(probs)
 ```
 
 Similar to `most_probable_race()`, if the name/state/county combination is not
 found an `NA` is returned for all the probabilities and a warning is thrown. 
 
 ```{r}
-race_probabilities("lopez", "nc", "not_a_county")
+race_probabilities("lopez", "vt", "not_a_county")
 ```
 
 
@@ -132,7 +132,7 @@ raking-based caliBISG probabilities from Greengard and Gelman (2024) to the
 traditional BISG probabilities.
 
 ```{r}
-comp1 <- compare_race_probabilities("lopez", "nc", "burke")
+comp1 <- compare_race_probabilities("lopez", "vt", "chittenden")
 str(comp1)
 ```
 
@@ -148,8 +148,8 @@ the vectors.
 ```{r}
 comp2 <- compare_race_probabilities(
   name = c("lopez", "jackson"), 
-  state = c("wa", "nc"), 
-  county = c("king", "burke")
+  state = c("wa", "vt"), 
+  county = c("king", "chittenden")
 )
 str(comp2)
 ```
