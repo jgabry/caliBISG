@@ -1,35 +1,37 @@
 suppressMessages(download_data(c("VT", "WA"), 2020))
 
-test_that("most_probable_race() returns correct columns and handles multiple inputs", {
+test_that("most_probable_race() returns correct columns", {
   # Single input
-  single_out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
-  expect_s3_class(single_out, "data.frame")
-  expect_equal(nrow(single_out), 1)
-  expect_named(single_out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
-  expect_equal(single_out$name, "lopez")
-  expect_equal(single_out$state, "VT")
-  expect_equal(single_out$county, "chittenden")
-  expect_equal(single_out$year, 2020)
-  expect_equal(single_out$calibisg_race, "hispanic")
-  expect_equal(single_out$bisg_race, "hispanic")
-  expect_equal(single_out$in_census, TRUE)
+  out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 1)
+  expect_named(out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
+  expect_equal(out$name, "lopez")
+  expect_equal(out$state, "VT")
+  expect_equal(out$county, "chittenden")
+  expect_equal(out$year, 2020)
+  expect_equal(out$calibisg_race, "hispanic")
+  expect_equal(out$bisg_race, "hispanic")
+  expect_equal(out$in_census, TRUE)
+})
 
-  multi_out <- most_probable_race(
+test_that("most_probable_race() handles multiple inputs", {
+  out <- most_probable_race(
     name   = c("lopez", "jackson", "smith"),
     state  = c("VT", "VT", "WA"),
     county = c("Chittenden", "Windsor", "King"),
     year   = 2020
   )
-  expect_s3_class(multi_out, "data.frame")
-  expect_equal(nrow(multi_out), 3)
-  expect_named(multi_out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
-  expect_equal(multi_out$name, c("lopez", "jackson", "smith"))
-  expect_equal(multi_out$state, c("VT", "VT", "WA"))
-  expect_equal(multi_out$county, c("chittenden", "windsor", "king"))
-  expect_equal(multi_out$year, c(2020, 2020, 2020))
-  expect_equal(multi_out$calibisg_race, c("hispanic", "white_nh" , "white_nh"))
-  expect_equal(multi_out$bisg_race, c("hispanic", "white_nh" , "white_nh"))
-  expect_equal(multi_out$in_census, c(TRUE, TRUE, TRUE))
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 3)
+  expect_named(out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
+  expect_equal(out$name, c("lopez", "jackson", "smith"))
+  expect_equal(out$state, c("VT", "VT", "WA"))
+  expect_equal(out$county, c("chittenden", "windsor", "king"))
+  expect_equal(out$year, c(2020, 2020, 2020))
+  expect_equal(out$calibisg_race, c("hispanic", "white_nh" , "white_nh"))
+  expect_equal(out$bisg_race, c("hispanic", "white_nh" , "white_nh"))
+  expect_equal(out$in_census, c(TRUE, TRUE, TRUE))
 })
 
 test_that("most_probable_race() handles missing records correctly", {
@@ -38,7 +40,7 @@ test_that("most_probable_race() handles missing records correctly", {
   # we expect two warnings in this case
   expect_warning(
     expect_warning(
-      multi_out <- most_probable_race(
+      out <- most_probable_race(
         name   = c("lopez", "noname"),
         state  = c("VT", "VT"),
         county = c("Chittenden", "dummy"),
@@ -48,19 +50,19 @@ test_that("most_probable_race() handles missing records correctly", {
     ),
     regexp = "Traditional BISG is not available for 1 input"
   )
-  expect_s3_class(multi_out, "data.frame")
-  expect_equal(nrow(multi_out), 2)
+  expect_s3_class(out, "data.frame")
+  expect_equal(nrow(out), 2)
   # The second row should have NA for the race columns
-  expect_false(is.na(multi_out$calibisg_race[1]))
-  expect_false(is.na(multi_out$bisg_race[1]))
-  expect_true(is.na(multi_out$calibisg_race[2]))
-  expect_true(is.na(multi_out$bisg_race[2]))
+  expect_false(is.na(out$calibisg_race[1]))
+  expect_false(is.na(out$bisg_race[1]))
+  expect_true(is.na(out$calibisg_race[2]))
+  expect_true(is.na(out$bisg_race[2]))
 
 
   # Same scenario but using a real county
   # because only name can't be found, calibisg will be NA but bisg will be not
   expect_warning(
-    multi_out <- most_probable_race(
+    out <- most_probable_race(
       name   = c("lopez", "noname"),
       state  = c("VT", "WA"),
       county = c("Chittenden", "King"),
@@ -69,10 +71,10 @@ test_that("most_probable_race() handles missing records correctly", {
     regexp = "caliBISG is not available for 1 input"
   )
   # The second row should have NA only for the calibisg race column
-  expect_false(is.na(multi_out$calibisg_race[1]))
-  expect_false(is.na(multi_out$bisg_race[1]))
-  expect_true(is.na(multi_out$calibisg_race[2]))
-  expect_false(is.na(multi_out$bisg_race[2]))
+  expect_false(is.na(out$calibisg_race[1]))
+  expect_false(is.na(out$bisg_race[1]))
+  expect_true(is.na(out$calibisg_race[2]))
+  expect_false(is.na(out$bisg_race[2]))
 })
 
 test_that("race_probabilities() errors if lengths are mismatched", {
