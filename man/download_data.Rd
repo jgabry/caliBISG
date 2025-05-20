@@ -6,7 +6,7 @@
 \alias{data_dir}
 \alias{available_data}
 \alias{delete_all_data}
-\title{Download and load data files}
+\title{Download and load caliBISG data files}
 \usage{
 download_data(states = NULL, years = 2020, ...)
 
@@ -54,8 +54,8 @@ that have already been downloaded.
 }
 }
 \description{
-Various functions for downloading and loading the data files
-used by the package. See \strong{Details}.
+Various functions for downloading and loading the caliBISG data
+files used by the package. See \strong{Details}.
 }
 \details{
 \itemize{

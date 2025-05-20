@@ -26,11 +26,11 @@ test_that("download_data() works as expected", {
 
   expect_error(
     download_data("CO", 2020),
-    "Invalid states requested"
+    "Invalid states requested: CO",
   )
   expect_error(
-    download_data("WA", 2021),
-    "Invalid years requested"
+    download_data("WA", 2021:2023),
+    "Invalid years requested: 2021, 2022, 2023"
   )
 })
 

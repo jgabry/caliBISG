@@ -1,15 +1,11 @@
 #' Predict race given surname and location
 #'
-#' @description Predict race given surname and location using the raking-based
-#'   Calibrated BISG (caliBISG) method from Greengard and Gelman (2024).
-#'   Traditional BISG estimates are also provided. See **Details**.
+#' @description Predict race given surname and location using the calibrated
+#'   BISG (caliBISG) method from Greengard and Gelman (2025). Traditional BISG
+#'   estimates are also provided. See **Details**.
 #'
-#'   Before these functions can be used, the data files for the relevant states
-#'   must be downloaded using [download_data()].
-#'
-#'   NOTE: the first query for a particular `state` and `year` may take a few
-#'   seconds to first load the data internally. Subsequent calls for the same
-#'   `state` and `year` will be faster.
+#'   Before caliBISG is available, the data files for the relevant states and
+#'   years must be downloaded using [download_data()].
 #'
 #' @export
 #' @param name (character vector) A vector of surnames. Coerced to lowercase
@@ -22,17 +18,19 @@
 #'   Currently only 2020 is available.
 #'
 #' @details
-#' * `most_probable_race()`: The single most probable race according to the
-#' caliBISG method and traditional BISG.
-#' * `race_probabilities()`: Probabilities for all of the races based on the
-#' caliBISG method and traditional BISG.
-#' * `print_comparison_tables()`: Pretty print the output of
-#' `race_probabilities()`. Prints a separate table for each input
-#' record, so this is most useful when only a small number of records were
-#' requested.
+#' The `most_probable_race()` function finds the single most probable race given
+#' surname and location. The `race_probabilities()` function provides
+#' probabilities for all of the races rather than the single most probable race.
+#' The `print_comparison_tables()` pretty prints the output of
+#' `race_probabilities()`. It prints a separate table for each input record and
+#' so is most useful when only a small number of records were requested.
 #'
-#' NOTE: For some state, county, and surname combinations the caliBISG estimate
-#' will not be available. In those cases we still provide the traditional BISG
+#' The first query for a particular `state` and `year` may take a few seconds
+#' to first load the caliBISG data internally. Subsequent calls for the same
+#' `state` and `year` will be faster.
+#'
+#' For some state, county, and surname combinations the caliBISG estimate
+#' will not be available. In those cases we still provide traditional BISG
 #' estimates as long as the state and county are valid.
 #'
 #' @return
@@ -41,8 +39,8 @@
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
-#'      - `calibisg_race` (string): The most probable race based on the caliBISG estimates.
-#'      - `bisg_race` (string): The most probable race based on the traditional BISG estimates.
+#'      - `calibisg_race` (string): The most probable race according to caliBISG.
+#'      - `bisg_race` (string): The most probable race according to traditional BISG.
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
@@ -63,12 +61,15 @@
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
 #'      - `bisg_other` (numeric): The traditional BISG estimate for other.
 #'
-#' @references Philip Greengard and Andrew Gelman (2024). An improved BISG for
+#' @references Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
 #'   inferring race from surname and geolocation.
-#'   \url{https://arxiv.org/abs/2304.09126}.
+#'   *Journal of the Royal Statistical Society Series A: Statistics in Society*.
+#'   \url{https://doi.org/10.1093/jrsssa/qnaf003}.
 #'
 #' @examples
 #' \dontrun{
+#' download_data(c("VT", "WA"), 2020)
+#'
 #' most_probable_race("smith", "wa", "king")
 #' most_probable_race(
 #'   name = c("Lopez", "Jackson"),
@@ -173,7 +174,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
 #' @rdname most_probable_race
 #' @export
 #' @param x For `print_comparison_tables()`, the object returned by
-#'   `compare_race_probabilities()`.
+#'   `race_probabilities()`.
 #' @param ... Currently unused.
 #' @param digits (integer) For `print_comparison_tables()`, the number of digits
 #'   to display in the output. The default is `2`.
@@ -249,7 +250,7 @@ print_comparison_tables <- function(x, ..., digits = 2) {
       stringsAsFactors = FALSE
     )
     for (col in .calibisg_columns()) {
-      out[[col]] <- NA_real_
+      out[[col]] <- NA
     }
     out$in_census <- NA
     out$.found <- FALSE

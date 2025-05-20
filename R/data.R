@@ -1,7 +1,7 @@
-#' Download and load data files
+#' Download and load caliBISG data files
 #'
-#' @description Various functions for downloading and loading the data files
-#' used by the package. See **Details**.
+#' @description Various functions for downloading and loading the caliBISG data
+#'   files used by the package. See **Details**.
 #'
 #' @export
 #' @param states (character vector) The states to download data for. The default
@@ -47,7 +47,7 @@ download_data <- function(states = NULL, years = 2020, ...) {
         next
       }
 
-      csv_url  <- .temporary_local_calibisg_download_path(st, yr)
+      csv_url  <- .make_csv_url(st, yr)
       message("* Reading file: ", csv_url)
       df <-  readr::read_csv(csv_url, show_col_types = FALSE, progress = FALSE)
 
@@ -136,16 +136,19 @@ delete_all_data <- function() {
   .internal_data_env[[data_name]]
 }
 
-#' Check if data for a particular state-year is available
+#' Check if data for a particular state-year has been downloaded
 #' @noRd
 #' @param state (string) The state to check.
 #' @param year (numeric) The year to check.
+#' @return (logical) `TRUE` if the data is available, `FALSE` otherwise.
 .is_data_available <- function(state, year) {
   file.exists(.data_path(state, year))
 }
 
 #' Error if data for a particular state-year is not available
 #' @noRd
+#' @param state (string) The state to check.
+#' @param year (numeric) The year to check.
 #' @return (logical) `TRUE`, invisibly, if no error.
 .ensure_data_available <- function(state, year) {
   if (!.is_data_available(state, year)) {
@@ -160,31 +163,12 @@ delete_all_data <- function() {
 
 #' Get the path to the data file for a particular state-year pair
 #' @noRd
+#' @param state (string) The state to check.
+#' @param year (numeric) The year to check.
 #' @return (string) The path to the data file.
 .data_path <- function(state, year) {
   file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
-
-
-
-#' Set and get the temporarly local path to the data files. Will replace this
-#' with downloading them eventually.
-#' @noRd
-#' @export
-set_temporary_local_directory <- function(dir = NULL) {
-  .internal_data_env$temporary_local_directory <- dir
-}
-.get_temporary_local_directory <- function() {
-  dir <- .internal_data_env$temporary_local_directory
-  if (is.null(dir)) {
-    dir <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
-  }
-  dir
-}
-.temporary_local_calibisg_download_path <- function(state, year) {
-  paste0(.get_temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
-}
-
 
 #' List the states that are currently available for download
 #'
@@ -236,14 +220,13 @@ set_temporary_local_directory <- function(dir = NULL) {
   invisible(TRUE)
 }
 
-#' Rename, order, and drop (if necessary) columns in the imported data
+#' Rename columns in the imported data if necessary
 #'
 #' @noRd
 #' @param data (data frame) The data frame to process.
 #' @return (data frame) The updated data frame.
 #'
 .rename_data <- function(data) {
-  # rename columns for now
   # eventually we should rename these columns in the files before uploading them
   colnames(data) <- gsub("nh_aian", "aian", colnames(data))
   colnames(data) <- gsub("nh_api", "api", colnames(data))
@@ -252,6 +235,13 @@ set_temporary_local_directory <- function(dir = NULL) {
   colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
   data
 }
+
+#' Reorder columns in the imported data if necessary
+#'
+#' @noRd
+#' @param data (data frame) The data frame to process.
+#' @return (data frame) The updated data frame.
+#'
 .reorder_data <- function(data) {
   col_order <- c(
     .demographic_columns(),
@@ -262,3 +252,36 @@ set_temporary_local_directory <- function(dir = NULL) {
 }
 
 
+#' Construct the URL for downloading the CSV file for a particular state-year
+#'
+#' @noRd
+#' @param state (string) The state to use.
+#' @param year (numeric) The year to use.
+#' @return (string) The URL for the CSV file.
+.make_csv_url <- function(state, year) {
+  # replace this with actual URL once data is online
+  .temporary_local_calibisg_download_path(state, year)
+}
+
+
+
+# remove once data is online ----------------------------------------------
+
+#' Set and get the temporarly local path to the data files. Will replace this
+#' with downloading them eventually.
+#'
+#' @noRd
+#' @export
+set_temporary_local_directory <- function(dir = NULL) {
+  .internal_data_env$temporary_local_directory <- dir
+}
+.get_temporary_local_directory <- function() {
+  dir <- .internal_data_env$temporary_local_directory
+  if (is.null(dir)) {
+    dir <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
+  }
+  dir
+}
+.temporary_local_calibisg_download_path <- function(state, year) {
+  paste0(.get_temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
+}

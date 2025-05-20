@@ -1,6 +1,6 @@
 Package: caliBISG
 Type: Package
-Title: A Better Calibrated BISG for Inferring Race from Surname and Geolocation
+Title: A Calibrated BISG for Inferring Race from Surname and Geolocation
 Version: 0.1.0
 Authors@R:
     c(person(given = "Jonah", family = "Gabry", role = c("aut", "cre"),
@@ -9,17 +9,17 @@ Authors@R:
       person(given = "Gustavo", family = "Novoa", role = "aut"),
       person(given = "Andrew", family = "Gelman", role = "aut") 
       )
-Description: Provides a raking-based improvement to Bayesian Improved Surname 
-    Geocoding (BISG), as proposed by Greengard and Gelman (2024) 
-    <doi:10.48550/arXiv.2304.09126>. 
-    BISG is a ubiquitous tool for predicting race and ethnicity using an 
-    individual’s geolocation and surname, however statistical dependence of 
-    surname and geolocation within racial/ethnic categories in the United States 
-    results in biases for minority subpopulations. We augment the data used by 
-    standard BISG (distributions of race by geolocation and race by surname) 
-    with the distribution of surname by geolocation obtained from state voter 
-    files. The result is easily interpretable, and is more accurate and better 
-    calibrated than BISG.
+Description: Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool 
+    for predicting race and ethnicity using an individual’s geolocation and 
+    surname, however statistical dependence of surname and geolocation within 
+    racial/ethnic categories in the United States results in biases for minority 
+    subpopulations. Based on the method proposed by Greengard and Gelman (2025) 
+    <doi:10.1093/jrsssa/qnaf003>, we augment the data used by  standard BISG 
+    (distributions of race by geolocation and race by surname) with the 
+    distribution of surname by geolocation obtained from state voter files. 
+    We then use a raking-based algorithm to compute calibrated BISG (caliBISG) 
+    predictions. caliBISG is easily interpretable, more accurate, and better 
+    calibrated than traditional BISG.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
