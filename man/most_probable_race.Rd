@@ -23,7 +23,8 @@ uppercase internally.}
 internally.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
-Currently only 2020 is available.}
+The default is 2020, which is currently the only available year. This
+default may change in the future when more years become available.}
 
 \item{x}{For \code{print_comparison_tables()}, the object returned by
 \code{race_probabilities()}.}
