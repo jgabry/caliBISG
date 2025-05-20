@@ -3,15 +3,21 @@
 #' @description Various functions for downloading and loading the caliBISG data
 #'   files used by the package. See **Details**.
 #'
+#'   Currently caliBISG is available for the following states and years:
+#'
+#'   * States: FL, GA, NC, NY, OH, OK, VT, WA
+#'   * Years: 2020
+#'
+#'   We are working on adding additional states and years. When caliBISG is
+#'   unavailable we still provide traditional BISG. Traditional BISG does not
+#'   require downloading any files.
+#'
 #' @export
-#' @param states (character vector) The states to download data for. The default
-#'   (`NULL`) is to download for all states. States should be provided as
-#'   uppercase two-letter state [abbreviations][datasets::state.abb].
-#' @param years (integer vector) The years to download data for. The default is
-#'   to download all years. Currently only 2020 is available but more years will
-#'   be added eventually.
-#' @param ... Optional arguments (other than `url` and `destfile`) passed to
-#'   [utils::download.file()].
+#' @param states (character vector) The states to download. The default is to
+#'   download caliBISG data for all available states. If specifying particular
+#'   states, they should be provided as two-letter abbreviations.
+#' @param years (integer vector) The years to download. The default is to
+#'   download caliBISG data for all available years.
 #'
 #' @details
 #' * `download_data()`: Download the required data files for the specified
@@ -28,11 +34,13 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states = NULL, years = 2020, ...) {
-  if (is.null(states)) {
+download_data <- function(states, years) {
+  if (missing(states)) {
     states <- .all_states()
+  } else {
+    states <- toupper(states)
   }
-  if (is.null(years)) {
+  if (missing(years)) {
     years <- .all_years()
   }
   .validate_states_years(states, years)
@@ -48,7 +56,7 @@ download_data <- function(states = NULL, years = 2020, ...) {
       }
 
       csv_url  <- .make_csv_url(st, yr)
-      message("* Reading file: ", csv_url)
+      message("* Downloading and reading file: ", csv_url)
       df <-  readr::read_csv(csv_url, show_col_types = FALSE, progress = FALSE)
 
       # Add year and state and order the columns

@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load caliBISG data files}
 \usage{
-download_data(states = NULL, years = 2020, ...)
+download_data(states, years)
 
 load_data(state, year = 2020)
 
@@ -19,16 +19,12 @@ available_data()
 delete_all_data()
 }
 \arguments{
-\item{states}{(character vector) The states to download data for. The default
-(\code{NULL}) is to download for all states. States should be provided as
-uppercase two-letter state \link[datasets:state]{abbreviations}.}
+\item{states}{(character vector) The states to download. The default is to
+download caliBISG data for all available states. If specifying particular
+states, they should be provided as two-letter abbreviations.}
 
-\item{years}{(integer vector) The years to download data for. The default is
-to download all years. Currently only 2020 is available but more years will
-be added eventually.}
-
-\item{...}{Optional arguments (other than \code{url} and \code{destfile}) passed to
-\code{\link[utils:download.file]{utils::download.file()}}.}
+\item{years}{(integer vector) The years to download. The default is to
+download caliBISG data for all available years.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
@@ -56,6 +52,16 @@ that have already been downloaded.
 \description{
 Various functions for downloading and loading the caliBISG data
 files used by the package. See \strong{Details}.
+
+Currently caliBISG is available for the following states and years:
+\itemize{
+\item States: FL, GA, NC, NY, OH, OK, VT, WA
+\item Years: 2020
+}
+
+We are working on adding additional states and years. When caliBISG is
+unavailable we still provide traditional BISG. Traditional BISG does not
+require downloading any files.
 }
 \details{
 \itemize{
