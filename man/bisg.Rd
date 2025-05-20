@@ -4,17 +4,17 @@
 \alias{bisg}
 \title{Compute traditional BISG}
 \usage{
-bisg(name, county, state, year = 2020)
+bisg(name, state, county, year = 2020)
 }
 \arguments{
 \item{name}{(character vector) A vector of surnames. Coerced to lowercase
 internally.}
 
-\item{county}{(character vector) A vector of counties. Coerced to lowercase
-internally.}
-
 \item{state}{(character vector) A vector of state abbreviations. Coerced to
 uppercase internally.}
+
+\item{county}{(character vector) A vector of counties. Coerced to lowercase
+internally.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
 Currently only 2020 is available.}

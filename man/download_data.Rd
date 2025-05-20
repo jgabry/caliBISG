@@ -49,8 +49,8 @@ specified state.
 }
 
 \itemize{
-\item \code{available_data()}: (character vector) The names of the available
-data files.
+\item \code{available_data()}: (character vector) The names of the data files
+that have already been downloaded.
 }
 }
 \description{
@@ -67,7 +67,8 @@ necessary if you want to work with the full data files directly. When using
 the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
 will be loaded internally automatically.
 \item \code{data_dir()}: Get the path to the internal data directory.
-\item \code{available_data()}: List the names of the available data files.
+\item \code{available_data()}: List the names of the data files that have already been
+downloaded and are available for use.
 \item \code{delete_all_data()}: Delete all the data files stored internally.
 }
 }

@@ -42,7 +42,7 @@ to display in the output. The default is \code{2}.}
 \item \code{state} (string): The state.
 \item \code{county} (string): The county.
 \item \code{calibisg_race} (string): The most probable race based on the caliBISG estimates.
-\item \code{bisg_race} (string): The most probable race based on the caliBISG estimates.
+\item \code{bisg_race} (string): The most probable race based on the traditional BISG estimates.
 \item \code{in_census} (logical): Whether the surname is found in the list of
 names that appear at least 100 times in the census.
 }
@@ -90,8 +90,8 @@ record, so this is most useful when only a small number of records were
 requested.
 }
 
-NOTE: For some state, county, surname combinations the caliBISG estimate will
-not be available. In those cases we still provide the traditional BISG
+NOTE: For some state, county, and surname combinations the caliBISG estimate
+will not be available. In those cases we still provide the traditional BISG
 estimates as long as the state and county are valid.
 }
 \examples{

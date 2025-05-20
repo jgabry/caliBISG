@@ -31,8 +31,8 @@
 #' record, so this is most useful when only a small number of records were
 #' requested.
 #'
-#' NOTE: For some state, county, surname combinations the caliBISG estimate will
-#' not be available. In those cases we still provide the traditional BISG
+#' NOTE: For some state, county, and surname combinations the caliBISG estimate
+#' will not be available. In those cases we still provide the traditional BISG
 #' estimates as long as the state and county are valid.
 #'
 #' @return
@@ -42,7 +42,7 @@
 #'      - `state` (string): The state.
 #'      - `county` (string): The county.
 #'      - `calibisg_race` (string): The most probable race based on the caliBISG estimates.
-#'      - `bisg_race` (string): The most probable race based on the caliBISG estimates.
+#'      - `bisg_race` (string): The most probable race based on the traditional BISG estimates.
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
@@ -120,26 +120,35 @@ race_probabilities <- function(name, state, county, year = 2020) {
     stop("`name`, `state`, and `county` must all have the same length.")
   }
   calibisg_out_list <- lapply(seq_along(name), function(i) {
-    .get_single_calibisg_record(name[i], state[i], county[i], year, quiet = TRUE)
+    .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
   calibisg_out <- do.call(rbind, calibisg_out_list)
-  not_found_count <- sum(!calibisg_out$.found)
-  if (not_found_count > 0) {
-    warning(
-      "No record found for ",
-      not_found_count,
-      " input(s). Returning NA caliBISG estimates those cases.",
-      call. = FALSE
-    )
-  }
-
-  # add traditional bisg estimates
   bisg_out <- bisg(
     name = calibisg_out$name,
     state = calibisg_out$state,
     county = calibisg_out$county,
     year = unique(calibisg_out$year)
   )
+
+  not_found_count_calibisg <- sum(!calibisg_out$.found)
+  if (not_found_count_calibisg > 0) {
+    warning(
+      "caliBISG is not available for ",
+      not_found_count_calibisg,
+      " input(s). Returning NA estimates for those cases.",
+      call. = FALSE
+    )
+  }
+
+  not_found_count_bisg <- sum(!bisg_out$.found)
+  if (not_found_count_bisg > 0) {
+    warning(
+      "Traditional BISG is not available for ",
+      not_found_count_bisg,
+      " input(s). Returning NA estimates for those cases.",
+      call. = FALSE
+    )
+  }
 
   out <- merge(
     calibisg_out,
@@ -214,10 +223,9 @@ print_comparison_tables <- function(x, ..., digits = 2) {
 #'
 #' @noRd
 #' @param name,state,county,year Same as above except not vectors.
-#' @param quiet Whether to suppress warnings.
 #' @return A data frame with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
-.get_single_calibisg_record <- function(name, state, county, year, quiet = FALSE) {
+.get_single_calibisg_record <- function(name, state, county, year) {
   stopifnot(
     is.character(name), length(name) == 1,
     is.character(county), length(county) == 1,
@@ -229,9 +237,6 @@ print_comparison_tables <- function(x, ..., digits = 2) {
   state <- toupper(state)
 
   df <- .load_data_internal(state, year, error_if_missing = FALSE)
-  # if (is.null(df)) {
-  #   return(NULL)
-  # }
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
   rownames(subset_df) <- NULL
 
@@ -248,16 +253,6 @@ print_comparison_tables <- function(x, ..., digits = 2) {
     }
     out$in_census <- NA
     out$.found <- FALSE
-    if (!quiet) {
-      warning(
-        "No caliBISG record found for (name=", name,
-        ", state=", state,
-        ", county=", county,
-        ", year=", year,
-        "). Returning NA caliBISG estimates.",
-        call. = FALSE
-      )
-    }
     return(out)
   }
 

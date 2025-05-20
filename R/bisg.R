@@ -55,8 +55,8 @@ bisg <- function(name, state, county, year = 2020) {
   name <- tolower(name)
 
   # reference tables
-  df_surnames <- race_x_surname_data()
-  df_national  <- race_x_usa_data(year)
+  df_surnames <- .race_x_surname_data()
+  df_national  <- .race_x_usa_data(year)
 
   # collect county tables for *each* unique state once
   states <- toupper(state)
@@ -64,7 +64,7 @@ bisg <- function(name, state, county, year = 2020) {
   df_counties <- do.call(
     rbind,
     lapply(unique_states, function(st) {
-      tmp <- race_x_county_data(st, year)
+      tmp <- .race_x_county_data(st, year)
       if (!"state" %in% names(tmp))  # add state column if absent
         tmp$state <- st
       tmp
@@ -72,10 +72,9 @@ bisg <- function(name, state, county, year = 2020) {
   )
 
   # column-name sets & sanity checks
-  race_suffixes <- .race_column_order()
-  cen_cols  <- paste0("cen_r_given_sur_", race_suffixes)
-  prob_cols <- paste0("prob_", race_suffixes)
-  bisg_cols <- paste0("bisg_", race_suffixes)
+  cen_cols  <- paste0("cen_r_given_sur_", .race_column_order())
+  prob_cols <- paste0("prob_", .race_column_order())
+  bisg_cols <- .bisg_columns()
 
   stopifnot(
     identical(colnames(df_surnames[-1]), cen_cols),
@@ -141,32 +140,38 @@ bisg <- function(name, state, county, year = 2020) {
     stringsAsFactors = FALSE
   )
   names(out)[-(1:4)] <- bisg_cols
-
-  # restore original order
-  out <- out[order(df$id), ]
+  out <- out[order(df$id), ] # restore original order
   rownames(out) <- NULL
+  out$.found <- !.is_bisg_na(out)
   out
 }
 
 # internal ----------------------------------------------------------------
 
-#' Access internal data files for .race_x_county, .race_x_surname, .race_x_usa
-#' data frames used to computed regular BISG probabilities
-#' @return A data frame / tibble
+#' Access internal data files for use in computing regular BISG probabilities
+#' @return (data frame) The requested data frame.
 #' @noRd
-race_x_county_data <- function(state, year) {
+.race_x_county_data <- function(state, year) {
   get(paste0(".race_x_county_list_", year))[[tolower(state)]]
 }
 #' @noRd
-race_x_surname_data <- function() {
+.race_x_surname_data <- function() {
   .race_x_surname_df
 }
 #' @noRd
-race_x_usa_data <- function(year) {
+.race_x_usa_data <- function(year) {
   get(paste0(".race_x_usa_df_", year))
 }
 
 
+#' Check if all BISG columns are NA
+#' @noRd
+#' @param data (data frame) The data frame to check.
+#' @return (logical vector) A vector with each element indicating if the corresponding
+#' row in `data` has NAs for all the BISG columns.
+.is_bisg_na <- function(data) {
+  rowSums(is.na(data[, .bisg_columns()])) == length(.bisg_columns())
+}
 
 
 # Version for a single state

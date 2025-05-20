@@ -25,7 +25,7 @@ precomputed_bisg <- structure(
       "king",
       "douglas"
     ),
-    bisg_cen_county_nh_aian = c(
+    bisg_aian = c(
       0.00037110421216914,
       0.00658226387182746,
       0.0284277637778205,
@@ -37,7 +37,7 @@ precomputed_bisg <- structure(
       0.0089774949304735,
       0.0102150848816697
     ),
-    bisg_cen_county_nh_api = c(
+    bisg_api = c(
       0.0780218618298757,
       0.00042455134820734,
       0.0570376401545724,
@@ -49,7 +49,7 @@ precomputed_bisg <- structure(
       0.0396716842487496,
       0.00107127054295823
     ),
-    bisg_cen_county_nh_black = c(
+    bisg_black_nh = c(
       8.72695747373717e-05,
       0.00013585938058259,
       0.00646736454248696,
@@ -61,7 +61,7 @@ precomputed_bisg <- structure(
       0,
       0.00785661771066974
     ),
-    bisg_cen_county_hispanic = c(
+    bisg_hispanic = c(
       0.0063167746442836,
       0.00489400537065451,
       0.0685281128284246,
@@ -73,7 +73,7 @@ precomputed_bisg <- structure(
       0,
       0.0573367446824043
     ),
-    bisg_cen_county_nh_white = c(
+    bisg_white_nh = c(
       0.901171482059678,
       0.978932537754341,
       0.807711409399109,
@@ -85,7 +85,7 @@ precomputed_bisg <- structure(
       0.888497783389607,
       0.893580745957654
     ),
-    bisg_cen_county_other = c(
+    bisg_other = c(
       0.0140315076792566,
       0.00903078227438726,
       0.0318277092975871,
@@ -102,15 +102,15 @@ precomputed_bisg <- structure(
   class = "data.frame"
 )
 
-test_that("predict_bisg() returns expected values", {
-  bisg <- bisg(
+test_that("bisg() returns correct values", {
+  out <- bisg(
     name = precomputed_bisg$name,
     state = "WA",
     county = precomputed_bisg$county,
     year = 2020
   )
   expect_equal(
-    unname(bisg[, -(1:4)]),
-    unname(precomputed_bisg[, -(1:2)])
+    out[, .bisg_columns()],
+    precomputed_bisg[, .bisg_columns()]
   )
 })
