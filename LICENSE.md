@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2024 Jonah Gabry, Philip Greengard, Gustavo Novoa, Andrew Gelman
+Copyright (c) 2025 Jonah Gabry, Philip Greengard, Gustavo Novoa, Andrew Gelman
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
