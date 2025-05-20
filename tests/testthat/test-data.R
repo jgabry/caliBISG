@@ -25,7 +25,7 @@ test_that("download_data() works as expected", {
   )
 
   expect_error(
-    download_data("NY", 2020),
+    download_data("CO", 2020),
     "Invalid states requested"
   )
   expect_error(

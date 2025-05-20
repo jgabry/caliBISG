@@ -128,7 +128,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
     warning(
       "No record found for ",
       not_found_count,
-      " input(s). Returning NAs for caliBISG those cases.",
+      " input(s). Returning NA caliBISG estimates those cases.",
       call. = FALSE
     )
   }
@@ -213,11 +213,10 @@ print_comparison_tables <- function(x, ..., digits = 2) {
 #' Load the state-year data, filter by county and surname
 #'
 #' @noRd
-#' @param name,state,county,year Same as above.
+#' @param name,state,county,year Same as above except not vectors.
 #' @param quiet Whether to suppress warnings.
-#' @return A data frame with all available columns (both BISG and raking
-#'   estimates) plus a column `.found` indicating if the requested record was
-#'   found.
+#' @return A data frame with all available columns plus a column `.found`
+#'   indicating if the requested record was found.
 .get_single_calibisg_record <- function(name, state, county, year, quiet = FALSE) {
   stopifnot(
     is.character(name), length(name) == 1,
@@ -229,11 +228,14 @@ print_comparison_tables <- function(x, ..., digits = 2) {
   county <- tolower(county)
   state <- toupper(state)
 
-  df <- .load_data_internal(state, year)
+  df <- .load_data_internal(state, year, error_if_missing = FALSE)
+  # if (is.null(df)) {
+  #   return(NULL)
+  # }
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
   rownames(subset_df) <- NULL
 
-  if (nrow(subset_df) == 0) {
+  if (NROW(subset_df) == 0) {
     out <- data.frame(
       name   = name,
       state  = state,
@@ -248,11 +250,11 @@ print_comparison_tables <- function(x, ..., digits = 2) {
     out$.found <- FALSE
     if (!quiet) {
       warning(
-        "No record found for (name=", name,
+        "No caliBISG record found for (name=", name,
         ", state=", state,
         ", county=", county,
         ", year=", year,
-        "). Returning NAs.",
+        "). Returning NA caliBISG estimates.",
         call. = FALSE
       )
     }
@@ -261,7 +263,7 @@ print_comparison_tables <- function(x, ..., digits = 2) {
 
   if (nrow(subset_df) > 1) {
     warning(
-      "Multiple rows found for (name=", name,
+      "Multiple rows found for caliBISG for (name=", name,
       ", state=", state, ", county=", county, ", year=", year, "). ",
       "Returning the first match.",
       call. = FALSE

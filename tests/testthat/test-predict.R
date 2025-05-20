@@ -1,4 +1,4 @@
-suppressMessages(download_data())
+suppressMessages(download_data(c("VT", "WA"), 2020))
 
 test_that("most_probable_race() returns correct columns and handles multiple inputs", {
   # Single input

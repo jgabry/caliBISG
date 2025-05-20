@@ -22,7 +22,8 @@
 #' the functions provided by this package (e.g. [race_probabilities()]) the data
 #' will be loaded internally automatically.
 #' * `data_dir()`: Get the path to the internal data directory.
-#' * `available_data()`: List the names of the available data files.
+#' * `available_data()`: List the names of the data files that have already been
+#'  downloaded and are available for use.
 #' * `delete_all_data()`: Delete all the data files stored internally.
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
@@ -95,8 +96,8 @@ data_dir <- function() {
 
 #' @rdname download_data
 #' @export
-#' @return * `available_data()`: (character vector) The names of the available
-#'   data files.
+#' @return * `available_data()`: (character vector) The names of the data files
+#'   that have already been downloaded.
 available_data <- function() {
   list.files(data_dir(), full.names = FALSE)
 }
@@ -116,27 +117,38 @@ delete_all_data <- function() {
 #' unless it's already loaded
 #'
 #' @noRd
-#' @param state (string) The state to check.
-#' @return (data frame) A data frame of the data for the specified state.
+#' @param error_if_missing (logical) Whether to error if the data is not available.
+#' @return (data frame) A data frame of the data for the specified state or, if
+#' `error_is_missing = FALSE`, `NULL` if the data is not available.
 #'
-.load_data_internal <- function(state, year) {
+.load_data_internal <- function(state, year, error_if_missing = TRUE) {
   data_name <- paste0(tolower(state), "_", year)
   if (!exists(data_name, envir = .internal_data_env)) {
-    .ensure_data_available(state, year)
+    if (!.is_data_available(state, year)) {
+      if (!error_if_missing) {
+        return(NULL)
+      } else { # error
+        .ensure_data_available(state, year)
+      }
+    }
     .internal_data_env[[data_name]] <- readRDS(.data_path(state, year))
   }
   .internal_data_env[[data_name]]
 }
 
-#' Check if data for a particular state is available
-#'
+#' Check if data for a particular state-year is available
 #' @noRd
-#' @param state (string) The state to check. This should be provided as a
-#'   two-letter state abbreviation.
+#' @param state (string) The state to check.
+#' @param year (numeric) The year to check.
+.is_data_available <- function(state, year) {
+  file.exists(.data_path(state, year))
+}
+
+#' Error if data for a particular state-year is not available
+#' @noRd
 #' @return (logical) `TRUE`, invisibly, if no error.
-#'
 .ensure_data_available <- function(state, year) {
-  if (!file.exists(.data_path(state, year))) {
+  if (!.is_data_available(state, year)) {
     stop(
       "Data file for ", state, ", ", year, " not found. ",
       "Use `download_data()` to download it.",
@@ -147,11 +159,8 @@ delete_all_data <- function() {
 }
 
 #' Get the path to the data file for a particular state-year pair
-#'
 #' @noRd
-#' @param state (string) The state.
 #' @return (string) The path to the data file.
-#'
 .data_path <- function(state, year) {
   file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
 }
