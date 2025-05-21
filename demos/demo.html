@@ -11,9 +11,8 @@
 
 <meta name="author" content />
 
-<meta name="date" content="2025-01-16" />
 
-<title>PISG demo</title>
+<title>caliBISG R package demo</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -350,215 +349,242 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">PISG demo</h1>
+<h1 class="title toc-ignore">caliBISG R package demo</h1>
 <h4 class="author"></h4>
-<h4 class="date">2025-01-16</h4>
+<h4 class="date">Last updated: 2025-05-21</h4>
 
 </div>
 
 
-<div id="download-data" class="section level2">
-<h2>Download data</h2>
-<p>In the future, we will actually download these files from the
-internet (once we decide where to host the files). For now, in order to
-demonstrate what the user experience will look like, the
-<code>download_data()</code> function is pretending to download them
-(the URL in the console output is fake) but is actually reading them
-from a folder on my computer.</p>
-<pre class="r"><code>download_data(states = c(&quot;NC&quot;, &quot;WA&quot;), years = 2020) </code></pre>
-<pre><code>Downloading: NC-2020.csv from https://mydata.org/race/NC-2020.csv</code></pre>
-<pre><code>Saved data as: /Users/jgabry/Library/Application Support/org.R-project.R/R/pisg/NC-2020.rds</code></pre>
-<pre><code>Downloading: WA-2020.csv from https://mydata.org/race/WA-2020.csv</code></pre>
-<pre><code>Saved data as: /Users/jgabry/Library/Application Support/org.R-project.R/R/pisg/WA-2020.rds</code></pre>
-<p>If the user wants to work directly with the large files instead of
-using the package’s convenience functions they can load the data
-themselves.</p>
-<pre class="r"><code>nc_2020_data &lt;- load_data(&quot;NC&quot;)
-nrow(nc_2020_data)</code></pre>
-<pre><code>[1] 898964</code></pre>
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for
+predicting race and ethnicity using an individual’s geolocation and
+surname, however statistical dependence of surname and geolocation
+within racial/ethnic categories in the United States results in biases
+for minority subpopulations. Based on the method proposed by Greengard
+and Gelman (2025), we augment the data used by traditional BISG
+(distributions of race by geolocation and race by surname) with the
+distribution of surname by geolocation obtained from state voter files.
+We then use a raking-based algorithm to compute calibrated BISG
+(caliBISG) predictions. caliBISG is easily interpretable, more accurate,
+and better calibrated than traditional BISG.</p>
+<p>The <code>caliBISG</code> R package currently provides caliBISG using
+2020 data for states FL, GA, NC, NY, OH, OK, VT, WA. In addition to
+caliBISG, the package provides traditional BISG for comparison.
+Traditional BISG is available for all fifty states.</p>
+<pre class="r"><code>library(caliBISG)</code></pre>
+<pre><code>This is caliBISG version 0.1.0</code></pre>
+</div>
+<div id="download-calibisg-data" class="section level2">
+<h2>Download caliBISG data</h2>
+<p>(NOTE: In the future, we will download these files from Harvard
+Dataverse. For now, in order to demonstrate what the user experience
+will look like, the <code>download_data()</code> function is pretending
+to download them but is actually reading them from a folder on my
+computer.)</p>
+<p>The <code>download_data()</code> function downloads the caliBISG data
+files for the specified states and years (currently only 2020 is
+available). The data is stored in an internal directory specific to the
+package (see <code>?tools::R_user_dir</code>). By default
+<code>download_data()</code> will download all available data, but here
+we download just the states VT and WA for demonstration. No downloads
+are required for traditional BISG, which is computed by the package when
+requested.</p>
+<pre class="r"><code>download_data(states = c(&quot;VT&quot;, &quot;WA&quot;), years = 2020) </code></pre>
+<pre><code>* Downloading and reading file: /Users/jgabry/Desktop/tmp/caliBISG-data/calibisg_vt2020.csv</code></pre>
+<pre><code>* Saving data to: /Users/jgabry/Library/Application Support/org.R-project.R/R/caliBISG/VT-2020.rds</code></pre>
+<pre><code>* Downloading and reading file: /Users/jgabry/Desktop/tmp/caliBISG-data/calibisg_wa2020.csv</code></pre>
+<pre><code>* Saving data to: /Users/jgabry/Library/Application Support/org.R-project.R/R/caliBISG/WA-2020.rds</code></pre>
 <p>If the user just wants to use the package’s convenience functions
-they never need to call <code>load_data()</code>, but I assume some
-users will want the option to access the files directly.</p>
-<p>Right now only 2020 is available but eventually we can let the user
-specify which years they want to download/load.</p>
+they never need to load these data files manually after downloading
+them. However, if the user wants to work directly with the large
+caliBISG files instead of using the package’s convenience functions they
+can load the data themselves with <code>load_data()</code>.</p>
+<pre class="r"><code>vt_2020_data &lt;- load_data(&quot;VT&quot;, 2020)
+nrow(vt_2020_data)</code></pre>
+<pre><code>[1] 134665</code></pre>
+<pre class="r"><code>colnames(vt_2020_data)</code></pre>
+<pre><code> [1] &quot;name&quot;              &quot;year&quot;              &quot;state&quot;            
+ [4] &quot;county&quot;            &quot;calibisg_aian&quot;     &quot;calibisg_api&quot;     
+ [7] &quot;calibisg_black_nh&quot; &quot;calibisg_hispanic&quot; &quot;calibisg_white_nh&quot;
+[10] &quot;calibisg_other&quot;    &quot;in_census&quot;        </code></pre>
 <div id="convenience-functions-for-managing-data" class="section level4">
 <h4>Convenience functions for managing data</h4>
-<p>I’ve also added a few data-related convenience functions.</p>
 <p>The <code>data_dir()</code> function returns the path to the internal
-data storage directory:</p>
+data storage directory.</p>
 <pre class="r"><code>data_dir()</code></pre>
-<pre><code>[1] &quot;/Users/jgabry/Library/Application Support/org.R-project.R/R/pisg&quot;</code></pre>
+<pre><code>[1] &quot;/Users/jgabry/Library/Application Support/org.R-project.R/R/caliBISG&quot;</code></pre>
 <p>The <code>available_data()</code> function lists the files the user
-has already downloaded that are available for them to query:</p>
+has already downloaded that are available for use.</p>
 <pre class="r"><code>available_data()</code></pre>
-<pre><code>[1] &quot;NC-2020.rds&quot; &quot;WA-2020.rds&quot;</code></pre>
+<pre><code>[1] &quot;VT-2020.rds&quot; &quot;WA-2020.rds&quot;</code></pre>
 <p>The <code>delete_all_data()</code> function deletes all the files in
-the internal data storage directory:</p>
+the internal data storage directory.</p>
 <pre class="r"><code>delete_all_data()</code></pre>
-<pre><code>Deleting data files: NC-2020.rds, WA-2020.rds</code></pre>
+<pre><code>Deleting data files: VT-2020.rds, WA-2020.rds</code></pre>
 </div>
 </div>
-<div id="predict-most-probable-race" class="section level2">
-<h2>Predict most probable race</h2>
+<div id="most-probable-race-given-surname-and-geolocation" class="section level2">
+<h2>Most probable race given surname and geolocation</h2>
 <p>The <code>most_probable_race()</code> function provides the single
-most probable race according to PISG.</p>
+most probable race according to caliBISG and traditional BISG.</p>
 <pre class="r"><code>most_probable_race(name = &quot;smith&quot;, state = &quot;WA&quot;, county = &quot;king&quot;)</code></pre>
-<pre><code>   name year state county     race
-1 smith 2020    WA   king nh_white</code></pre>
-<p>The returned object is just a standard data frame:</p>
-<pre class="r"><code>smith_wa_king &lt;- most_probable_race(&quot;smith&quot;, &quot;wa&quot;, &quot;king&quot;)
-str(smith_wa_king)</code></pre>
-<pre><code>&#39;data.frame&#39;:   1 obs. of  5 variables:
- $ name  : chr &quot;smith&quot;
- $ year  : num 2020
- $ state : chr &quot;WA&quot;
- $ county: chr &quot;king&quot;
- $ race  : chr &quot;nh_white&quot;</code></pre>
-<p>If the the name/state/county combination that the user requests is
-not found we return <code>NA</code> for the <code>race</code> column
-with a warning.</p>
+<pre><code>   name year state county calibisg_race bisg_race in_census
+1 smith 2020    WA   king      white_nh  white_nh      TRUE</code></pre>
+<p>In this case the most probable race is Non-Hispanic White according
+to both methods. The <code>in_census</code> column indicates whether the
+surname is found in the list of names that appear at least 100 times in
+the census.</p>
+<p>The returned object is a standard data frame with the number of rows
+equal to the length of the input vectors. For example, when inputting
+two cases the resulting data frame has two rows.</p>
+<pre class="r"><code>most_probable_race(
+  name = c(&quot;smith&quot;, &quot;lopez&quot;), 
+  state = c(&quot;WA&quot;, &quot;WA&quot;), 
+  county = c(&quot;king&quot;, &quot;king&quot;)
+)</code></pre>
+<pre><code>   name year state county calibisg_race bisg_race in_census
+1 smith 2020    WA   king      white_nh  white_nh      TRUE
+2 lopez 2020    WA   king      hispanic  hispanic      TRUE</code></pre>
+<p>If the the requested name/state/county combination is not one for
+which we have a caliBISG prediction the <code>calibisg_race</code>
+column will contain an <code>NA</code> and a warning will be thrown. As
+long as the state and county are valid we still provide a traditional
+BISG estimate in the <code>bisg_race</code> column. If the county is not
+valid then both <code>calibisg_race</code> and <code>bisg_race</code>
+will be <code>NA</code>.</p>
 <pre class="r"><code>most_probable_race(&quot;smith&quot;, &quot;wa&quot;, &quot;not_a_county&quot;)</code></pre>
-<pre><code>Warning in .get_single_record(name, state, county, year): No record found for
-(name=smith, state=wa, county=not_a_county, year=2020). Returning NAs.</code></pre>
-<pre><code>   name year state       county race
-1 smith 2020    wa not_a_county   NA</code></pre>
-<p><strong>Does this seem like the right behavior or do you prefer an
-error in this case?</strong></p>
+<pre><code>Warning: caliBISG is not available for 1 input(s). Returning NA estimates for
+those cases.</code></pre>
+<pre><code>Warning: Traditional BISG is not available for 1 input(s). Returning NA
+estimates for those cases.</code></pre>
+<pre><code>   name year state       county calibisg_race bisg_race in_census
+1 smith 2020    WA not_a_county          &lt;NA&gt;      &lt;NA&gt;        NA</code></pre>
 <p>The <code>most_probable_race()</code> function also takes a
-<code>year</code> argument but right now only 2020 is available, so we
-default to using 2020.</p>
+<code>year</code> argument, but currently only 2020 is available.</p>
 </div>
-<div id="get-probabilities-for-all-races" class="section level2">
-<h2>Get probabilities for all races</h2>
-<p>The <code>race_probabilities()</code> function gives the PISG
-estimates for the probabilities of all the races. Again, the object
-returned is just a standard data frame:</p>
-<pre class="r"><code>lopez_nc_burke_probs &lt;- race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
-str(lopez_nc_burke_probs)</code></pre>
-<pre><code>&#39;data.frame&#39;:   1 obs. of  10 variables:
- $ name         : chr &quot;lopez&quot;
- $ year         : num 2020
- $ state        : chr &quot;NC&quot;
- $ county       : chr &quot;burke&quot;
- $ rake_nh_aian : num 0.00446
- $ rake_nh_api  : num 0.0201
- $ rake_nh_black: num 0.00337
- $ rake_hispanic: num 0.887
- $ rake_nh_white: num 0.0839
- $ rake_other   : num 0.0016</code></pre>
-<p><strong>What should we name these columns?</strong> Right now the
-names (e.g., <code>rake_nh_white</code>) are the column names Philip
-gave me, but we can name them whatever we want in the R package.</p>
-<p>Similar to <code>most_probable_race()</code>, if the
-name/state/county combination is not found we return <code>NA</code> for
-all the probabilities with a warning:</p>
-<pre class="r"><code>race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;not_a_county&quot;)</code></pre>
-<pre><code>Warning in .get_single_record(name, state, county, year): No record found for
-(name=lopez, state=nc, county=not_a_county, year=2020). Returning NAs.</code></pre>
-<pre><code>   name year state       county rake_nh_aian rake_nh_api rake_nh_black
-1 lopez 2020    nc not_a_county           NA          NA            NA
-  rake_hispanic rake_nh_white rake_other
-1            NA            NA         NA</code></pre>
-<p><strong>Same question as before: do you like that or do you prefer an
-error?</strong></p>
-</div>
-<div id="compare-raking-based-bisg-to-improved-bisg" class="section level2">
-<h2>Compare raking-based BISG to “improved BISG”</h2>
-<p>The files I have contain PISG and improved BISG estimates but not
-traditional BISG estimates, so for now we can compare those
-estimates:</p>
-<pre class="r"><code>comp1 &lt;- compare_race_probabilities(&quot;lopez&quot;, &quot;nc&quot;, &quot;burke&quot;)
-str(comp1)</code></pre>
-<pre><code>Classes &#39;raking_bisg&#39; and &#39;data.frame&#39;: 1 obs. of  16 variables:
- $ name         : chr &quot;lopez&quot;
- $ year         : num 2020
- $ state        : chr &quot;NC&quot;
- $ county       : chr &quot;burke&quot;
- $ rake_nh_aian : num 0.00446
- $ bisg_nh_aian : num 0.00494
- $ rake_nh_api  : num 0.0201
- $ bisg_nh_api  : num 0.021
- $ rake_nh_black: num 0.00337
- $ bisg_nh_black: num 0.00398
- $ rake_hispanic: num 0.887
- $ bisg_hispanic: num 0.831
- $ rake_nh_white: num 0.0839
- $ bisg_nh_white: num 0.138
- $ rake_other   : num 0.0016
- $ bisg_other   : num 0.00131</code></pre>
-<p>This just returns a data frame with <code>bisg</code> columns and
-<code>rake</code> columns, but the columns are interleaved, i.e.,
-ordered to place the races next to each other for easier comparison.
-<strong>Do you like returning a data frame like this? Other
-ideas?</strong></p>
-<div id="multiple-comparisons" class="section level4">
-<h4>Multiple comparisons</h4>
-<p>The <code>compare_race_probabilities()</code> function can also now
-take vectors as inputs and the resulting data frame will have number of
-rows equal to the lengths of the vectors:</p>
-<pre class="r"><code>comp2 &lt;- compare_race_probabilities(
-  name = c(&quot;lopez&quot;, &quot;jackson&quot;), 
-  state = c(&quot;wa&quot;, &quot;nc&quot;), 
-  county = c(&quot;king&quot;, &quot;burke&quot;)
+<div id="probabilities-for-all-races-given-surname-and-geolocation" class="section level2">
+<h2>Probabilities for all races given surname and geolocation</h2>
+<p>The <code>race_probabilities()</code> function gives the caliBISG and
+BISG estimates for the probability of each race. The returned object is
+a standard data frame, however it has a subclass
+<code>&quot;compare_bisg&quot;</code> and a custom print method that prints the
+results as tables comparing caliBISG and BISG.</p>
+<pre class="r"><code>probs &lt;- race_probabilities(
+  name = c(&quot;smith&quot;, &quot;lopez&quot;, &quot;chen&quot;), 
+  state = c(&quot;WA&quot;, &quot;VT&quot;, &quot;VT&quot;), 
+  county = c(&quot;king&quot;, &quot;chittenden&quot;, &quot;windsor&quot;)
 )
-str(comp2)</code></pre>
-<pre><code>Classes &#39;raking_bisg&#39; and &#39;data.frame&#39;: 2 obs. of  16 variables:
- $ name         : chr  &quot;lopez&quot; &quot;jackson&quot;
- $ year         : num  2020 2020
- $ state        : chr  &quot;WA&quot; &quot;NC&quot;
- $ county       : chr  &quot;king&quot; &quot;burke&quot;
- $ rake_nh_aian : num  0.0084 0.0117
- $ bisg_nh_aian : num  0.00544 0.00881
- $ rake_nh_api  : num  0.02262 0.00719
- $ bisg_nh_api  : num  0.02077 0.00514
- $ rake_nh_black: num  0.00523 0.29442
- $ bisg_nh_black: num  0.0177 0.2369
- $ rake_hispanic: num  0.8756 0.0224
- $ bisg_hispanic: num  0.8682 0.0143
- $ rake_nh_white: num  0.0841 0.6457
- $ bisg_nh_white: num  0.0865 0.7244
- $ rake_other   : num  0.00406 0.01868
- $ bisg_other   : num  0.00144 0.01044</code></pre>
-</div>
-<div id="printing-comparison-tables" class="section level4">
-<h4>Printing comparison tables</h4>
-<p>Also new is that, instead of automatically printing the formatted
-comparison tables, the user now needs to call a new function
-<code>print_comparison_tables()</code>. This is because if the user asks
-for a comparison of many names, states, and counties, too much would be
-printed in the console. So now if the user has a small number of
-comparisons they can call <code>print_comparison_tables()</code> and it
-will print one table per row of the data frame:</p>
-<pre class="r"><code>print_comparison_tables(comp2)</code></pre>
-<pre><code>Surname:  Lopez     
+str(probs)</code></pre>
+<pre><code>Classes &#39;compare_bisg&#39; and &#39;data.frame&#39;:    3 obs. of  17 variables:
+ $ name             : chr  &quot;smith&quot; &quot;lopez&quot; &quot;chen&quot;
+ $ year             : num  2020 2020 2020
+ $ state            : chr  &quot;WA&quot; &quot;VT&quot; &quot;VT&quot;
+ $ county           : chr  &quot;king&quot; &quot;chittenden&quot; &quot;windsor&quot;
+ $ calibisg_aian    : num  0.012881 0.004445 0.000229
+ $ bisg_aian        : num  0.007907 0.004325 0.000383
+ $ calibisg_api     : num  0.00726 0.06014 0.91407
+ $ bisg_api         : num  0.0196 0.0322 0.7892
+ $ calibisg_black_nh: num  1.39e-01 5.69e-04 6.29e-05
+ $ bisg_black_nh    : num  0.14489 0.00598 0.00101
+ $ calibisg_hispanic: num  0.0148 0.62641 0.00162
+ $ bisg_hispanic    : num  0.01591 0.62633 0.00309
+ $ calibisg_white_nh: num  0.803 0.304 0.063
+ $ bisg_white_nh    : num  0.771 0.319 0.115
+ $ calibisg_other   : num  0.02328 0.00462 0.02102
+ $ bisg_other       : num  0.0407 0.0121 0.0914
+ $ in_census        : logi  TRUE TRUE TRUE</code></pre>
+<pre class="r"><code>print(probs)</code></pre>
+<pre><code>Surname:  Smith     
 State:    WA        
 County:   King      
 Year:     2020      
 
-Race       Pr_raking  Pr_bisg   
------------------------------- 
-AIAN       0.0084     0.0054    
-API        0.0226     0.0208    
-Black      0.0052     0.0177    
-Hispanic   0.8756     0.8682    
-White      0.0841     0.0865    
-Other      0.0041     0.0014    
+Race       Pr_calibisg  Pr_bisg   
+---------------------------------------- 
+AIAN       0.01         0.01      
+API        0.01         0.02      
+Black      0.14         0.14      
+Hispanic   0.01         0.02      
+White      0.80         0.77      
+Other      0.02         0.04      
+---------------------------------------- 
 
-
-Surname:  Jackson   
-State:    NC        
-County:   Burke     
+Surname:  Lopez     
+State:    VT        
+County:   Chittenden
 Year:     2020      
 
-Race       Pr_raking  Pr_bisg   
------------------------------- 
-AIAN       0.0117     0.0088    
-API        0.0072     0.0051    
-Black      0.2944     0.2369    
-Hispanic   0.0224     0.0143    
-White      0.6457     0.7244    
-Other      0.0187     0.0104    </code></pre>
+Race       Pr_calibisg  Pr_bisg   
+---------------------------------------- 
+AIAN       0.00         0.00      
+API        0.06         0.03      
+Black      0.00         0.01      
+Hispanic   0.63         0.63      
+White      0.30         0.32      
+Other      0.00         0.01      
+---------------------------------------- 
+
+Surname:  Chen      
+State:    VT        
+County:   Windsor   
+Year:     2020      
+
+Race       Pr_calibisg  Pr_bisg   
+---------------------------------------- 
+AIAN       0.00         0.00      
+API        0.91         0.79      
+Black      0.00         0.00      
+Hispanic   0.00         0.00      
+White      0.06         0.11      
+Other      0.02         0.09      
+---------------------------------------- </code></pre>
+<p>The <code>digits</code> and <code>max_print</code> arguments to the
+<code>print()</code> method can be used to change the number of digits
+printed and the maximum number of tables to print.</p>
+<pre class="r"><code>print(probs, digits = 4, max_print = 2)</code></pre>
+<pre><code>Surname:  Smith     
+State:    WA        
+County:   King      
+Year:     2020      
+
+Race       Pr_calibisg  Pr_bisg   
+---------------------------------------- 
+AIAN       0.0129       0.0079    
+API        0.0073       0.0196    
+Black      0.1388       0.1449    
+Hispanic   0.0148       0.0159    
+White      0.8029       0.7709    
+Other      0.0233       0.0407    
+---------------------------------------- 
+
+Surname:  Lopez     
+State:    VT        
+County:   Chittenden
+Year:     2020      
+
+Race       Pr_calibisg  Pr_bisg   
+---------------------------------------- 
+AIAN       0.0044       0.0043    
+API        0.0601       0.0322    
+Black      0.0006       0.0060    
+Hispanic   0.6264       0.6263    
+White      0.3038       0.3190    
+Other      0.0046       0.0121    
+---------------------------------------- 
+
+Only the first 2 of 3 rows printed.
+Use `print(max_print = ...)` or `options(calibisg.max_print = ...)` to print more rows.</code></pre>
+<p>The defaults for an entire R session can be changed using
+<code>options(calibisg.digits = ...)</code> and
+<code>options(calibisg.max_print = ...)</code>.</p>
 </div>
+<div id="references" class="section level2">
+<h2>References</h2>
+<p>Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
+inferring race from surname and geolocation. <em>Journal of the Royal
+Statistical Society Series A: Statistics in Society</em>. <a href="https://doi.org/10.1093/jrsssa/qnaf003" class="uri">https://doi.org/10.1093/jrsssa/qnaf003</a>.</p>
 </div>
 
 

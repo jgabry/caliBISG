@@ -30,8 +30,9 @@ Currently only 2020 is available.}
 * \code{bisg_other}
 }
 \description{
-Compute Bayesian Improved Surname Geocoding (BISG) race‐probability
-estimates using census surname and county reference tables.
+Compute Bayesian Improved Surname Geocoding (BISG)
+race‐probability estimates using census surname and county reference
+tables.
 }
 \examples{
 \dontrun{

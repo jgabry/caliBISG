@@ -6,7 +6,7 @@
 \alias{caliBISG-package}
 \title{caliBISG: A Calibrated BISG for Inferring Race from Surname and Geolocation}
 \description{
-Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for predicting race and ethnicity using an individual’s geolocation and surname, however statistical dependence of surname and geolocation within racial/ethnic categories in the United States results in biases for minority subpopulations. Based on the method proposed by Greengard and Gelman (2025) \doi{10.1093/jrsssa/qnaf003}, we augment the data used by standard BISG (distributions of race by geolocation and race by surname) with the distribution of surname by geolocation obtained from state voter files. We then use a raking-based algorithm to compute calibrated BISG (caliBISG) predictions. caliBISG is easily interpretable, more accurate, and better calibrated than traditional BISG.
+Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for predicting race and ethnicity using an individual’s geolocation and surname, however statistical dependence of surname and geolocation within racial/ethnic categories in the United States results in biases for minority subpopulations. Based on the method proposed by Greengard and Gelman (2025) \doi{10.1093/jrsssa/qnaf003}, we augment the data used by traditional BISG (distributions of race by geolocation and race by surname) with the distribution of surname by geolocation obtained from state voter files. We then use a raking-based algorithm to compute calibrated BISG (caliBISG) predictions. caliBISG is easily interpretable, more accurate, and better calibrated than traditional BISG.
 }
 \author{
 \strong{Maintainer}: Jonah Gabry \email{jsg2201@columbia.edu}

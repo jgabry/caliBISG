@@ -3,14 +3,19 @@
 \name{most_probable_race}
 \alias{most_probable_race}
 \alias{race_probabilities}
-\alias{print_comparison_tables}
+\alias{print.compare_bisg}
 \title{Predict race given surname and location}
 \usage{
 most_probable_race(name, state, county, year = 2020)
 
 race_probabilities(name, state, county, year = 2020)
 
-print_comparison_tables(x, ..., digits = 2)
+\method{print}{compare_bisg}(
+  x,
+  ...,
+  digits = getOption("calibisg.digits", 2),
+  max_print = getOption("calibisg.max_print", 10)
+)
 }
 \arguments{
 \item{name}{(character vector) A vector of surnames. Coerced to lowercase
@@ -26,17 +31,24 @@ internally.}
 The default is 2020, which is currently the only available year. This
 default may change in the future when more years become available.}
 
-\item{x}{For \code{print_comparison_tables()}, the object returned by
-\code{race_probabilities()}.}
+\item{x}{(compare_bisg) For \code{print()}, the object returned by
+\code{race_probabilities()}, which is a data frame with subclass
+\code{"compare_bisg"}.}
 
 \item{...}{Currently unused.}
 
-\item{digits}{(integer) For \code{print_comparison_tables()}, the number of digits
-to display in the output. The default is \code{2}.}
+\item{digits}{(integer) For \code{print()}, the number of digits to display in the
+output. The default is to use two digits unless the global option
+\code{calibisg.digits} has been set.}
+
+\item{max_print}{(integer) For \code{print()}, the maximum number of rows to
+print. The default is to print comparison tables for at most ten rows
+unless the global option \code{calibisg.max_print} has been set.}
 }
 \value{
 \itemize{
-\item \code{most_probable_race()}: (data frame) A data frame with the following columns:
+\item \code{most_probable_race()}: (data frame) A data frame with number of rows equal
+to the length of the input vectors and the following columns:
 \itemize{
 \item \code{name} (string): The surname.
 \item \code{year} (integer): The year of the data used to compute the estimates.
@@ -47,10 +59,11 @@ to display in the output. The default is \code{2}.}
 \item \code{in_census} (logical): Whether the surname is found in the list of
 names that appear at least 100 times in the census.
 }
-\item \code{race_probabilities()}: (data frame) A data frame with the same columns
-as \code{most_probable_race()}, except the \code{calibisg_race} and \code{bisg_race} columns
+\item \code{race_probabilities()}: (data frame) A data frame with number of rows equal
+to the length of the input vectors and the same columns as
+\code{most_probable_race()}, except the \code{calibisg_race} and \code{bisg_race} columns
 are each replaced by multiple columns giving the probabilities of the various
-races, not just the single most probable race. The columns are:
+races, not just the single most probable race. Those columns are:
 \itemize{
 \item \code{calibisg_aian} (numeric): The caliBISG estimate for American Indian and Alaskan Native.
 \item \code{bisg_aian} (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
@@ -65,6 +78,9 @@ races, not just the single most probable race. The columns are:
 \item \code{calibisg_other} (numeric): The caliBISG estimate for other.
 \item \code{bisg_other} (numeric): The traditional BISG estimate for other.
 }
+
+The data frame also has class \code{"compare_bisg"}, which enables defining a
+custom \code{print()} method.
 }
 }
 \description{
@@ -77,11 +93,14 @@ years must be downloaded using \code{\link[=download_data]{download_data()}}.
 }
 \details{
 The \code{most_probable_race()} function finds the single most probable race given
-surname and location. The \code{race_probabilities()} function provides
-probabilities for all of the races rather than the single most probable race.
-The \code{print_comparison_tables()} pretty prints the output of
-\code{race_probabilities()}. It prints a separate table for each input record and
-so is most useful when only a small number of records were requested.
+surname and location.
+
+The \code{race_probabilities()} function provides probabilities for all of the
+races rather than the single most probable race.
+
+The \code{print()} method pretty prints the output of \code{race_probabilities()},
+making it easier to compare caliBISG and BISG estimates. It prints a separate
+table for each row in the returned data frame up to \code{max_print} rows.
 
 The first query for a particular \code{state} and \code{year} may take a few seconds
 to first load the caliBISG data internally. Subsequent calls for the same
@@ -109,8 +128,8 @@ probs2 <- race_probabilities(
   state = c("VT", "WA"),
   county = c("Chittenden", "King")
 )
-print_comparison_tables(race_probabilities("smith", "wa", "king"))
-print_comparison_tables(probs2, digits = 2)
+str(probs2)
+print(probs2, digits = 3)
 }
 
 }

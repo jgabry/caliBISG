@@ -20,11 +20,14 @@
 #'
 #' @details
 #' The `most_probable_race()` function finds the single most probable race given
-#' surname and location. The `race_probabilities()` function provides
-#' probabilities for all of the races rather than the single most probable race.
-#' The `print_comparison_tables()` pretty prints the output of
-#' `race_probabilities()`. It prints a separate table for each input record and
-#' so is most useful when only a small number of records were requested.
+#' surname and location.
+#'
+#' The `race_probabilities()` function provides probabilities for all of the
+#' races rather than the single most probable race.
+#'
+#' The `print()` method pretty prints the output of `race_probabilities()`,
+#' making it easier to compare caliBISG and BISG estimates. It prints a separate
+#' table for each row in the returned data frame up to `max_print` rows.
 #'
 #' The first query for a particular `state` and `year` may take a few seconds
 #' to first load the caliBISG data internally. Subsequent calls for the same
@@ -35,7 +38,8 @@
 #' estimates as long as the state and county are valid.
 #'
 #' @return
-#' * `most_probable_race()`: (data frame) A data frame with the following columns:
+#' * `most_probable_race()`: (data frame) A data frame with number of rows equal
+#' to the length of the input vectors and the following columns:
 #'      - `name` (string): The surname.
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
@@ -45,10 +49,11 @@
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
-#' * `race_probabilities()`: (data frame) A data frame with the same columns
-#' as `most_probable_race()`, except the `calibisg_race` and `bisg_race` columns
+#' * `race_probabilities()`: (data frame) A data frame with number of rows equal
+#' to the length of the input vectors and the same columns as
+#' `most_probable_race()`, except the `calibisg_race` and `bisg_race` columns
 #' are each replaced by multiple columns giving the probabilities of the various
-#' races, not just the single most probable race. The columns are:
+#' races, not just the single most probable race. Those columns are:
 #'      - `calibisg_aian` (numeric): The caliBISG estimate for American Indian and Alaskan Native.
 #'      - `bisg_aian` (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
 #'      - `calibisg_api` (numeric): The caliBISG estimate for Asian and Pacific Islander.
@@ -61,6 +66,9 @@
 #'      - `bisg_white_nh` (numeric): The traditional BISG estimate for non-Hispanic
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
 #'      - `bisg_other` (numeric): The traditional BISG estimate for other.
+#'
+#'     The data frame also has class `"compare_bisg"`, which enables defining a
+#'     custom `print()` method.
 #'
 #' @references Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
 #'   inferring race from surname and geolocation.
@@ -85,9 +93,8 @@
 #'   state = c("VT", "WA"),
 #'   county = c("Chittenden", "King")
 #' )
-#
-#' print_comparison_tables(race_probabilities("smith", "wa", "king"))
-#' print_comparison_tables(probs2, digits = 2)
+#' str(probs2)
+#' print(probs2, digits = 3)
 #' }
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
@@ -116,6 +123,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
 
 #' @rdname most_probable_race
 #' @export
+#'
 race_probabilities <- function(name, state, county, year = 2020) {
   stopifnot(is.numeric(year), length(year) == 1)
   if (!(length(state) == length(name) && length(county) == length(name))) {
@@ -174,17 +182,23 @@ race_probabilities <- function(name, state, county, year = 2020) {
 
 #' @rdname most_probable_race
 #' @export
-#' @param x For `print_comparison_tables()`, the object returned by
-#'   `race_probabilities()`.
+#' @param x (compare_bisg) For `print()`, the object returned by
+#'   `race_probabilities()`, which is a data frame with subclass
+#'   `"compare_bisg"`.
 #' @param ... Currently unused.
-#' @param digits (integer) For `print_comparison_tables()`, the number of digits
-#'   to display in the output. The default is `2`.
-print_comparison_tables <- function(x, ..., digits = 2) {
-  if (!inherits(x, "compare_bisg")) {
-    stop("Input must be an object returned by compare_race_probabilities().",
-         call. = FALSE)
-  }
-  for (j in seq_len(nrow(x))) {
+#' @param digits (integer) For `print()`, the number of digits to display in the
+#'   output. The default is to use two digits unless the global option
+#'   `calibisg.digits` has been set.
+#' @param max_print (integer) For `print()`, the maximum number of rows to
+#'   print. The default is to print comparison tables for at most ten rows
+#'   unless the global option `calibisg.max_print` has been set.
+#'
+print.compare_bisg <- function(x,
+                               ...,
+                               digits = getOption("calibisg.digits", 2),
+                               max_print = getOption("calibisg.max_print", 10)) {
+  n_print <- min(max_print, nrow(x))
+  for (j in seq_len(n_print)) {
     cat(
       sprintf(
         "Surname:  %-10s\nState:    %-10s\nCounty:   %-10s\nYear:     %-10s\n",
@@ -197,6 +211,14 @@ print_comparison_tables <- function(x, ..., digits = 2) {
     .print_table(x[j, ], digits)
     cat("\n")
   }
+
+  #  tell the user how many rows weren't printed
+  if (n_print < nrow(x)) {
+    cat("Only the first" , n_print, "of", nrow(x), "rows printed.\n")
+    cat("Use `print(max_print = ...)` or `options(calibisg.max_print = ...)`",
+        "to print more rows.\n")
+  }
+
   invisible(x)
 }
 

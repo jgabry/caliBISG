@@ -1,7 +1,7 @@
 ---
-title: "caliBISG demo"
+title: "caliBISG R package demo"
 author: ""
-date: "`r Sys.Date()`"
+date: "Last updated: `r Sys.Date()`"
 output: html_document
 ---
 
@@ -9,80 +9,109 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE, comment = "")
 ```
 
+## Intro
 
+Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for predicting
+race and ethnicity using an individual’s geolocation and surname, however
+statistical dependence of surname and geolocation within racial/ethnic
+categories in the United States results in biases for minority subpopulations.
+Based on the method proposed by Greengard and Gelman (2025), we augment the data
+used by traditional BISG (distributions of race by geolocation and race by
+surname) with the distribution of surname by geolocation obtained from state
+voter files. We then use a raking-based algorithm to compute calibrated BISG
+(caliBISG) predictions. caliBISG is easily interpretable, more accurate, and
+better calibrated than traditional BISG.
 
-```{r, echo=FALSE, message=FALSE}
+The `caliBISG` R package currently provides caliBISG using 2020 data for states
+FL, GA, NC, NY, OH, OK, VT, WA. In addition to caliBISG, the package provides
+traditional BISG for comparison. Traditional BISG is available for all fifty
+states.
+
+```{r setup-load-pacakge}
 library(caliBISG)
+```
+
+## Download caliBISG data
+
+(NOTE: In the future, we will download these files from Harvard Dataverse. For
+now, in order to demonstrate what the user experience will look like, the
+`download_data()` function is pretending to download them but is actually
+reading them from a folder on my computer.)
+
+
+```{r setup-delete_all_data, echo=FALSE, message=FALSE}
 delete_all_data()
 ```
 
-## Download data
+The `download_data()` function downloads the caliBISG data files for the
+specified states and years (currently only 2020 is available). The data is
+stored in an internal directory specific to the package (see
+`?tools::R_user_dir`). By default `download_data()` will download all available
+data, but here we download just the states VT and WA for demonstration. No
+downloads are required for traditional BISG, which is computed by the package
+when requested.
 
-In the future, we will actually download these files from the internet (once we
-decide where to host the files). For now, in order to demonstrate what the user
-experience will look like, the `download_data()` function is pretending to
-download them (the URL in the console output is fake) but is actually reading
-them from a folder on my computer.
-
-```{r}
+```{r download_data}
 download_data(states = c("VT", "WA"), years = 2020) 
 ```
 
 If the user just wants to use the package's convenience functions they never
 need to load these data files manually after downloading them. However, if the
-user wants to work directly with the large files instead of using the package's
-convenience functions they can load the data themselves with `load_data()`.
+user wants to work directly with the large caliBISG files instead of using the
+package's convenience functions they can load the data themselves with
+`load_data()`.
 
-```{r}
-vt_2020_data <- load_data("VT")
+```{r load_data}
+vt_2020_data <- load_data("VT", 2020)
 nrow(vt_2020_data)
+colnames(vt_2020_data)
 ```
-
-Currently only 2020 data can be downloaded but eventually multiple years will be
-available.
 
 #### Convenience functions for managing data
 
 The `data_dir()` function returns the path to the internal data storage
 directory.
 
-```{r}
+```{r data_dir}
 data_dir()
 ```
 
 The `available_data()` function lists the files the user has already downloaded
-that are available for them to query. 
+that are available for use. 
 
-```{r}
+```{r available_data}
 available_data()
 ```
 
 The `delete_all_data()` function deletes all the files in the internal data
 storage directory. 
 
-```{r}
+```{r delete_all_data}
 delete_all_data()
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r download_data-2, echo=FALSE, message=FALSE, warning=FALSE}
 download_data(states = c("VT", "WA"), years = 2020)
 ```
 
-## Predict the most probable race based on surname and geolocation
+## Most probable race given surname and geolocation
 
 The `most_probable_race()` function provides the single most probable race
-according to the raking-based caliBISG approach from Greengard and Gelman (2024).
+according to caliBISG and traditional BISG. 
 
-```{r}
+```{r most_probable_race}
 most_probable_race(name = "smith", state = "WA", county = "king")
 ```
 
-The returned object is a standard data frame with the number of rows equal to
-the length of the input vectors. In this case the most probable race is
-Non-Hispanic White. The `in_census` column indicates whether the surname is
-found in the census.
+In this case the most probable race is Non-Hispanic White according to both
+methods. The `in_census` column indicates whether the surname is found in the
+list of names that appear at least 100 times in the census.
 
-```{r}
+The returned object is a standard data frame with the number of rows equal to
+the length of the input vectors. For example, when inputting two cases the 
+resulting data frame has two rows. 
+
+```{r most_probable_race-multiple-inputs}
 most_probable_race(
   name = c("smith", "lopez"), 
   state = c("WA", "WA"), 
@@ -90,79 +119,51 @@ most_probable_race(
 )
 ```
 
-If the the name/state/county combination that the user requests is not one for
-which we have a prediction the `race` column will contain an `NA` and a warning
-will be thrown.
+If the the requested name/state/county combination is not one for which we have
+a caliBISG prediction the `calibisg_race` column will contain an `NA` and a
+warning will be thrown. As long as the state and county are valid we still
+provide a traditional BISG estimate in the `bisg_race` column. If the county 
+is not valid then both `calibisg_race` and `bisg_race` will be `NA`.
 
-```{r}
+```{r most_probable_race-NA}
 most_probable_race("smith", "wa", "not_a_county")
 ```
 
-The `most_probable_race()` function also takes a `year` argument but currently
+The `most_probable_race()` function also takes a `year` argument, but currently
 only 2020 is available. 
 
-## Get probabilities for all races based on surname and geolocation
+## Probabilities for all races given surname and geolocation
 
-The `race_probabilities()` function gives the caliBISG estimates for the
-probabilities of all the races. Again, the object returned is just a standard
-data frame, but the columns are the probabilities for each race, computed
-using the raking-based approach to BISG from Greengard and Gelman (2024).
+The `race_probabilities()` function gives the caliBISG and BISG estimates for
+the probability of each race. The returned object is a standard data frame, 
+however it has a subclass `"compare_bisg"` and a custom print method that 
+prints the results as tables comparing caliBISG and BISG. 
 
-```{r}
+```{r race_probabilities}
 probs <- race_probabilities(
-  name = c("smith", "lopez"), 
-  state = c("WA", "VT"), 
-  county = c("king", "chittenden")
+  name = c("smith", "lopez", "chen"), 
+  state = c("WA", "VT", "VT"), 
+  county = c("king", "chittenden", "windsor")
 )
 str(probs)
+print(probs)
 ```
 
-Similar to `most_probable_race()`, if the name/state/county combination is not
-found an `NA` is returned for all the probabilities and a warning is thrown. 
+The `digits` and `max_print` arguments to the `print()` method can be used to
+change the number of digits printed and the maximum number of tables to print.
 
-```{r}
-race_probabilities("lopez", "vt", "not_a_county")
+```{r print-digits-max_print}
+print(probs, digits = 4, max_print = 2)
 ```
 
+The defaults for an entire R session can be changed using
+`options(calibisg.digits = ...)` and `options(calibisg.max_print = ...)`.
 
-## Compare raking-based caliBISG to traditional BISG 
-
-The `compare_race_probabilities()` function allows the user to compare the
-raking-based caliBISG probabilities from Greengard and Gelman (2024) to the
-traditional BISG probabilities.
-
-```{r}
-comp1 <- compare_race_probabilities("lopez", "vt", "chittenden")
-str(comp1)
-```
-
-The object returned is again a standard data frame, however there are additional
-columns prefixed with `bisg_` (traditional BISG). The
-`bisg_` and `calibisg_` columns are also interleaved, i.e., ordered
-to place the races next to each other for easier comparison.
-
-The `compare_race_probabilities()` function can also take vectors as inputs
-and the resulting data frame will have number of rows equal to the lengths of
-the vectors. 
-
-```{r}
-comp2 <- compare_race_probabilities(
-  name = c("lopez", "jackson"), 
-  state = c("wa", "vt"), 
-  county = c("king", "chittenden")
-)
-str(comp2)
-```
-
-If the user has a small number of comparisons they can use
-`print_comparison_tables()` to print nice tables in the console.
-
-```{r}
-print_comparison_tables(comp2)
-```
 
 ## References
 
-Philip Greengard and Andrew Gelman (2024). An improved BISG for inferring race
-from surname and geolocation. https://arxiv.org/abs/2304.09126.
+Philip Greengard and Andrew Gelman (2025). A calibrated BISG for inferring race
+from surname and geolocation.
+*Journal of the Royal Statistical Society Series A: Statistics in Society*.
+https://doi.org/10.1093/jrsssa/qnaf003.
 

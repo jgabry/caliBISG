@@ -30,17 +30,19 @@ most_probable_race("no_name", "WA", "King")
 
 
 # get the actual probabilities, not just most probable
+# the print method prints comparison tables of calibisg vs bisg
 race_probabilities("smith", "wa", "king")
 
 probs1 <- race_probabilities("lopez", "vt", "chittenden")
-print_comparison_tables(probs1)
+print(probs1, digits = 4)
 
 probs2 <- race_probabilities(
   name = c("Lopez", "Smith"),
   state = c("VT", "WA"),
   county = c("Chittenden", "King")
 )
-print_comparison_tables(probs2)
+str(probs2) # still just a data frame but with subclass "compare_bisg"
+print(probs2)
 
 
 
