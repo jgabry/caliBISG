@@ -91,7 +91,7 @@
 #' }
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
-  prediction <- race_probabilities(name, state, county, year)
+  prediction <- as.data.frame(race_probabilities(name, state, county, year))
   prediction$calibisg_race <- apply(
     prediction[, .calibisg_columns()], 1, function(probs) {
     if (all(is.na(probs))) {
