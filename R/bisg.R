@@ -17,12 +17,12 @@
 #'
 #' @return (data frame) A data frame with colums `name`, `year`, `state`,
 #'   `county`, plus six BISG probability columns:
-#'      * `bisg_aian`
-#'      * `bisg_api`
-#'      * `bisg_black_nh`
-#'      * `bisg_hispanic`
-#'      * `bisg_white_nh`
-#'      * `bisg_other`
+#'   * `bisg_aian`
+#'   * `bisg_api`
+#'   * `bisg_black_nh`
+#'   * `bisg_hispanic`
+#'   * `bisg_white_nh`
+#'   * `bisg_other`
 #'
 #' @examples
 #' \dontrun{

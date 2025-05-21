@@ -9,7 +9,7 @@ Authors@R:
       person(given = "Gustavo", family = "Novoa", role = "aut"),
       person(given = "Andrew", family = "Gelman", role = "aut") 
       )
-Description: Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool 
+Description: Bayesian improved surname geocoding (BISG) is a ubiquitous tool 
     for predicting race and ethnicity using an individual’s geolocation and 
     surname, however statistical dependence of surname and geolocation within 
     racial/ethnic categories in the United States results in biases for minority 

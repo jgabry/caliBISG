@@ -22,12 +22,14 @@ Currently only 2020 is available.}
 \value{
 (data frame) A data frame with colums \code{name}, \code{year}, \code{state},
 \code{county}, plus six BISG probability columns:
-* \code{bisg_aian}
-* \code{bisg_api}
-* \code{bisg_black_nh}
-* \code{bisg_hispanic}
-* \code{bisg_white_nh}
-* \code{bisg_other}
+\itemize{
+\item \code{bisg_aian}
+\item \code{bisg_api}
+\item \code{bisg_black_nh}
+\item \code{bisg_hispanic}
+\item \code{bisg_white_nh}
+\item \code{bisg_other}
+}
 }
 \description{
 Compute Bayesian Improved Surname Geocoding (BISG)
