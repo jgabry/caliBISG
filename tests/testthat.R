@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(pisg)
+library(caliBISG)
 
-test_check("pisg")
+test_check("caliBISG")

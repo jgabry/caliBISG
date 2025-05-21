@@ -2,6 +2,6 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 ^NOTES$
-^demo$
+^demos$
 ^data-raw$
 ^tests/test_compute_bisg\.R$

@@ -275,11 +275,12 @@ delete_all_data <- function() {
 
 # remove once data is online ----------------------------------------------
 
-#' Set and get the temporarly local path to the data files. Will replace this
+#' Set and the temporarly local path to the data files. Will replace this
 #' with downloading them eventually.
 #'
-#' @noRd
+#' @keywords internal
 #' @export
+#' @param dir Path to local directory.
 set_temporary_local_directory <- function(dir = NULL) {
   .internal_data_env$temporary_local_directory <- dir
 }
