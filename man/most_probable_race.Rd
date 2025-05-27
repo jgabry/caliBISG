@@ -14,7 +14,7 @@ race_probabilities(name, state, county, year = 2020)
   x,
   ...,
   digits = getOption("calibisg.digits", 2),
-  max_print = getOption("calibisg.max_print", 5)
+  max_print = getOption("calibisg.max_print", 4)
 )
 }
 \arguments{
@@ -43,8 +43,8 @@ output. The default is to use two digits unless the global option
 
 \item{max_print}{(integer) For \code{print()}, the maximum number of rows to
 print. Because the tables take up a lot of space in the console, the
-default is to print comparison tables for at most five rows unless the
-global option \code{calibisg.max_print} has been set.}
+default is to print at most four tables unless the global option
+\code{calibisg.max_print} has been set.}
 }
 \value{
 \itemize{
