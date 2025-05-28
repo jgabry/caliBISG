@@ -125,10 +125,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #' @export
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
-  stopifnot(is.numeric(year), length(year) == 1)
-  if (!(length(state) == length(name) && length(county) == length(name))) {
-    stop("`name`, `state`, and `county` must all have the same length.")
-  }
+  .validate_inputs(name, state, county, year)
   calibisg_out_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
@@ -243,11 +240,35 @@ print.compare_bisg <- function(x,
   c("name", "year", "state", "county")
 }
 
+#' Validate inputs for `race_probabilities()`, `most_probable_race()` and `bisg()`.
+#' @noRd
+.validate_inputs <- function(name, state, county, year) {
+  if (length(year) != 1L || !is.numeric(year)) {
+    stop("`year` must be a single numeric value.", call. = FALSE)
+  }
+  if (!is.character(name) || !is.character(county) || !is.character(state)) {
+    stop("`name`, `state`, and `county` must be character vectors.", call. = FALSE)
+  }
+  lengths <- c(length(name), length(state), length(county))
+  if (length(unique(lengths)) != 1L) {
+    stop("`name`, `state`, and `county` must all have the same length.", call. = FALSE)
+  }
+  invalid_states <- setdiff(toupper(state), state.abb)
+  if (length(invalid_states) > 0L) {
+    stop(
+      "Invalid state abbreviations: ",
+      paste(unique(invalid_states), collapse = ", "),
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+
 
 #' Load the state-year data, filter by county and surname
 #'
 #' @noRd
-#' @param name,state,county,year Same as above except not vectors.
+#' @param name,state,county,year Same as above except scalars not vectors.
 #' @return A data frame with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
 .get_single_calibisg_record <- function(name, state, county, year) {

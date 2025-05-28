@@ -35,33 +35,17 @@
 #' }
 #'
 bisg <- function(name, state, county, year = 2020) {
-  if (!is.character(name)   || !is.character(county)) {
-    stop("`name` and `county` must both be character vectors.", call. = FALSE)
-  }
-  if (length(name) != length(county)) {
-    stop("`name` and `county` must be the same length.", call. = FALSE)
-  }
-  if (!is.character(state)) {
-    stop("`state` must be a character vector.", call. = FALSE)
-  }
-  if (length(state) == 1L) {
-    state <- rep(state, length(name))
-  } else if (length(state) != length(name)) {
-    stop("`state` must be length-1 or the same length as `name`.", call. = FALSE)
-  }
-  if (length(year) != 1L || !is.numeric(year)) {
-    stop("`year` must be a single numeric value.", call. = FALSE)
-  }
+  .validate_inputs(name, state, county, year)
   county <- tolower(county)
   name <- tolower(name)
+  state <- toupper(state)
 
   # reference tables
   df_surnames <- .race_x_surname_data()
   df_national  <- .race_x_usa_data(year)
 
-  # collect county tables for *each* unique state once
-  states <- toupper(state)
-  unique_states <- unique(states)
+  # collect county tables for each unique state once
+  unique_states <- unique(state)
   df_counties <- do.call(
     rbind,
     lapply(unique_states, function(st) {
@@ -91,7 +75,7 @@ bisg <- function(name, state, county, year = 2020) {
     id = seq_along(name), # used later to preserve original order
     name = name,
     county = county,
-    state = states,
+    state = state,
     stringsAsFactors = FALSE
   )
 

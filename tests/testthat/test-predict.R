@@ -1,5 +1,137 @@
 suppressMessages(download_data(c("VT", "WA"), 2020))
 
+
+test_that("race_probabilities() errors if lengths are mismatched", {
+  expect_error(
+    race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`name`, `state`, and `county` must all have the same length."
+  )
+
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = "Chittenden",
+      year   = c(2020, 2022)
+    ),
+    "`year` must be a single numeric value"
+  )
+})
+
+test_that("race_probabilities() errors if invalid state abbreviation is used", {
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "XX",
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "Invalid state abbreviations: XX"
+  )
+})
+
+test_that("race_probabilities() errors if inputs are wrong type", {
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = 10,
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`name`, `state`, and `county` must be character vectors."
+  )
+  expect_error(
+    race_probabilities(
+      name   = 10,
+      state  = "VT",
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`name`, `state`, and `county` must be character vectors."
+  )
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = 10,
+      year   = 2020
+    ),
+    "`name`, `state`, and `county` must be character vectors."
+  )
+})
+
+
+test_that("race_probabilities() returns correct columns for valid inputs", {
+  out <- race_probabilities(
+    name   = "lopez",
+    state  = "VT",
+    county = "Chittenden",
+    year   = 2020
+  )
+  expect_s3_class(out, c("compare_bisg", "data.frame"))
+  expect_equal(nrow(out), 1)
+  expect_named(out, c(.demographic_columns(),
+                      as.vector(rbind(.calibisg_columns(), .bisg_columns())),
+                      "in_census"))
+})
+
+test_that("race_probabilities() handles multiple inputs, including a non-match", {
+  # Multiple inputs:
+  # - 1st input: both calibisg and bisg available
+  # - 2nd input: neither calibisg nor bisg available
+  # - 3rd input: calibisg not available, bisg available
+
+  expect_warning(
+    expect_warning(
+      out <- race_probabilities(
+        name   = c("lopez", "noname", "noname2"),
+        state  = c("VT", "VT", "VT"),
+        county = c("Chittenden", "dummy", "Chittenden"),
+        year   = 2020
+      ),
+      regexp = "caliBISG is not available for 2 input(s)",
+      fixed = TRUE
+    ),
+    regexp = "Traditional BISG is not available for 1 input(s)",
+    fixed = TRUE
+  )
+  expect_s3_class(out, c("compare_bisg", "data.frame"))
+  expect_equal(nrow(out), 3)
+
+  # 1st row: non-NA calibisg columns
+  # other rows: all calibisg columns = NA
+  expect_false(all(is.na(out[1, .calibisg_columns()])))
+  expect_true(all(is.na(out[2:3, .calibisg_columns()])))
+
+  # 1st and 3rd rows: non-NA bisg columns
+  # 2nd row: all bisg columns = NA
+  expect_false(all(is.na(out[c(1,3), .bisg_columns()])))
+  expect_true(all(is.na(out[2, .bisg_columns()])))
+})
+
+test_that("print.compare_bisg() prints correctly", {
+  out <- race_probabilities(
+    name   = c("lopez", "jackson", "smith"),
+    state  = c("VT", "VT", "WA"),
+    county = c("Chittenden", "Windsor", "King")
+  )
+  expect_snapshot(print(out))
+  expect_snapshot(print(out, digits = 4))
+
+  options(calibisg.digits = 3)
+  expect_snapshot(print(out))
+
+  options(calibisg.max_print = 1)
+  expect_snapshot(print(out))
+  expect_snapshot(print(out, max_print = 2, digits = 5))
+})
+
+
 test_that("most_probable_race() returns correct columns", {
   # Single input
   out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
@@ -77,79 +209,3 @@ test_that("most_probable_race() handles missing records correctly", {
   expect_false(is.na(out$bisg_race[2]))
 })
 
-test_that("race_probabilities() errors if lengths are mismatched", {
-  expect_error(
-    race_probabilities(
-      name   = c("smith", "lopez"),
-      state  = "VT",
-      county = "Chittenden",
-      year   = 2020
-    ),
-    "`name`, `state`, and `county` must all have the same length."
-  )
-})
-
-test_that("race_probabilities() returns correct columns for valid inputs", {
-  out <- race_probabilities(
-    name   = "lopez",
-    state  = "VT",
-    county = "Chittenden",
-    year   = 2020
-  )
-  expect_s3_class(out, c("compare_bisg", "data.frame"))
-  expect_equal(nrow(out), 1)
-  expect_named(out, c(.demographic_columns(),
-                      as.vector(rbind(.calibisg_columns(), .bisg_columns())),
-                      "in_census"))
-})
-
-test_that("race_probabilities() handles multiple inputs, including a non-match", {
-  # Multiple inputs:
-  # - 1st input: both calibisg and bisg available
-  # - 2nd input: neither calibisg nor bisg available
-  # - 3rd input: calibisg not available, bisg available
-
-  expect_warning(
-    expect_warning(
-      out <- race_probabilities(
-        name   = c("lopez", "noname", "noname2"),
-        state  = c("VT", "VT", "VT"),
-        county = c("Chittenden", "dummy", "Chittenden"),
-        year   = 2020
-      ),
-      regexp = "caliBISG is not available for 2 input(s)",
-      fixed = TRUE
-    ),
-    regexp = "Traditional BISG is not available for 1 input(s)",
-    fixed = TRUE
-  )
-  expect_s3_class(out, c("compare_bisg", "data.frame"))
-  expect_equal(nrow(out), 3)
-
-  # 1st row: non-NA calibisg columns
-  # other rows: all calibisg columns = NA
-  expect_false(all(is.na(out[1, .calibisg_columns()])))
-  expect_true(all(is.na(out[2:3, .calibisg_columns()])))
-
-  # 1st and 3rd rows: non-NA bisg columns
-  # 2nd row: all bisg columns = NA
-  expect_false(all(is.na(out[c(1,3), .bisg_columns()])))
-  expect_true(all(is.na(out[2, .bisg_columns()])))
-})
-
-test_that("print.compare_bisg() prints correctly", {
-  out <- race_probabilities(
-    name   = c("lopez", "jackson", "smith"),
-    state  = c("VT", "VT", "WA"),
-    county = c("Chittenden", "Windsor", "King")
-  )
-  expect_snapshot(print(out))
-  expect_snapshot(print(out, digits = 4))
-
-  options(calibisg.digits = 3)
-  expect_snapshot(print(out))
-
-  options(calibisg.max_print = 1)
-  expect_snapshot(print(out))
-  expect_snapshot(print(out, max_print = 2, digits = 5))
-})

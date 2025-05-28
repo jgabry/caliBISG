@@ -13,6 +13,7 @@ precomputed_bisg <- structure(
       "jurisch",
       "patterson"
     ),
+    state = rep("WA", 10L),
     county = c(
       "island",
       "spokane",
@@ -105,7 +106,7 @@ precomputed_bisg <- structure(
 test_that("bisg() returns correct values", {
   out <- bisg(
     name = precomputed_bisg$name,
-    state = "WA",
+    state = precomputed_bisg$state,
     county = precomputed_bisg$county,
     year = 2020
   )
