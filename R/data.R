@@ -55,9 +55,9 @@ download_data <- function(states, years) {
         next
       }
 
-      csv_url  <- .make_csv_url(st, yr)
-      message("* Downloading and reading file: ", csv_url)
-      df <-  readr::read_csv(csv_url, show_col_types = FALSE, progress = FALSE)
+      message("* Downloading and reading file for: ", st, ", ", yr)
+      temp_csv <- .download_calibisg_csv(st, yr, version = NULL)
+      df <-  readr::read_csv(temp_csv, show_col_types = FALSE, progress = FALSE)
 
       # Add year and state and order the columns
       df <- as.data.frame(df)
@@ -260,37 +260,49 @@ delete_all_data <- function() {
 }
 
 
-#' Construct the URL for downloading the CSV file for a particular state-year
-#'
+
+#' Download a CSV file from a specific GitHub release
 #' @noRd
-#' @param state (string) The state to use.
-#' @param year (numeric) The year to use.
-#' @return (string) The URL for the CSV file.
-.make_csv_url <- function(state, year) {
-  # replace this with actual URL once data is online
-  .temporary_local_calibisg_download_path(state, year)
-}
-
-
-
-# remove once data is online ----------------------------------------------
-
-#' Set and the temporarly local path to the data files. Will replace this
-#' with downloading them eventually.
+#' @param state,year A single state and year.
+#' @param version The version of the package.
+#' @return The path to a local temporary file.
 #'
-#' @keywords internal
-#' @export
-#' @param dir Path to local directory.
-set_temporary_local_directory <- function(dir = NULL) {
-  .internal_data_env$temporary_local_directory <- dir
-}
-.get_temporary_local_directory <- function() {
-  dir <- .internal_data_env$temporary_local_directory
-  if (is.null(dir)) {
-    dir <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
+.download_calibisg_csv <- function(state, year, version = NULL) {
+  owner <- "jgabry"
+  repo <- "caliBISG"
+
+  # Determine release tag
+  tag <- if (is.null(version)) {
+    api_url <- sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+    resp <- httr::GET(api_url)
+
+    if (httr::http_error(resp)) {
+      stop(sprintf("Failed to fetch latest release. HTTP status: %s", httr::status_code(resp)), call. = FALSE)
+    }
+
+    # Parse the tag from the JSON manually
+    content_text <- httr::content(resp, as = "text", encoding = "UTF-8")
+    matches <- regmatches(content_text, regexec('"tag_name"\\s*:\\s*"([^"]+)"', content_text))
+
+    if (length(matches[[1]]) < 2) {
+      stop("Failed to extract tag_name from GitHub API response.", call. = FALSE)
+    }
+    matches[[1]][2]  # Extracted tag
+  } else {
+    paste0("v", version)
   }
-  dir
+
+  file_name <- sprintf("calibisg_%s%s.csv", state, year)
+  download_url <- sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, file_name)
+  temp_file <- tempfile(fileext = ".csv")
+  resp <- httr::GET(download_url, httr::write_disk(temp_file, overwrite = TRUE))
+
+  if (httr::http_error(resp)) {
+    stop(sprintf("Failed to download %s from tag %s. HTTP status: %s",
+                 file_name, tag, httr::status_code(resp)))
+  }
+
+  temp_file
 }
-.temporary_local_calibisg_download_path <- function(state, year) {
-  paste0(.get_temporary_local_directory(), "calibisg_", tolower(state), year, ".csv")
-}
+
+

@@ -1,7 +1,7 @@
 Package: caliBISG
 Type: Package
 Title: A Calibrated BISG for Inferring Race from Surname and Geolocation
-Version: 0.1.0
+Version: 0.0.1
 Authors@R:
     c(person(given = "Jonah", family = "Gabry", role = c("aut", "cre"),
              email = "jsg2201@columbia.edu"),
@@ -25,10 +25,11 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)
+Depends: 
+    R (>= 2.10)
+Imports: 
+    httr,
+    readr
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Imports: 
-    readr
-Depends: 
-    R (>= 2.10)
