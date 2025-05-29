@@ -1,5 +1,9 @@
 # caliBISG
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 This R package implements the calibrated BISG method from Greengard and Gelman
 (2025). The package is currently a work in progress. To install the development
 version from Github use

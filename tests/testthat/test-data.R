@@ -12,25 +12,30 @@ test_that("load_data() errors if not downloaded", {
 
 test_that("download_data() works as expected", {
   expect_message(
-    expect_message({
-      res <- download_data("VT", 2020)
-      expect_true(res)
-    },
-    regexp = "calibisg_vt2020.csv"),
-    regexp = "VT-2020.rds"
-  )
-
-  expect_message(
     expect_message(
       expect_message({
-        res <- download_data(c("VT", "WA"), 2020)
+        res <- download_data("VT", 2020)
         expect_true(res)
       },
-      regexp = "VT-2020.rds already exists. Skipping."
-      ),
-      regexp = "calibisg_wa2020.csv"
+      regexp = "Downloading, reading, and saving file for: VT, 2020"),
+      regexp = "Downloading calibisg_vt2020.csv"
     ),
-    regexp = "WA-2020.rds"
+    regexp = "Support/org.R-project.R/R/caliBISG/VT-2020.rds"
+  )
+  expect_message(
+    expect_message(
+      expect_message(
+        expect_message({
+          res <- download_data(c("VT", "WA"), 2020)
+          expect_true(res)
+        },
+        regexp = "VT-2020.rds already exists. Skipping."
+        ),
+        regexp = "Downloading, reading, and saving file for: WA, 2020",
+      ),
+      regexp = "Downloading calibisg_wa2020.csv"
+    ),
+    regexp = "Support/org.R-project.R/R/caliBISG/WA-2020.rds"
   )
 
   expect_error(

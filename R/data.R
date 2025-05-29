@@ -18,11 +18,19 @@
 #'   states, they should be provided as two-letter abbreviations.
 #' @param years (integer vector) The years to download. The default is to
 #'   download caliBISG data for all available years.
+#' @param token (string) Optionally, a GitHub personal access token (PAT) for
+#'   authentication. If `NULL` we check the `GITHUB_PAT` and then `GITHUB_TOKEN`
+#'   environment variables. If you do not have a PAT, you can create one in your
+#'   GitHub account settings under "Developer settings" -> "Personal access
+#'   tokens". This is used to increase rate limits when downloading the data,
+#'   but is typically not necessary unless you are downloading a large number of
+#'   files within one hour.
 #'
 #' @details
 #' * `download_data()`: Download the required data files for the specified
-#' states and years. The files will be stored internally in a package-specific
-#' data [directory][tools::R_user_dir].
+#' states and years. The downloaded CSV files are converted to data frames and
+#' stored as [RDS][base::readRDS] files internally in a package-specific data
+#' [directory][tools::R_user_dir].
 #' * `load_data()`: Load the data for a particular `state`-`year`. This is only
 #' necessary if you want to work with the full data files directly. When using
 #' the functions provided by this package (e.g. [race_probabilities()]) the data
@@ -34,7 +42,7 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states, years) {
+download_data <- function(states, years, token = NULL) {
   if (missing(states)) {
     states <- .all_states()
   } else {
@@ -55,9 +63,10 @@ download_data <- function(states, years) {
         next
       }
 
-      message("* Downloading and reading file for: ", st, ", ", yr)
-      temp_csv <- .download_calibisg_csv(st, yr, version = NULL)
+      message("* Downloading, reading, and saving file for: ", st, ", ", yr)
+      temp_csv <- .download_calibisg_csv(st, yr, version = NULL, token = token)
       df <-  readr::read_csv(temp_csv, show_col_types = FALSE, progress = FALSE)
+      file.remove(temp_csv)
 
       # Add year and state and order the columns
       df <- as.data.frame(df)
@@ -66,7 +75,7 @@ download_data <- function(states, years) {
       df <- .rename_data(df)
       df <- .reorder_data(df)
 
-      message("* Saving data to: ", rds_path)
+      message("  (Saving ", rds_path, ")")
       saveRDS(df, file = rds_path)
     }
   }
@@ -261,48 +270,103 @@ delete_all_data <- function() {
 
 
 
-#' Download a CSV file from a specific GitHub release
+#' Download a CSV file asset from a specific GitHub release
+#'
 #' @noRd
 #' @param state,year A single state and year.
-#' @param version The version of the package.
-#' @return The path to a local temporary file.
+#' @param version The version of the caliBISG package release.
+#' @param token A GitHub personal access token (PAT) for authentication.
+#' @return The path to a local temporary file containing the downloaded CSV.
 #'
-.download_calibisg_csv <- function(state, year, version = NULL) {
+.download_calibisg_csv <- function(state,
+                                   year,
+                                   version = NULL,
+                                   token = NULL) {
+
+  if (!is.null(token) && !is.character(token)) {
+    stop("`token` must be a character string or NULL.", call. = FALSE)
+  }
+  if (is.null(token)) {
+    token <- Sys.getenv("GITHUB_PAT", unset = Sys.getenv("GITHUB_TOKEN", ""))
+  }
+
   owner <- "jgabry"
-  repo <- "caliBISG"
+  repo  <- "caliBISG"
+  state <- tolower(state)
 
-  # Determine release tag
-  tag <- if (is.null(version)) {
-    api_url <- sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
-    resp <- httr::GET(api_url)
-
-    if (httr::http_error(resp)) {
-      stop(sprintf("Failed to fetch latest release. HTTP status: %s", httr::status_code(resp)), call. = FALSE)
-    }
-
-    # Parse the tag from the JSON manually
-    content_text <- httr::content(resp, as = "text", encoding = "UTF-8")
-    matches <- regmatches(content_text, regexec('"tag_name"\\s*:\\s*"([^"]+)"', content_text))
-
-    if (length(matches[[1]]) < 2) {
-      stop("Failed to extract tag_name from GitHub API response.", call. = FALSE)
-    }
-    matches[[1]][2]  # Extracted tag
+  # Build auth config if we have a token
+  configs <- if (nzchar(token)) {
+    list(httr::add_headers(Authorization = paste("token", token)))
   } else {
-    paste0("v", version)
+    list()
   }
 
-  file_name <- sprintf("calibisg_%s%s.csv", state, year)
-  download_url <- sprintf("https://github.com/%s/%s/releases/download/%s/%s", owner, repo, tag, file_name)
-  temp_file <- tempfile(fileext = ".csv")
-  resp <- httr::GET(download_url, httr::write_disk(temp_file, overwrite = TRUE))
+  # Fetch release JSON (latest or specific tag)
+  release_url <- if (is.null(version)) {
+    sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
+  } else {
+    tag <- if (grepl("^v", version, ignore.case = TRUE)) version else paste0("v", version)
+    sprintf("https://api.github.com/repos/%s/%s/releases/tags/%s", owner, repo, tag)
+  }
+  resp <- do.call(httr::GET, c(list(release_url), configs))
+  status <- httr::status_code(resp)
 
+  # Rate-limit check
+  if (status == 403) {
+    body <- httr::content(resp, as = "text", encoding = "UTF-8")
+    if (grepl("rate limit exceeded", body, ignore.case = TRUE)) {
+      stop(
+        "GitHub API rate limit exceeded.\n",
+        "Please set GITHUB_PAT (or GITHUB_TOKEN) to raise the limit.",
+        call. = FALSE
+      )
+    }
+  }
   if (httr::http_error(resp)) {
-    stop(sprintf("Failed to download %s from tag %s. HTTP status: %s",
-                 file_name, tag, httr::status_code(resp)))
+    stop(
+      "Failed to fetch release info: HTTP ", status,
+      call. = FALSE
+    )
   }
 
-  temp_file
-}
+  release_info <- httr::content(resp)
 
+  # Locate the right asset by name
+  file_name <- sprintf("calibisg_%s%s.csv", state, year)
+  assets <- release_info$assets
+  idx <- which(vapply(assets, `[[`, "", "name") == file_name)
+  if (length(idx) == 0) {
+    stop(
+      "Asset '", file_name, "' not found in release '", release_info$tag_name, "'.",
+      call. = FALSE
+    )
+  }
+  asset_id <- assets[[idx]]$id
+
+  # Download the asset via the API
+  asset_url_api <- sprintf(
+    "https://api.github.com/repos/%s/%s/releases/assets/%s",
+    owner, repo, asset_id
+  )
+  message("  (Downloading ", file_name, " from caliBISG release ", release_info$tag_name, ")")
+
+  temp_csv_file <- tempfile(fileext = ".csv")
+  resp2 <- do.call(httr::GET, c(
+    list(
+      asset_url_api,
+      httr::add_headers(Accept = "application/octet-stream"),
+      httr::write_disk(temp_csv_file, overwrite = TRUE),
+      httr::progress()
+    ),
+    configs
+  ))
+  if (httr::http_error(resp2)) {
+    stop(
+      "Failed to download asset: HTTP ", httr::status_code(resp2),
+      call. = FALSE
+    )
+  }
+
+  temp_csv_file
+}
 

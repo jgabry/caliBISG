@@ -5,3 +5,4 @@
 ^demos$
 ^data-raw$
 ^tests/test_compute_bisg\.R$
+^\.github$

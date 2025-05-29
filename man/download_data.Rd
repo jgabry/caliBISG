@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load caliBISG data files}
 \usage{
-download_data(states, years)
+download_data(states, years, token = NULL)
 
 load_data(state, year = 2020)
 
@@ -25,6 +25,14 @@ states, they should be provided as two-letter abbreviations.}
 
 \item{years}{(integer vector) The years to download. The default is to
 download caliBISG data for all available years.}
+
+\item{token}{(string) Optionally, a GitHub personal access token (PAT) for
+authentication. If \code{NULL} we check the \code{GITHUB_PAT} and then \code{GITHUB_TOKEN}
+environment variables. If you do not have a PAT, you can create one in your
+GitHub account settings under "Developer settings" -> "Personal access
+tokens". This is used to increase rate limits when downloading the data,
+but is typically not necessary unless you are downloading a large number of
+files within one hour.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
@@ -66,8 +74,9 @@ require downloading any files.
 \details{
 \itemize{
 \item \code{download_data()}: Download the required data files for the specified
-states and years. The files will be stored internally in a package-specific
-data \link[tools:userdir]{directory}.
+states and years. The downloaded CSV files are converted to data frames and
+stored as \link[base:readRDS]{RDS} files internally in a package-specific data
+\link[tools:userdir]{directory}.
 \item \code{load_data()}: Load the data for a particular \code{state}-\code{year}. This is only
 necessary if you want to work with the full data files directly. When using
 the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
