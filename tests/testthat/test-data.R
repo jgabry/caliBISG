@@ -11,7 +11,7 @@ test_that("load_data() errors if not downloaded", {
 })
 
 test_that("download_data() doesn't error", {
-  expect_no_error(download_data(c("VT", "WA", 2020, progress = FALSE)))
+  expect_no_error(download_data(states = c("VT", "WA"), years = 2020, progress = FALSE))
 })
 
 # test_that("download_data() works as expected", {
