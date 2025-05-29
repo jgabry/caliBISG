@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/jgabry/caliBISG/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jgabry/caliBISG?branch=main)
 <!-- badges: end -->
 
 This R package implements the calibrated BISG method from Greengard and Gelman
