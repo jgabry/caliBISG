@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load caliBISG data files}
 \usage{
-download_data(states, years, token = NULL)
+download_data(states, years, progress = TRUE, token = NULL)
 
 load_data(state, year = 2020)
 
@@ -25,6 +25,9 @@ states, they should be provided as two-letter abbreviations.}
 
 \item{years}{(integer vector) The years to download. The default is to
 download caliBISG data for all available years.}
+
+\item{progress}{(logical) Whether to show a progress bar while downloading
+the data. The default is \code{TRUE}.}
 
 \item{token}{(string) Optionally, a GitHub personal access token (PAT) for
 authentication. If \code{NULL} we check the \code{GITHUB_PAT} and then \code{GITHUB_TOKEN}

@@ -1,4 +1,4 @@
-suppressMessages(download_data(c("VT", "WA"), 2020))
+suppressMessages(download_data(c("VT", "WA"), 2020, progress = FALSE))
 
 
 test_that("race_probabilities() errors if lengths are mismatched", {

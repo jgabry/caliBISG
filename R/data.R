@@ -18,6 +18,8 @@
 #'   states, they should be provided as two-letter abbreviations.
 #' @param years (integer vector) The years to download. The default is to
 #'   download caliBISG data for all available years.
+#' @param progress (logical) Whether to show a progress bar while downloading
+#'   the data. The default is `TRUE`.
 #' @param token (string) Optionally, a GitHub personal access token (PAT) for
 #'   authentication. If `NULL` we check the `GITHUB_PAT` and then `GITHUB_TOKEN`
 #'   environment variables. If you do not have a PAT, you can create one in your
@@ -42,7 +44,7 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states, years, token = NULL) {
+download_data <- function(states, years, progress = TRUE, token = NULL) {
   if (missing(states)) {
     states <- .all_states()
   } else {
@@ -64,7 +66,13 @@ download_data <- function(states, years, token = NULL) {
       }
 
       message("* Downloading, reading, and saving file for: ", st, ", ", yr)
-      temp_csv <- .download_calibisg_csv(st, yr, version = NULL, token = token)
+      temp_csv <- .download_calibisg_csv(
+        state = st,
+        year = yr,
+        version = NULL,
+        progress = progress,
+        token = token
+      )
       df <-  readr::read_csv(temp_csv, show_col_types = FALSE, progress = FALSE)
       file.remove(temp_csv)
 
@@ -273,14 +281,14 @@ delete_all_data <- function() {
 #' Download a CSV file asset from a specific GitHub release
 #'
 #' @noRd
-#' @param state,year A single state and year.
+#' @param state,year,progress,token Same as above.
 #' @param version The version of the caliBISG package release.
-#' @param token A GitHub personal access token (PAT) for authentication.
 #' @return The path to a local temporary file containing the downloaded CSV.
 #'
 .download_calibisg_csv <- function(state,
                                    year,
                                    version = NULL,
+                                   progress = TRUE,
                                    token = NULL) {
 
   if (!is.null(token) && !is.character(token)) {
@@ -356,7 +364,7 @@ delete_all_data <- function() {
       asset_url_api,
       httr::add_headers(Accept = "application/octet-stream"),
       httr::write_disk(temp_csv_file, overwrite = TRUE),
-      httr::progress()
+      if (progress) httr::progress()
     ),
     configs
   ))

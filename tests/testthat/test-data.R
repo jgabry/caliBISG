@@ -14,7 +14,7 @@ test_that("download_data() works as expected", {
   expect_message(
     expect_message(
       expect_message({
-        res <- download_data("VT", 2020)
+        res <- download_data("VT", 2020, progress = FALSE)
         expect_true(res)
       },
       regexp = "Downloading, reading, and saving file for: VT, 2020"),
@@ -26,7 +26,7 @@ test_that("download_data() works as expected", {
     expect_message(
       expect_message(
         expect_message({
-          res <- download_data(c("VT", "WA"), 2020)
+          res <- download_data(c("VT", "WA"), 2020, progress = FALSE)
           expect_true(res)
         },
         regexp = "VT-2020.rds already exists. Skipping."
