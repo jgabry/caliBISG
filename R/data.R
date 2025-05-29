@@ -192,7 +192,7 @@ delete_all_data <- function() {
 #' @param year (numeric) The year to check.
 #' @return (string) The path to the data file.
 .data_path <- function(state, year) {
-  file.path(data_dir(), paste0(tolower(state), "-", year, ".rds"))
+  file.path(data_dir(), paste0(toupper(state), "-", year, ".rds"))
 }
 
 #' List the states that are currently available for download

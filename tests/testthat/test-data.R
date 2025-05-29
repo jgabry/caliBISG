@@ -24,7 +24,7 @@ test_that("download_data() doesn't error", {
 #       regexp = "Downloading, reading, and saving file for: VT, 2020"),
 #       regexp = "Downloading calibisg_vt2020.csv"
 #     ),
-#     regexp = "Support/org.R-project.R/R/caliBISG/VT-2020.rds"
+#     regexp = "R/caliBISG/VT-2020.rds"
 #   )
 #   expect_message(
 #     expect_message(
@@ -39,7 +39,7 @@ test_that("download_data() doesn't error", {
 #       ),
 #       regexp = "Downloading calibisg_wa2020.csv"
 #     ),
-#     regexp = "Support/org.R-project.R/R/caliBISG/WA-2020.rds"
+#     regexp = "R/caliBISG/WA-2020.rds"
 #   )
 #
 #   expect_error(
