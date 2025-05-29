@@ -253,7 +253,7 @@ print.compare_bisg <- function(x,
   if (length(unique(lengths)) != 1L) {
     stop("`name`, `state`, and `county` must all have the same length.", call. = FALSE)
   }
-  invalid_states <- setdiff(toupper(state), state.abb)
+  invalid_states <- setdiff(toupper(state), datasets::state.abb)
   if (length(invalid_states) > 0L) {
     stop(
       "Invalid state abbreviations: ",
