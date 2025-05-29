@@ -10,50 +10,50 @@ test_that("load_data() errors if not downloaded", {
   )
 })
 
-test_that("download_data() doesn't error", {
-  expect_no_error(download_data(states = c("VT", "WA"), years = 2020, progress = FALSE))
-})
+test_that("download_data() works as expected", {
+  expect_message(
+    expect_message(
+      expect_message({
+        res <- download_data("VT", 2020, progress = FALSE)
+        expect_true(res)
+      },
+      regexp = "Downloading, reading, and saving file for: VT, 2020"),
+      regexp = "Downloading calibisg_vt2020.csv"
+    ),
+    regexp = "R/caliBISG/VT-2020.rds"
+  )
+  expect_message(
+    expect_message(
+      expect_message(
+        expect_message({
+          res <- download_data(c("VT", "WA"), 2020, progress = FALSE)
+          expect_true(res)
+        },
+        regexp = "VT-2020.rds already exists. Skipping."
+        ),
+        regexp = "Downloading, reading, and saving file for: WA, 2020",
+      ),
+      regexp = "Downloading calibisg_wa2020.csv"
+    ),
+    regexp = "R/caliBISG/WA-2020.rds"
+  )
 
-# test_that("download_data() works as expected", {
-#   expect_message(
-#     expect_message(
-#       expect_message({
-#         res <- download_data("VT", 2020, progress = FALSE)
-#         expect_true(res)
-#       },
-#       regexp = "Downloading, reading, and saving file for: VT, 2020"),
-#       regexp = "Downloading calibisg_vt2020.csv"
-#     ),
-#     regexp = "R/caliBISG/VT-2020.rds"
-#   )
-#   expect_message(
-#     expect_message(
-#       expect_message(
-#         expect_message({
-#           res <- download_data(c("VT", "WA"), 2020, progress = FALSE)
-#           expect_true(res)
-#         },
-#         regexp = "VT-2020.rds already exists. Skipping."
-#         ),
-#         regexp = "Downloading, reading, and saving file for: WA, 2020",
-#       ),
-#       regexp = "Downloading calibisg_wa2020.csv"
-#     ),
-#     regexp = "R/caliBISG/WA-2020.rds"
-#   )
-#
-#   expect_error(
-#     download_data("CO", 2020),
-#     "Invalid states requested: CO",
-#   )
-#   expect_error(
-#     download_data("WA", 2021:2023),
-#     "Invalid years requested: 2021, 2022, 2023"
-#   )
-# })
+  expect_error(
+    download_data("CO", 2020),
+    "Invalid states requested: CO",
+  )
+  expect_error(
+    download_data("WA", 2021:2023),
+    "Invalid years requested: 2021, 2022, 2023"
+  )
+})
 
 test_that("available_data() returns a character vector", {
   expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
+})
+
+test_that("available_data() uses uppercase state codes", {
+  expect_true(all(grepl("^[A-Z]{2}-[0-9]{4}\\.rds$", available_data())))
 })
 
 test_that("load_data() works as expected", {
