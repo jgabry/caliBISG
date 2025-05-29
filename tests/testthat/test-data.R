@@ -10,6 +10,10 @@ test_that("load_data() errors if not downloaded", {
   )
 })
 
+test_that("download_data() doesn't error", {
+  download_data("VT", 2020, progress = FALSE)
+})
+
 test_that("download_data() works as expected", {
   expect_message(
     expect_message(
