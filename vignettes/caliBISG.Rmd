@@ -1,12 +1,17 @@
 ---
-title: "caliBISG R package demo"
-author: ""
-date: "Last updated: `r Sys.Date()`"
-output: html_document
+title: "caliBISG"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{caliBISG}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, comment = "")
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = ""
+)
 ```
 
 ## Intro
@@ -23,9 +28,10 @@ voter files. We then use a raking-based algorithm to compute calibrated BISG
 better calibrated than traditional BISG.
 
 The `caliBISG` R package currently provides caliBISG using 2020 data for states
-FL, GA, NC, NY, OH, OK, VT, WA. In addition to caliBISG, the package provides
-traditional BISG for comparison. Traditional BISG is available for all fifty
-states.
+FL, GA, NC, NY, OH, OK, VT, WA. We are working on adding more states. 
+
+In addition to caliBISG, the package provides traditional BISG for comparison.
+Traditional BISG is already available for all fifty states.
 
 ```{r setup-load-pacakge}
 library(caliBISG)
@@ -33,26 +39,21 @@ library(caliBISG)
 
 ## Download caliBISG data
 
-(NOTE: In the future, we will download these files from Harvard Dataverse. For
-now, in order to demonstrate what the user experience will look like, the
-`download_data()` function is pretending to download them but is actually
-reading them from a folder on my computer.)
-
 
 ```{r setup-delete_all_data, echo=FALSE, message=FALSE}
 delete_all_data()
 ```
 
-The `download_data()` function downloads the caliBISG data files for the
-specified states and years (currently only 2020 is available). The data is
+The `download_data()` function downloads the caliBISG data files from GitHub for
+the specified states and years (currently only 2020 is available). The data is
 stored in an internal directory specific to the package (see
 `?tools::R_user_dir`). By default `download_data()` will download all available
-data, but here we download just the states VT and WA for demonstration. No
+data, but here we download just the states OK and WA for demonstration. No
 downloads are required for traditional BISG, which is computed by the package
 when requested.
 
 ```{r download_data}
-download_data(states = c("VT", "WA"), years = 2020) 
+download_data(state = c("OK", "WA"), year = 2020, progress = FALSE) 
 ```
 
 If the user just wants to use the package's convenience functions they never
@@ -62,9 +63,9 @@ package's convenience functions they can load the data themselves with
 `load_data()`.
 
 ```{r load_data}
-vt_2020_data <- load_data("VT", 2020)
-nrow(vt_2020_data)
-colnames(vt_2020_data)
+ok_2020_data <- load_data("OK", 2020)
+nrow(ok_2020_data)
+colnames(ok_2020_data)
 ```
 
 #### Convenience functions for managing data
@@ -86,26 +87,39 @@ available_data()
 The `delete_all_data()` function deletes all the files in the internal data
 storage directory. 
 
-```{r delete_all_data}
+```{r delete_all_data, eval = FALSE}
 delete_all_data()
 ```
 
-```{r download_data-2, echo=FALSE, message=FALSE, warning=FALSE}
-download_data(states = c("VT", "WA"), years = 2020)
-```
 
 ## Most probable race given surname and geolocation
 
 The `most_probable_race()` function provides the single most probable race
-according to caliBISG and traditional BISG. 
+according to caliBISG and traditional BISG. The function takes four arguments:
+
+- `name`: a vector of surnames
+- `state`: a vector of state abbreviations
+- `county`: a vector of county names
+- `year`: the year of the data to use
+
+None of the arguments are case sensitive. The `year` argument defaults to 2020,
+which is the only year currently available. 
 
 ```{r most_probable_race}
-most_probable_race(name = "smith", state = "WA", county = "king")
+most_probable_race(name = "Smith", state = "WA", county = "king", year = 2020)
 ```
 
 In this case the most probable race is Non-Hispanic White according to both
 methods. The `in_census` column indicates whether the surname is found in the
 list of names that appear at least 100 times in the census.
+
+In some cases the caliBISG and BISG predictions will disagree. For example, 
+for the surname Jackson in Tulsa, Oklahoma, the caliBISG prediction is 
+Non-Hispanic White and the BISG prediction is Non-Hispanic Black.
+
+```{r most_probable_race-disagree}
+most_probable_race("Jackson", "OK", "Tulsa")
+```
 
 The returned object is a standard data frame with the number of rows equal to
 the length of the input vectors. For example, when inputting two cases the 
@@ -114,7 +128,7 @@ resulting data frame has two rows.
 ```{r most_probable_race-multiple-inputs}
 most_probable_race(
   name = c("smith", "lopez"), 
-  state = c("WA", "WA"), 
+  state = c("wa", "wa"), 
   county = c("king", "king")
 )
 ```
@@ -122,15 +136,17 @@ most_probable_race(
 If the the requested name/state/county combination is not one for which we have
 a caliBISG prediction the `calibisg_race` column will contain an `NA` and a
 warning will be thrown. As long as the state and county are valid we still
-provide a traditional BISG estimate in the `bisg_race` column. If the county 
-is not valid then both `calibisg_race` and `bisg_race` will be `NA`.
+provide a traditional BISG estimate in the `bisg_race` column. 
 
-```{r most_probable_race-NA}
-most_probable_race("smith", "wa", "not_a_county")
+```{r most_probable_race-RI}
+most_probable_race("Smith", "RI", "Providence")
 ```
 
-The `most_probable_race()` function also takes a `year` argument, but currently
-only 2020 is available. 
+If the county is not valid then both `calibisg_race` and `bisg_race` will be `NA`.
+
+```{r most_probable_race-NA}
+most_probable_race("Smith", "RI", "not_a_county")
+```
 
 ## Probabilities for all races given surname and geolocation
 
@@ -141,9 +157,9 @@ prints the results as tables comparing caliBISG and BISG.
 
 ```{r race_probabilities}
 probs <- race_probabilities(
-  name = c("smith", "lopez", "chen"), 
-  state = c("WA", "VT", "VT"), 
-  county = c("king", "chittenden", "windsor")
+  name = c("smith", "lopez", "jackson"), 
+  state = c("WA", "OK", "OK"), 
+  county = c("king", "tulsa", "tulsa")
 )
 str(probs)
 print(probs)
@@ -166,4 +182,3 @@ Philip Greengard and Andrew Gelman (2025). A calibrated BISG for inferring race
 from surname and geolocation.
 *Journal of the Royal Statistical Society Series A: Statistics in Society*.
 https://doi.org/10.1093/jrsssa/qnaf003.
-
