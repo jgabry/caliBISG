@@ -4,6 +4,7 @@
 \alias{most_probable_race}
 \alias{race_probabilities}
 \alias{print.compare_bisg}
+\alias{valid_counties}
 \title{Predict race given surname and location}
 \usage{
 most_probable_race(name, state, county, year = 2020)
@@ -16,6 +17,8 @@ race_probabilities(name, state, county, year = 2020)
   digits = getOption("calibisg.digits", 2),
   max_print = getOption("calibisg.max_print", 4)
 )
+
+valid_counties(state, year = 2020)
 }
 \arguments{
 \item{name}{(character vector) A vector of surnames. Coerced to lowercase
@@ -28,7 +31,7 @@ uppercase internally.}
 internally.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
-The default is 2020, which is currently the only available year. This
+The default is \code{2020}, which is currently the only available year. This
 default may change in the future when more years become available.}
 
 \item{x}{(compare_bisg) For \code{print()}, the object returned by
@@ -82,6 +85,8 @@ races, not just the single most probable race. Those columns are:
 
 The data frame also has class \code{"compare_bisg"}, which enables defining a
 custom \code{print()} method.
+\item \code{valid_counties()}: (character vector) Valid county names for the specified
+\code{state} and \code{year}.
 }
 }
 \description{
@@ -109,21 +114,23 @@ to first load the caliBISG data internally. Subsequent calls for the same
 
 For some state, county, and surname combinations the caliBISG estimate
 will not be available. In those cases we still provide traditional BISG
-estimates as long as the state and county are valid.
+estimates as long as the state and county are valid. The \code{valid_counties()}
+function can be used to check which county names can be specified for a
+given state and year.
 }
 \examples{
 \dontrun{
 download_data(c("VT", "WA"), 2020)
 
-most_probable_race("smith", "wa", "king")
+most_probable_race("Smith", "WA", "King")
 most_probable_race(
   name = c("Lopez", "Jackson"),
   state = c("VT", "WA"),
   county = c("Chittenden", "King")
 )
 
-race_probabilities("smith", "wa", "king")
-race_probabilities("lopez", "vt", "chittenden")
+race_probabilities("Smith", "WA", "King")
+race_probabilities("Lopez", "VT", "Chittenden")
 probs2 <- race_probabilities(
   name = c("Lopez", "Smith"),
   state = c("VT", "WA"),
@@ -131,6 +138,11 @@ probs2 <- race_probabilities(
 )
 str(probs2)
 print(probs2, digits = 3)
+
+# caliBISG is not yet available for RI but we can still get
+# regular BISG if we input a valid county
+valid_counties("RI")
+race_probabilities("Jones", "RI", "Providence")
 }
 
 }

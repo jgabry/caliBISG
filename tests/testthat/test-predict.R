@@ -1,5 +1,44 @@
-suppressMessages(download_data(c("VT", "WA"), 2020, progress = FALSE))
+suppressMessages(download_data(years = 2020, progress = FALSE))
 
+test_that("valid_counties() errors with invalid inputs", {
+  expect_error(
+    valid_counties("XX", 2020),
+    "Invalid state abbreviations: XX"
+  )
+  expect_error(
+    valid_counties(10, 2020),
+    "`state` must be a character vector"
+  )
+  expect_error(
+    valid_counties(c("WA", "NC"), 2020),
+    "`state` must be a single two-letter state abbreviation"
+  )
+  expect_error(
+    valid_counties("VT", 2021),
+    "`year` must be one of the available years: 2020"
+  )
+  expect_error(
+    valid_counties("VT", c(2020, 2023)),
+    "`year` must be a single numeric value"
+  )
+})
+
+test_that("valid_counties() returns correct values", {
+  for (st in datasets::state.abb) {
+    out <- valid_counties(st, 2020)
+    counties <- sort(unique(.race_x_county_data(st, 2020)$county))
+    expect_equal(out, counties, info = st)
+  }
+})
+
+test_that("valid_counties() matches caliBISG counties", {
+  calibisg_states <- substr(available_data(), 1, 2)
+  for (st in calibisg_states) {
+    out <- valid_counties(st, 2020)
+    counties <- sort(unique(load_data(st, 2020)$county))
+    expect_equal(out, counties, info = st)
+  }
+})
 
 test_that("race_probabilities() errors if lengths are mismatched", {
   expect_error(
@@ -35,6 +74,18 @@ test_that("race_probabilities() errors if invalid state abbreviation is used", {
   )
 })
 
+test_that("race_probabilities() errors if invalid year is used", {
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = "Chittenden",
+      year   = 2021
+    ),
+    "`year` must be one of the available years: 2020"
+  )
+})
+
 test_that("race_probabilities() errors if inputs are wrong type", {
   expect_error(
     race_probabilities(
@@ -43,7 +94,7 @@ test_that("race_probabilities() errors if inputs are wrong type", {
       county = "Chittenden",
       year   = 2020
     ),
-    "`name`, `state`, and `county` must be character vectors."
+    "`state` must be a character vector"
   )
   expect_error(
     race_probabilities(
@@ -52,7 +103,7 @@ test_that("race_probabilities() errors if inputs are wrong type", {
       county = "Chittenden",
       year   = 2020
     ),
-    "`name`, `state`, and `county` must be character vectors."
+    "`name` must be a character vector"
   )
   expect_error(
     race_probabilities(
@@ -61,7 +112,7 @@ test_that("race_probabilities() errors if inputs are wrong type", {
       county = 10,
       year   = 2020
     ),
-    "`name`, `state`, and `county` must be character vectors."
+    "`county` must be a character vector"
   )
 })
 

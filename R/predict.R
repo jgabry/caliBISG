@@ -15,7 +15,7 @@
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally.
 #' @param year (integer) The year of the data to use to compute the estimates.
-#'   The default is 2020, which is currently the only available year. This
+#'   The default is `2020`, which is currently the only available year. This
 #'   default may change in the future when more years become available.
 #'
 #' @details
@@ -35,7 +35,9 @@
 #'
 #' For some state, county, and surname combinations the caliBISG estimate
 #' will not be available. In those cases we still provide traditional BISG
-#' estimates as long as the state and county are valid.
+#' estimates as long as the state and county are valid. The `valid_counties()`
+#' function can be used to check which county names can be specified for a
+#' given state and year.
 #'
 #' @return
 #' * `most_probable_race()`: (data frame) A data frame with number of rows equal
@@ -70,6 +72,9 @@
 #'     The data frame also has class `"compare_bisg"`, which enables defining a
 #'     custom `print()` method.
 #'
+#' * `valid_counties()`: (character vector) Valid county names for the specified
+#' `state` and `year`.
+#'
 #' @references Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
 #'   inferring race from surname and geolocation.
 #'   *Journal of the Royal Statistical Society Series A: Statistics in Society*.
@@ -79,15 +84,15 @@
 #' \dontrun{
 #' download_data(c("VT", "WA"), 2020)
 #'
-#' most_probable_race("smith", "wa", "king")
+#' most_probable_race("Smith", "WA", "King")
 #' most_probable_race(
 #'   name = c("Lopez", "Jackson"),
 #'   state = c("VT", "WA"),
 #'   county = c("Chittenden", "King")
 #' )
 #'
-#' race_probabilities("smith", "wa", "king")
-#' race_probabilities("lopez", "vt", "chittenden")
+#' race_probabilities("Smith", "WA", "King")
+#' race_probabilities("Lopez", "VT", "Chittenden")
 #' probs2 <- race_probabilities(
 #'   name = c("Lopez", "Smith"),
 #'   state = c("VT", "WA"),
@@ -95,6 +100,11 @@
 #' )
 #' str(probs2)
 #' print(probs2, digits = 3)
+#'
+#' # caliBISG is not yet available for RI but we can still get
+#' # regular BISG if we input a valid county
+#' valid_counties("RI")
+#' race_probabilities("Jones", "RI", "Providence")
 #' }
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
@@ -220,6 +230,14 @@ print.compare_bisg <- function(x,
   invisible(x)
 }
 
+#' @rdname most_probable_race
+#' @export
+valid_counties <- function(state, year = 2020) {
+  .validate_state(state, allow_multiple = FALSE)
+  .validate_year(year)
+  sort(unique(.race_x_county_data(state, year)$county))
+}
+
 
 # internal ----------------------------------------------------------------
 
@@ -240,18 +258,46 @@ print.compare_bisg <- function(x,
   c("name", "year", "state", "county")
 }
 
-#' Validate inputs for `race_probabilities()`, `most_probable_race()` and `bisg()`.
+#' Input validation
+#'
 #' @noRd
+#' @param name,state,county,year The inputs to validate.
+#' @return (logical) `TRUE`, invisibly, if no error is thrown.
+#'
 .validate_inputs <- function(name, state, county, year) {
-  if (length(year) != 1L || !is.numeric(year)) {
-    stop("`year` must be a single numeric value.", call. = FALSE)
-  }
-  if (!is.character(name) || !is.character(county) || !is.character(state)) {
-    stop("`name`, `state`, and `county` must be character vectors.", call. = FALSE)
-  }
+  .validate_year(year)
+  .validate_state(state, allow_multiple = TRUE)
+
+  # these two don't check if the name/county are legit just that they are
+  # character vectors
+  .validate_county(county)
+  .validate_name(name)
+
   lengths <- c(length(name), length(state), length(county))
   if (length(unique(lengths)) != 1L) {
     stop("`name`, `state`, and `county` must all have the same length.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+.validate_year <- function(year) {
+  if (length(year) != 1L || !is.numeric(year)) {
+    stop("`year` must be a single numeric value.", call. = FALSE)
+  }
+  if (!year %in% .all_calibisg_years()) {
+    stop(
+      "`year` must be one of the available years: ",
+      paste(.all_calibisg_years(), collapse = ", "),
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
+}
+.validate_state <- function(state, allow_multiple = TRUE) {
+  if (!is.character(state)) {
+    stop("`state` must be a character vector.", call. = FALSE)
+  }
+  if (length(state) > 1 && !allow_multiple) {
+    stop("`state` must be a single two-letter state abbreviation.", call. = FALSE)
   }
   invalid_states <- setdiff(toupper(state), datasets::state.abb)
   if (length(invalid_states) > 0L) {
@@ -263,13 +309,24 @@ print.compare_bisg <- function(x,
   }
   invisible(TRUE)
 }
+.validate_county <- function(county) {
+  if (!is.character(county)) {
+    stop("`county` must be a character vector.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+.validate_name <- function(name) {
+  if (!is.character(name)) {
+    stop("`name` must be a character vector.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
 
-
-#' Load the state-year data, filter by county and surname
+#' Load the state-year data, filter by a single county and surname
 #'
 #' @noRd
-#' @param name,state,county,year Same as above except scalars not vectors.
-#' @return A data frame with all available columns plus a column `.found`
+#' @param name,state,county,year Scalar inputs.
+#' @return (data frame) Data with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
 .get_single_calibisg_record <- function(name, state, county, year) {
   stopifnot(
