@@ -71,3 +71,13 @@ test_that("load_data() works as expected", {
     c(.demographic_columns(), .calibisg_columns(), "in_census")
   )
 })
+
+test_that("the rest of the states can be downloaded", {
+  expect_no_error(
+    suppressMessages(download_data(years = 2020, progress = FALSE))
+  )
+  expect_equal(
+    sort(available_data()),
+    sort(paste0(.all_calibisg_states(), "-2020.rds"))
+  )
+})

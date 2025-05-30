@@ -46,14 +46,14 @@
 #'
 download_data <- function(states, years, progress = TRUE) {
   if (missing(states)) {
-    states <- .all_states()
+    states <- .all_calibisg_states()
   } else {
     states <- toupper(states)
   }
   if (missing(years)) {
-    years <- .all_years()
+    years <- .all_calibisg_years()
   }
-  .validate_states_years(states, years)
+  .validate_calibisg_states_years(states, years)
 
   for (st in states) {
     for (yr in years) {
@@ -196,13 +196,13 @@ delete_all_data <- function() {
   file.path(data_dir(), paste0(toupper(state), "-", year, ".rds"))
 }
 
-#' List the states that are currently available for download
+#' List the states for which caliBISG data is currently available for download
 #'
 #' @noRd
 #' @return (character vector) The two-letter state abbreviations of the
 #'   available states.
 #'
-.all_states <- function() {
+.all_calibisg_states <- function() {
   c("FL", "GA", "NC", "NY", "OH", "OK", "VT", "WA")
 }
 
@@ -210,20 +210,20 @@ delete_all_data <- function() {
 #'
 #' @noRd
 #' @return (integer vector) The years of the available data.
-.all_years <- function() {
+.all_calibisg_years <- function() {
   as.integer(c(2020))
 }
 
-#' Validate that user-specified states/years are available
+#' Validate that caliBISG data is available for user-specified states-years
 #'
 #' @noRd
 #' @param states (character vector) The states to validate.
 #' @param years (integer vector) The years to validate.
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
-.validate_states_years <- function(states, years) {
-  valid_states  <- .all_states()
-  valid_years <- .all_years()
+.validate_calibisg_states_years <- function(states, years) {
+  valid_states  <- .all_calibisg_states()
+  valid_years <- .all_calibisg_years()
 
   bad_states <- setdiff(states, valid_states)
   if (length(bad_states) > 0) {
