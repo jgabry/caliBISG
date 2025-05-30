@@ -80,6 +80,8 @@ download_data <- function(states, years, progress = TRUE, token = NULL) {
       df <- as.data.frame(df)
       df$year <- yr
       df$state <- st
+      df$county <- tolower(df$county)
+      df$name <- tolower(df$name)
       df <- .rename_data(df)
       df <- .reorder_data(df)
 
