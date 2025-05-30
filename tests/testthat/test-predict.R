@@ -1,4 +1,4 @@
-suppressMessages(download_data(years = 2020, progress = FALSE))
+suppressMessages(download_data(year = 2020, progress = FALSE))
 
 test_that("valid_counties() errors with invalid inputs", {
   expect_error(
@@ -217,7 +217,7 @@ test_that("most_probable_race() handles multiple inputs", {
   expect_equal(out$in_census, c(TRUE, TRUE, TRUE))
 })
 
-test_that("most_probable_race() handles missing records correctly", {
+test_that("most_probable_race() handles missing records for name and county correctly", {
   # Multiple inputs (1 found, 1 not found)
   # because both name and county can't be found even regular bisg will be NA
   # we expect two warnings in this case
@@ -258,5 +258,16 @@ test_that("most_probable_race() handles missing records correctly", {
   expect_false(is.na(out$bisg_race[1]))
   expect_true(is.na(out$calibisg_race[2]))
   expect_false(is.na(out$bisg_race[2]))
+})
+
+test_that("most_probable_race() handles missing caliBISG state correctly", {
+  # Currently caliBISG not available for RI but BISG is
+  expect_warning(
+    out <- most_probable_race("Jones", "RI", "Providence", 2020),
+    "caliBISG is not available for 1 input"
+  )
+  expect_s3_class(out, "data.frame")
+  expect_true(is.na(out$calibisg_race))
+  expect_false(is.na(out$bisg_race))
 })
 

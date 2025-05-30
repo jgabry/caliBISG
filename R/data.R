@@ -13,10 +13,10 @@
 #'   require downloading any files.
 #'
 #' @export
-#' @param states (character vector) The states to download. The default is to
+#' @param state (character vector) The states to download. The default is to
 #'   download caliBISG data for all available states. If specifying particular
 #'   states, they should be provided as two-letter abbreviations.
-#' @param years (integer vector) The years to download. The default is to
+#' @param year (integer vector) The years to download. The default is to
 #'   download caliBISG data for all available years.
 #' @param progress (logical) Whether to show a progress bar while downloading
 #'   the data. The default is `TRUE`.
@@ -44,14 +44,16 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states, years, progress = TRUE) {
-  if (missing(states)) {
+download_data <- function(state, year, progress = TRUE) {
+  if (missing(state)) {
     states <- .all_calibisg_states()
   } else {
-    states <- toupper(states)
+    states <- toupper(state)
   }
-  if (missing(years)) {
+  if (missing(year)) {
     years <- .all_calibisg_years()
+  } else {
+    years <- as.integer(year)
   }
   .validate_calibisg_states_years(states, years)
 

@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load caliBISG data files}
 \usage{
-download_data(states, years, progress = TRUE)
+download_data(state, year, progress = TRUE)
 
 load_data(state, year = 2020)
 
@@ -19,19 +19,12 @@ available_data()
 delete_all_data()
 }
 \arguments{
-\item{states}{(character vector) The states to download. The default is to
-download caliBISG data for all available states. If specifying particular
-states, they should be provided as two-letter abbreviations.}
-
-\item{years}{(integer vector) The years to download. The default is to
-download caliBISG data for all available years.}
-
-\item{progress}{(logical) Whether to show a progress bar while downloading
-the data. The default is \code{TRUE}.}
-
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
 \item{year}{(integer) For \code{load_data()}, the year to load.}
+
+\item{progress}{(logical) Whether to show a progress bar while downloading
+the data. The default is \code{TRUE}.}
 }
 \value{
 \itemize{

@@ -74,7 +74,7 @@ test_that("load_data() works as expected", {
 
 test_that("the rest of the states can be downloaded", {
   expect_no_error(
-    suppressMessages(download_data(years = 2020, progress = FALSE))
+    suppressMessages(download_data(year = 2020, progress = FALSE))
   )
   expect_equal(
     sort(available_data()),
