@@ -20,19 +20,19 @@
 #'   download caliBISG data for all available years.
 #' @param progress (logical) Whether to show a progress bar while downloading
 #'   the data. The default is `TRUE`.
-#' @param token (string) Optionally, a GitHub personal access token (PAT) for
-#'   authentication. If `NULL` we check the `GITHUB_PAT` and then `GITHUB_TOKEN`
-#'   environment variables. If you do not have a PAT, you can create one in your
-#'   GitHub account settings under "Developer settings" -> "Personal access
-#'   tokens". This is used to increase rate limits when downloading the data,
-#'   but is typically not necessary unless you are downloading a large number of
-#'   files within one hour.
 #'
 #' @details
-#' * `download_data()`: Download the required data files for the specified
-#' states and years. The downloaded CSV files are converted to data frames and
-#' stored as [RDS][base::readRDS] files internally in a package-specific data
-#' [directory][tools::R_user_dir].
+#' * `download_data()`: Download the CSV data files from GitHub for the
+#' specified states and years. The downloaded files are converted to data frames
+#' and stored as [RDS][base::readRDS] files internally in a package-specific
+#' data [directory][tools::R_user_dir]. A GitHub personal access token (PAT) can
+#' be used to increase rate limits. If the **gitcreds** package is installed and
+#' has a credential for `github.com`, the token provided by
+#' [gitcreds::gitcreds_get()] will be used. Otherwise the environment variables
+#' `GITHUB_PAT` and `GITHUB_TOKEN` will be checked in that order. If no token is
+#' found, the request will be made anonymously, in which case you may run into
+#' GitHub's unauthenticated rate limit if you are trying to download many files
+#' within one hour.
 #' * `load_data()`: Load the data for a particular `state`-`year`. This is only
 #' necessary if you want to work with the full data files directly. When using
 #' the functions provided by this package (e.g. [race_probabilities()]) the data
@@ -44,7 +44,7 @@
 #'
 #' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(states, years, progress = TRUE, token = NULL) {
+download_data <- function(states, years, progress = TRUE) {
   if (missing(states)) {
     states <- .all_states()
   } else {
@@ -70,8 +70,7 @@ download_data <- function(states, years, progress = TRUE, token = NULL) {
         state = st,
         year = yr,
         version = NULL,
-        progress = progress,
-        token = token
+        progress = progress
       )
       df <-  readr::read_csv(temp_csv, show_col_types = FALSE, progress = FALSE)
       file.remove(temp_csv)
@@ -290,19 +289,21 @@ delete_all_data <- function() {
 .download_calibisg_csv <- function(state,
                                    year,
                                    version = NULL,
-                                   progress = TRUE,
-                                   token = NULL) {
+                                   progress = TRUE) {
 
-  if (!is.null(token) && !is.character(token)) {
-    stop("`token` must be a character string or NULL.", call. = FALSE)
+  # Resolve token: gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
+  token <- NULL
+  if (requireNamespace("gitcreds", quietly = TRUE)) {
+    cred <- try(gitcreds::gitcreds_get(), silent = TRUE)
+    if (!inherits(cred, "try-error") &&
+        !is.null(cred$password) &&
+        identical(cred$host, "github.com")) {
+      token <- cred$password
+    }
   }
-  if (is.null(token)) {
+  if (is.null(token) || !nzchar(token)) {
     token <- Sys.getenv("GITHUB_PAT", unset = Sys.getenv("GITHUB_TOKEN", ""))
   }
-
-  owner <- "jgabry"
-  repo  <- "caliBISG"
-  state <- tolower(state)
 
   # Build auth config if we have a token
   configs <- if (nzchar(token)) {
@@ -310,6 +311,10 @@ delete_all_data <- function() {
   } else {
     list()
   }
+
+  owner <- "jgabry"
+  repo  <- "caliBISG"
+  state <- tolower(state)
 
   # Fetch release JSON (latest or specific tag)
   release_url <- if (is.null(version)) {

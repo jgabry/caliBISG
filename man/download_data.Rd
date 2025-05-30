@@ -8,7 +8,7 @@
 \alias{delete_all_data}
 \title{Download and load caliBISG data files}
 \usage{
-download_data(states, years, progress = TRUE, token = NULL)
+download_data(states, years, progress = TRUE)
 
 load_data(state, year = 2020)
 
@@ -28,14 +28,6 @@ download caliBISG data for all available years.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
 the data. The default is \code{TRUE}.}
-
-\item{token}{(string) Optionally, a GitHub personal access token (PAT) for
-authentication. If \code{NULL} we check the \code{GITHUB_PAT} and then \code{GITHUB_TOKEN}
-environment variables. If you do not have a PAT, you can create one in your
-GitHub account settings under "Developer settings" -> "Personal access
-tokens". This is used to increase rate limits when downloading the data,
-but is typically not necessary unless you are downloading a large number of
-files within one hour.}
 
 \item{state}{(string) For \code{load_data()}, the state to load.}
 
@@ -76,10 +68,17 @@ require downloading any files.
 }
 \details{
 \itemize{
-\item \code{download_data()}: Download the required data files for the specified
-states and years. The downloaded CSV files are converted to data frames and
-stored as \link[base:readRDS]{RDS} files internally in a package-specific data
-\link[tools:userdir]{directory}.
+\item \code{download_data()}: Download the CSV data files from GitHub for the
+specified states and years. The downloaded files are converted to data frames
+and stored as \link[base:readRDS]{RDS} files internally in a package-specific
+data \link[tools:userdir]{directory}. A GitHub personal access token (PAT) can
+be used to increase rate limits. If the \strong{gitcreds} package is installed and
+has a credential for \code{github.com}, the token provided by
+\code{\link[gitcreds:gitcreds_get]{gitcreds::gitcreds_get()}} will be used. Otherwise the environment variables
+\code{GITHUB_PAT} and \code{GITHUB_TOKEN} will be checked in that order. If no token is
+found, the request will be made anonymously, in which case you may run into
+GitHub's unauthenticated rate limit if you are trying to download many files
+within one hour.
 \item \code{load_data()}: Load the data for a particular \code{state}-\code{year}. This is only
 necessary if you want to work with the full data files directly. When using
 the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
