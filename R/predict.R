@@ -359,15 +359,16 @@ valid_counties <- function(state, year = 2020) {
     return(out)
   }
 
-  if (nrow(subset_df) > 1) {
-    warning(
-      "Multiple rows found for caliBISG for (name=", name,
-      ", state=", state, ", county=", county, ", year=", year, "). ",
-      "Returning the first match.",
-      call. = FALSE
-    )
-    subset_df <- subset_df[1, ]
-  }
+  # I don't think this is necessary anymore, but leaving it here for now
+  # if (nrow(subset_df) > 1) {
+  #   warning(
+  #     "Multiple rows found for caliBISG for (name=", name,
+  #     ", state=", state, ", county=", county, ", year=", year, "). ",
+  #     "Returning the first match.",
+  #     call. = FALSE
+  #   )
+  #   subset_df <- subset_df[1, ]
+  # }
 
   subset_df$.found <- TRUE
   subset_df
