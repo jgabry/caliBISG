@@ -1,5 +1,8 @@
 #' Predict race given surname and location
 #'
+#' @name caliBISG-predict
+#' @aliases calibisg-predict
+#'
 #' @description Predict race given surname and location using the calibrated
 #'   BISG (caliBISG) method from Greengard and Gelman (2025). Traditional BISG
 #'   estimates are also provided. See **Details**.
@@ -7,78 +10,19 @@
 #'   Before caliBISG is available, the data files for the relevant states and
 #'   years must be downloaded using [download_data()].
 #'
-#' @export
-#' @param name (character vector) A vector of surnames. Coerced to lowercase
-#'   internally.
-#' @param state (character vector) A vector of state abbreviations. Coerced to
-#'   uppercase internally.
-#' @param county (character vector) A vector of counties. Coerced to lowercase
-#'   internally.
-#' @param year (integer) The year of the data to use to compute the estimates.
-#'   The default is `2020`, which is currently the only available year. This
-#'   default may change in the future when more years become available.
+#'   The first query to `most_probable_race()` or `race_probabilities()` for a
+#'   particular state and year may take a few seconds to first load the relevant
+#'   caliBISG data internally. Subsequent queries for the same state and year
+#'   will be faster.
 #'
-#' @details
-#' The `most_probable_race()` function finds the single most probable race given
-#' surname and location.
-#'
-#' The `race_probabilities()` function provides probabilities for all of the
-#' races rather than the single most probable race.
-#'
-#' The `print()` method pretty prints the output of `race_probabilities()`,
-#' making it easier to compare caliBISG and BISG estimates. It prints a separate
-#' table for each row in the returned data frame up to `max_print` rows.
-#'
-#' The first query for a particular `state` and `year` may take a few seconds
-#' to first load the caliBISG data internally. Subsequent calls for the same
-#' `state` and `year` will be faster.
-#'
-#' For some state, county, and surname combinations the caliBISG estimate
-#' will not be available. In those cases we still provide traditional BISG
-#' estimates as long as the state and county are valid. The `valid_counties()`
-#' function can be used to check which county names can be specified for a
-#' given state and year.
-#'
-#' @return
-#' * `most_probable_race()`: (data frame) A data frame with number of rows equal
-#' to the length of the input vectors and the following columns:
-#'      - `name` (string): The surname.
-#'      - `year` (integer): The year of the data used to compute the estimates.
-#'      - `state` (string): The state.
-#'      - `county` (string): The county.
-#'      - `calibisg_race` (string): The most probable race according to caliBISG.
-#'      - `bisg_race` (string): The most probable race according to traditional BISG.
-#'      - `in_census` (logical): Whether the surname is found in the list of
-#'         names that appear at least 100 times in the census.
-#'
-#' * `race_probabilities()`: (data frame) A data frame with number of rows equal
-#' to the length of the input vectors and the same columns as
-#' `most_probable_race()`, except the `calibisg_race` and `bisg_race` columns
-#' are each replaced by multiple columns giving the probabilities of the various
-#' races, not just the single most probable race. Those columns are:
-#'      - `calibisg_aian` (numeric): The caliBISG estimate for American Indian and Alaskan Native.
-#'      - `bisg_aian` (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
-#'      - `calibisg_api` (numeric): The caliBISG estimate for Asian and Pacific Islander.
-#'      - `bisg_api` (numeric): The traditional BISG estimate for Asian and Pacific Islander.
-#'      - `calibisg_black_nh` (numeric): The caliBISG estimate for non-Hispanic Black.
-#'      - `bisg_black_nh` (numeric): The traditional BISG estimate for non-Hispanic Black.
-#'      - `calibisg_hispanic` (numeric): The caliBISG estimate for Hispanic.
-#'      - `bisg_hispanic` (numeric): The traditional BISG estimate for Hispanic.
-#'      - `calibisg_white_nh` (numeric): The caliBISG estimate for non-Hispanic White.
-#'      - `bisg_white_nh` (numeric): The traditional BISG estimate for non-Hispanic
-#'      - `calibisg_other` (numeric): The caliBISG estimate for other.
-#'      - `bisg_other` (numeric): The traditional BISG estimate for other.
-#'
-#'     The data frame also has class `"compare_bisg"`, which enables defining a
-#'     custom `print()` method.
-#'
-#' * `valid_counties()`: (character vector) Valid county names for the specified
-#' `state` and `year`.
+#'   For some state, county, and surname combinations the caliBISG estimate will
+#'   not be available. In those cases we still provide traditional BISG
+#'   estimates as long as the state and county are valid.
 #'
 #' @references Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
 #'   inferring race from surname and geolocation.
 #'   *Journal of the Royal Statistical Society Series A: Statistics in Society*.
-#'   \url{https://doi.org/10.1093/jrsssa/qnaf003}.
+#'   \doi{10.1093/jrsssa/qnaf003}.
 #'
 #' @examples
 #' \dontrun{
@@ -107,6 +51,38 @@
 #' race_probabilities("Jones", "RI", "Providence")
 #' }
 #'
+#'
+NULL
+
+#' @rdname caliBISG-predict
+#' @export
+#'
+#' @details
+#' * `most_probable_race()`: Get the single most probable race given
+#' surname and location.
+#'
+#' @param name (character vector) A vector of surnames. Coerced to lowercase
+#'   internally.
+#' @param state (character vector) A vector of state abbreviations. Coerced to
+#'   uppercase internally.
+#' @param county (character vector) A vector of counties. Coerced to lowercase
+#'   internally.
+#' @param year (integer) The year of the data to use to compute the estimates.
+#'   The default is `2020`, which is currently the only available year. This
+#'   default may change in the future when more years become available.
+#'
+#' @return
+#' * `most_probable_race()`: (data frame) A data frame with number of rows equal
+#' to the length of the input vectors and the following columns:
+#'      - `name` (string): The surname.
+#'      - `year` (integer): The year of the data used to compute the estimates.
+#'      - `state` (string): The state.
+#'      - `county` (string): The county.
+#'      - `calibisg_race` (string): The most probable race according to caliBISG.
+#'      - `bisg_race` (string): The most probable race according to traditional BISG.
+#'      - `in_census` (logical): Whether the surname is found in the list of
+#'         names that appear at least 100 times in the census.
+#'
 most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- as.data.frame(race_probabilities(name, state, county, year))
   prediction$calibisg_race <- apply(
@@ -130,8 +106,34 @@ most_probable_race <- function(name, state, county, year = 2020) {
   prediction[, col_order]
 }
 
-#' @rdname most_probable_race
+#' @rdname caliBISG-predict
 #' @export
+#'
+#' @details
+#' * `race_probabilities()`: Get probabilities for all of the races given
+#' surname and location, rather than the single most probable race.
+#'
+#' @return
+#' * `race_probabilities()`: (data frame) A data frame with number of rows equal
+#' to the length of the input vectors and the same columns as
+#' `most_probable_race()`, except the `calibisg_race` and `bisg_race` columns
+#' are each replaced by multiple columns giving the probabilities of the various
+#' races, not just the single most probable race. Those columns are:
+#'      - `calibisg_aian` (numeric): The caliBISG estimate for American Indian and Alaskan Native.
+#'      - `bisg_aian` (numeric): The traditional BISG estimate for American Indian and Alaskan Native.
+#'      - `calibisg_api` (numeric): The caliBISG estimate for Asian and Pacific Islander.
+#'      - `bisg_api` (numeric): The traditional BISG estimate for Asian and Pacific Islander.
+#'      - `calibisg_black_nh` (numeric): The caliBISG estimate for non-Hispanic Black.
+#'      - `bisg_black_nh` (numeric): The traditional BISG estimate for non-Hispanic Black.
+#'      - `calibisg_hispanic` (numeric): The caliBISG estimate for Hispanic.
+#'      - `bisg_hispanic` (numeric): The traditional BISG estimate for Hispanic.
+#'      - `calibisg_white_nh` (numeric): The caliBISG estimate for non-Hispanic White.
+#'      - `bisg_white_nh` (numeric): The traditional BISG estimate for non-Hispanic
+#'      - `calibisg_other` (numeric): The caliBISG estimate for other.
+#'      - `bisg_other` (numeric): The traditional BISG estimate for other.
+#'
+#'     The data frame also has class `"compare_bisg"`, which enables defining a
+#'     custom `print()` method.
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
@@ -186,8 +188,14 @@ race_probabilities <- function(name, state, county, year = 2020) {
   structure(out[, col_order], class = c("compare_bisg", class(out)))
 }
 
-#' @rdname most_probable_race
+#' @rdname caliBISG-predict
 #' @export
+#'
+#' @details
+#' * `print()`: Pretty print the output of `race_probabilities()`, making it
+#' easier to compare caliBISG and BISG estimates. It prints a separate
+#' table for each row in the returned data frame up to `max_print` rows.
+#'
 #' @param x (compare_bisg) For `print()`, the object returned by
 #'   `race_probabilities()`, which is a data frame with subclass
 #'   `"compare_bisg"`.
@@ -199,6 +207,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
 #'   print. Because the tables take up a lot of space in the console, the
 #'   default is to print at most four tables unless the global option
 #'   `calibisg.max_print` has been set.
+#'
 #'
 print.compare_bisg <- function(x,
                                ...,
@@ -227,8 +236,14 @@ print.compare_bisg <- function(x,
   invisible(x)
 }
 
-#' @rdname most_probable_race
+#' @rdname caliBISG-predict
 #' @export
+#'
+#' @details
+#' * `valid_counties()`: List the valid county names for a given state and year.
+#' @return
+#' * `valid_counties()`: (character vector) Valid county names.
+#'
 valid_counties <- function(state, year = 2020) {
   .validate_state(state, allow_multiple = FALSE)
   .validate_year(year)

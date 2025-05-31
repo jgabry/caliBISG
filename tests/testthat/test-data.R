@@ -1,7 +1,3 @@
-test_that("data_dir() returns a valid directory", {
-  expect_true(dir.exists(data_dir()))
-})
-
 test_that("load_data() errors if not downloaded", {
   expect_error(
     load_data("VT", 2020),

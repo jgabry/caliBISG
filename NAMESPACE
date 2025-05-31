@@ -3,7 +3,6 @@
 S3method(print,compare_bisg)
 export(available_data)
 export(bisg)
-export(data_dir)
 export(delete_all_data)
 export(download_data)
 export(load_data)

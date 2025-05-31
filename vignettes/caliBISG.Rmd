@@ -56,25 +56,19 @@ when requested.
 download_data(state = c("OK", "WA"), year = 2020, progress = FALSE) 
 ```
 
-If the user just wants to use the package's convenience functions they never
-need to load these data files manually after downloading them. However, if the
-user wants to work directly with the large caliBISG files instead of using the
-package's convenience functions they can load the data themselves with
-`load_data()`.
+
+#### Convenience functions for managing data
+
+If the user just wants to use the package's functions like
+`most_probable_race()` and `race_probabilities()` they never need to load the
+caliBISG data files manually after downloading them. However, if the user wants
+to work directly with the large caliBISG files they can load the data themselves
+with `load_data()`.
 
 ```{r load_data}
 ok_2020_data <- load_data("OK", 2020)
 nrow(ok_2020_data)
 colnames(ok_2020_data)
-```
-
-#### Convenience functions for managing data
-
-The `data_dir()` function returns the path to the internal data storage
-directory.
-
-```{r data_dir}
-data_dir()
 ```
 
 The `available_data()` function lists the files the user has already downloaded
