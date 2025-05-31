@@ -4,8 +4,8 @@
 #' @aliases calibisg-data
 #'
 #' @description Various functions for downloading and loading the caliBISG data
-#'   files used by the package. See **Details**. Currently caliBISG is available
-#'   for the following states and years:
+#'   files used by the package. Currently caliBISG is available for the
+#'   following states and years:
 #'
 #'   * States: FL, GA, NC, NY, OH, OK, VT, WA
 #'   * Years: 2020
@@ -16,11 +16,11 @@
 #'
 #' @examples
 #' \dontrun{
+#' # Download data just for Oklahoma and Washington for 2020
+#' download_data(state = c("OK", "WA"), year = 2020)
+#'
 #' # Download all available data
 #' download_data()
-#'
-#' # Download data for a specific state and year
-#' download_data(state = "WA", year = 2020)
 #'
 #' # List the data files that have already been downloaded
 #' available_data()
@@ -52,7 +52,7 @@ NULL
 #'   The default is to download caliBISG data for all available years. For
 #'   `load_data()`, a single year to load.
 #' @param progress (logical) Whether to show a progress bar while downloading
-#'   the data. The default is `TRUE`.
+#'   and reading the data. The default is `TRUE`.
 #'
 #' @return
 #' * `download_data()`: (logical) `TRUE`, invisibly, if no error.
@@ -74,23 +74,16 @@ download_data <- function(state, year, progress = TRUE) {
     for (yr in years) {
       rds_name <- paste0(st, "-", yr, ".rds")
       rds_path <- file.path(.data_dir(), rds_name)
-
       if (file.exists(rds_path)) {
         message("* ", rds_name, " already exists. Skipping.")
         next
       }
 
       message("* Downloading, reading, and saving file for: ", st, ", ", yr)
-      temp_csv <- .download_calibisg_csv(
-        state = st,
-        year = yr,
-        version = NULL,
-        progress = progress
-      )
-      df <-  readr::read_csv(temp_csv, show_col_types = FALSE, progress = FALSE)
+      temp_csv <- .download_calibisg_csv(st, yr, progress)
+      df <-  readr::read_csv(temp_csv, progress = progress, show_col_types = FALSE)
       file.remove(temp_csv)
 
-      # Add year and state and order the columns
       df <- as.data.frame(df)
       df$year <- yr
       df$state <- st
@@ -312,7 +305,7 @@ delete_all_data <- function() {
 
 
 
-#' Download a CSV file asset from a specific GitHub release
+#' Download a CSV file from assets of a specific GitHub release
 #'
 #' @noRd
 #' @param version The version of the caliBISG package release.
@@ -321,8 +314,8 @@ delete_all_data <- function() {
 #'
 .download_calibisg_csv <- function(state,
                                    year,
-                                   version = NULL,
-                                   progress = TRUE) {
+                                   progress = TRUE,
+                                   version = NULL) {
 
   # Resolve token: gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
   token <- NULL

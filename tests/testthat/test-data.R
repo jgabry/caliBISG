@@ -6,7 +6,7 @@ test_that("load_data() errors if not downloaded", {
   )
 })
 
-test_that("download_data() works as expected", {
+test_that("download_data() throws expected messages and errors", {
   expect_message(
     expect_message(
       expect_message({

@@ -99,7 +99,10 @@ custom \code{print()} method.
 \description{
 Predict race given surname and location using the calibrated
 BISG (caliBISG) method from Greengard and Gelman (2025). Traditional BISG
-estimates are also provided. See \strong{Details}.
+estimates are also provided. For some state, county, and surname
+combinations the caliBISG estimate will not be available. In those cases we
+still provide traditional BISG estimates as long as the state and county
+are valid.
 
 Before caliBISG is available, the data files for the relevant states and
 years must be downloaded using \code{\link[=download_data]{download_data()}}.
@@ -108,10 +111,6 @@ The first query to \code{most_probable_race()} or \code{race_probabilities()} fo
 particular state and year may take a few seconds to first load the relevant
 caliBISG data internally. Subsequent queries for the same state and year
 will be faster.
-
-For some state, county, and surname combinations the caliBISG estimate will
-not be available. In those cases we still provide traditional BISG
-estimates as long as the state and county are valid.
 }
 \details{
 \itemize{
