@@ -1,25 +1,35 @@
-#' Download and load caliBISG data files
+#' Download caliBISG data files
+#'
+#' @name caliBISG-data
+#' @aliases calibisg-data
 #'
 #' @description Various functions for downloading and loading the caliBISG data
-#'   files used by the package. See **Details**.
-#'
-#'   Currently caliBISG is available for the following states and years:
+#'   files used by the package. See **Details**. Currently caliBISG is available
+#'   for the following states and years:
 #'
 #'   * States: FL, GA, NC, NY, OH, OK, VT, WA
 #'   * Years: 2020
 #'
 #'   We are working on adding additional states and years. When caliBISG is
-#'   unavailable we still provide traditional BISG. Traditional BISG does not
-#'   require downloading any files.
+#'   unavailable we still provide traditional BISG, which does not require
+#'   downloading any files.
 #'
+#' @examples
+#' \dontrun{
+#' # Download all available data
+#' download_data()
+#'
+#' # Download data for a specific state and year
+#' download_data(state = "WA", year = 2020)
+#'
+#' # List the data files that have already been downloaded
+#' available_data()
+#' }
+NULL
+
+
+#' @rdname caliBISG-data
 #' @export
-#' @param state (character vector) The states to download. The default is to
-#'   download caliBISG data for all available states. If specifying particular
-#'   states, they should be provided as two-letter abbreviations.
-#' @param year (integer vector) The years to download. The default is to
-#'   download caliBISG data for all available years.
-#' @param progress (logical) Whether to show a progress bar while downloading
-#'   the data. The default is `TRUE`.
 #'
 #' @details
 #' * `download_data()`: Download the CSV data files from GitHub for the
@@ -33,16 +43,19 @@
 #' found, the request will be made anonymously, in which case you may run into
 #' GitHub's unauthenticated rate limit if you are trying to download many files
 #' within one hour.
-#' * `load_data()`: Load the data for a particular `state`-`year`. This is only
-#' necessary if you want to work with the full data files directly. When using
-#' the functions provided by this package (e.g. [race_probabilities()]) the data
-#' will be loaded internally automatically.
-#' * `data_dir()`: Get the path to the internal data directory.
-#' * `available_data()`: List the names of the data files that have already been
-#'  downloaded and are available for use.
-#' * `delete_all_data()`: Delete all the data files stored internally.
 #'
-#' @return * `download_data()`: (logical) `TRUE`, invisibly, if no error.
+#' @param state (character vector) For `download_data()`, the states to
+#'   download. The default is to download caliBISG data for all available
+#'   states. If specifying particular states, they should be provided as
+#'   two-letter abbreviations. For `load_data()`, a single state to load.
+#' @param year (integer vector) For `download_data()`, the years to download.
+#'   The default is to download caliBISG data for all available years. For
+#'   `load_data()`, a single year to load.
+#' @param progress (logical) Whether to show a progress bar while downloading
+#'   the data. The default is `TRUE`.
+#'
+#' @return
+#' * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
 download_data <- function(state, year, progress = TRUE) {
   if (missing(state)) {
@@ -60,7 +73,7 @@ download_data <- function(state, year, progress = TRUE) {
   for (st in states) {
     for (yr in years) {
       rds_name <- paste0(st, "-", yr, ".rds")
-      rds_path <- file.path(data_dir(), rds_name)
+      rds_path <- file.path(.data_dir(), rds_name)
 
       if (file.exists(rds_path)) {
         message("* ", rds_name, " already exists. Skipping.")
@@ -94,12 +107,17 @@ download_data <- function(state, year, progress = TRUE) {
   invisible(TRUE)
 }
 
-#' @rdname download_data
+#' @rdname caliBISG-data
 #' @export
-#' @param state (string) For `load_data()`, the state to load.
-#' @param year (integer) For `load_data()`, the year to load.
-#' @return * `load_data()`: (data frame) A data frame of the data for the
-#'   specified state.
+#'
+#' @details
+#' * `load_data()`: Load the data for a particular `state`-`year`. This is only
+#' necessary if you want to work with the full data files directly. When using
+#' the functions provided by this package (e.g. [race_probabilities()]) the data
+#' will be loaded internally automatically.
+#'
+#' @return
+#' * `load_data()`: (data frame) The caliBISG data for the specified state and year.
 #'
 load_data <- function(state, year = 2020) {
   stopifnot(
@@ -110,32 +128,34 @@ load_data <- function(state, year = 2020) {
   readRDS(.data_path(state, year))
 }
 
-#' @rdname download_data
+#' @rdname caliBISG-data
 #' @export
-#' @return * `data_dir()`: (string) The path to the data directory.
 #'
-data_dir <- function() {
-  dir <- tools::R_user_dir("caliBISG", "data")
-  if (!dir.exists(dir)) {
-    dir.create(dir, recursive = TRUE)
-  }
-  dir
-}
-
-#' @rdname download_data
-#' @export
+#' @details
+#' * `available_data()`: List the names of the data files that have already been
+#'  downloaded and are available for use.
+#'
 #' @return * `available_data()`: (character vector) The names of the data files
 #'   that have already been downloaded.
+#'
 available_data <- function() {
-  list.files(data_dir(), full.names = FALSE)
+  list.files(.data_dir(), full.names = FALSE)
 }
 
-#' @rdname download_data
+#' @rdname caliBISG-data
 #' @export
+#'
+#' @details
+#' * `delete_all_data()`: Delete all the data files stored internally.
+#'
+#' @return
+#' * `delete_all_data()`: (logical) `TRUE` or `FALSE`, invisibly,
+#' indicating success or failure.
 #'
 delete_all_data <- function() {
   message("Deleting data files: ", paste(available_data(), collapse = ", "))
-  unlink(data_dir(), recursive = TRUE)
+  out <- unlink(.data_dir(), recursive = TRUE)
+  invisible(as.logical(out))
 }
 
 
@@ -146,8 +166,8 @@ delete_all_data <- function() {
 #'
 #' @noRd
 #' @param error_if_missing (logical) Whether to error if the data is not available.
-#' @return (data frame) A data frame of the data for the specified state or, if
-#' `error_is_missing = FALSE`, `NULL` if the data is not available.
+#' @return (data frame) The data for the specified state or, if
+#'   `error_is_missing = FALSE`, `NULL` if the data is not available.
 #'
 .load_data_internal <- function(state, year, error_if_missing = TRUE) {
   data_name <- paste0(tolower(state), "_", year)
@@ -165,19 +185,19 @@ delete_all_data <- function() {
 }
 
 #' Check if data for a particular state-year has been downloaded
+#'
 #' @noRd
-#' @param state (string) The state to check.
-#' @param year (numeric) The year to check.
 #' @return (logical) `TRUE` if the data is available, `FALSE` otherwise.
+#'
 .is_data_available <- function(state, year) {
   file.exists(.data_path(state, year))
 }
 
 #' Error if data for a particular state-year is not available
+#'
 #' @noRd
-#' @param state (string) The state to check.
-#' @param year (numeric) The year to check.
 #' @return (logical) `TRUE`, invisibly, if no error.
+#'
 .ensure_data_available <- function(state, year) {
   if (!.is_data_available(state, year)) {
     stop(
@@ -189,13 +209,26 @@ delete_all_data <- function() {
   invisible(TRUE)
 }
 
-#' Get the path to the data file for a particular state-year pair
+#' Get the path to the internal data directory.
+#'
 #' @noRd
-#' @param state (string) The state to check.
-#' @param year (numeric) The year to check.
+#' @return (string) The path to the directory.
+#'
+.data_dir <- function() {
+  dir <- tools::R_user_dir("caliBISG", "data")
+  if (!dir.exists(dir)) {
+    dir.create(dir, recursive = TRUE)
+  }
+  dir
+}
+
+#' Get the path to the data file for a particular state-year pair
+#'
+#' @noRd
 #' @return (string) The path to the data file.
+#'
 .data_path <- function(state, year) {
-  file.path(data_dir(), paste0(toupper(state), "-", year, ".rds"))
+  file.path(.data_dir(), paste0(toupper(state), "-", year, ".rds"))
 }
 
 #' List the states for which caliBISG data is currently available for download
@@ -212,22 +245,22 @@ delete_all_data <- function() {
 #'
 #' @noRd
 #' @return (integer vector) The years of the available data.
+#'
 .all_calibisg_years <- function() {
-  as.integer(c(2020))
+  years <- c(2020)
+  as.integer(years)
 }
 
 #' Validate that caliBISG data is available for user-specified states-years
 #'
 #' @noRd
-#' @param states (character vector) The states to validate.
-#' @param years (integer vector) The years to validate.
 #' @return (logical) `TRUE`, invisibly, if no error.
 #'
-.validate_calibisg_states_years <- function(states, years) {
+.validate_calibisg_states_years <- function(state, year) {
   valid_states  <- .all_calibisg_states()
   valid_years <- .all_calibisg_years()
 
-  bad_states <- setdiff(states, valid_states)
+  bad_states <- setdiff(state, valid_states)
   if (length(bad_states) > 0) {
     stop(
       "Invalid states requested: ", paste(bad_states, collapse = ", "),
@@ -236,7 +269,7 @@ delete_all_data <- function() {
     )
   }
 
-  bad_years  <- setdiff(years, valid_years)
+  bad_years  <- setdiff(year, valid_years)
   if (length(bad_years) > 0) {
     stop(
       "Invalid years requested: ", paste(bad_years, collapse = ", "),
@@ -251,8 +284,7 @@ delete_all_data <- function() {
 #' Rename columns in the imported data if necessary
 #'
 #' @noRd
-#' @param data (data frame) The data frame to process.
-#' @return (data frame) The updated data frame.
+#' @return (data frame) The updated data.
 #'
 .rename_data <- function(data) {
   # eventually we should rename these columns in the files before uploading them
@@ -267,8 +299,7 @@ delete_all_data <- function() {
 #' Reorder columns in the imported data if necessary
 #'
 #' @noRd
-#' @param data (data frame) The data frame to process.
-#' @return (data frame) The updated data frame.
+#' @return (data frame) The updated data.
 #'
 .reorder_data <- function(data) {
   col_order <- c(
@@ -284,9 +315,9 @@ delete_all_data <- function() {
 #' Download a CSV file asset from a specific GitHub release
 #'
 #' @noRd
-#' @param state,year,progress,token Same as above.
 #' @param version The version of the caliBISG package release.
-#' @return The path to a local temporary file containing the downloaded CSV.
+#' @return (string) The path to the local temporary file containing the
+#'   downloaded CSV file.
 #'
 .download_calibisg_csv <- function(state,
                                    year,
