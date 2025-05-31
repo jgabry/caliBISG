@@ -121,7 +121,7 @@ test_that("BISG can be computed for all 50 states with known name", {
     out <- bisg(
       name = "Smith",
       state = st,
-      county = caliBISG:::.race_x_county_data(st, 2020)$county[1],
+      county = .race_x_county_data(st, 2020)$county[1],
       year = 2020
     )
     expect_false(is.na(out$bisg_aian[1]), info = st)
@@ -133,11 +133,9 @@ test_that("BISG can be computed for all 50 states with unknown name", {
     out <- bisg(
       name = "NOT_A_NAME",
       state = st,
-      county = caliBISG:::.race_x_county_data(st, 2020)$county[1],
+      county = .race_x_county_data(st, 2020)$county[1],
       year = 2020
     )
     expect_false(is.na(out$bisg_aian[1]), info = st)
   }
 })
-
-

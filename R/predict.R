@@ -5,7 +5,10 @@
 #'
 #' @description Predict race given surname and location using the calibrated
 #'   BISG (caliBISG) method from Greengard and Gelman (2025). Traditional BISG
-#'   estimates are also provided. See **Details**.
+#'   estimates are also provided. For some state, county, and surname
+#'   combinations the caliBISG estimate will not be available. In those cases we
+#'   still provide traditional BISG estimates as long as the state and county
+#'   are valid.
 #'
 #'   Before caliBISG is available, the data files for the relevant states and
 #'   years must be downloaded using [download_data()].
@@ -14,10 +17,6 @@
 #'   particular state and year may take a few seconds to first load the relevant
 #'   caliBISG data internally. Subsequent queries for the same state and year
 #'   will be faster.
-#'
-#'   For some state, county, and surname combinations the caliBISG estimate will
-#'   not be available. In those cases we still provide traditional BISG
-#'   estimates as long as the state and county are valid.
 #'
 #' @references Philip Greengard and Andrew Gelman (2025). A calibrated BISG for
 #'   inferring race from surname and geolocation.

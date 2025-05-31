@@ -50,7 +50,6 @@ test_that("race_probabilities() errors if lengths are mismatched", {
     ),
     "`name`, `state`, and `county` must all have the same length."
   )
-
   expect_error(
     race_probabilities(
       name   = "lopez",
@@ -115,7 +114,6 @@ test_that("race_probabilities() errors if inputs are wrong type", {
     "`county` must be a character vector"
   )
 })
-
 
 test_that("race_probabilities() returns correct columns for valid inputs", {
   out <- race_probabilities(
@@ -184,7 +182,6 @@ test_that("print.compare_bisg() prints correctly", {
 
 
 test_that("most_probable_race() returns correct columns", {
-  # Single input
   out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
@@ -270,4 +267,3 @@ test_that("most_probable_race() handles missing caliBISG state correctly", {
   expect_true(is.na(out$calibisg_race))
   expect_false(is.na(out$bisg_race))
 })
-

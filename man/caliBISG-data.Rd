@@ -28,7 +28,7 @@ The default is to download caliBISG data for all available years. For
 \code{load_data()}, a single year to load.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
-the data. The default is \code{TRUE}.}
+and reading the data. The default is \code{TRUE}.}
 }
 \value{
 \itemize{
@@ -51,8 +51,8 @@ indicating success or failure.
 }
 \description{
 Various functions for downloading and loading the caliBISG data
-files used by the package. See \strong{Details}. Currently caliBISG is available
-for the following states and years:
+files used by the package. Currently caliBISG is available for the
+following states and years:
 \itemize{
 \item States: FL, GA, NC, NY, OH, OK, VT, WA
 \item Years: 2020
@@ -95,11 +95,11 @@ downloaded and are available for use.
 }
 \examples{
 \dontrun{
+# Download data just for Oklahoma and Washington for 2020
+download_data(state = c("OK", "WA"), year = 2020)
+
 # Download all available data
 download_data()
-
-# Download data for a specific state and year
-download_data(state = "WA", year = 2020)
 
 # List the data files that have already been downloaded
 available_data()
