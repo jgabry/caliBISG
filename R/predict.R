@@ -111,24 +111,23 @@ most_probable_race <- function(name, state, county, year = 2020) {
   prediction <- as.data.frame(race_probabilities(name, state, county, year))
   prediction$calibisg_race <- apply(
     prediction[, .calibisg_columns()], 1, function(probs) {
-    if (all(is.na(probs))) {
-      NA_character_
-    } else {
-      # For each row, find the race with the highest probability
-      idx <- which.max(probs)
-      sub("^calibisg_", "", names(probs)[idx])
+      if (anyNA(probs)) return(NA)
+      sub("^calibisg_", "", names(probs)[which.max(probs)])
     }
-  })
+  )
   prediction$bisg_race <- apply(
     prediction[, .bisg_columns()], 1, function(probs) {
-      if (all(is.na(probs))) {
-        NA_character_
-      } else {
-        idx <- which.max(probs)
-        sub("^bisg_", "", names(probs)[idx])
-      }
-  })
-  prediction[, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census")]
+      if (anyNA(probs)) return(NA)
+      sub("^bisg_", "", names(probs)[which.max(probs)])
+    }
+  )
+  col_order <- c(
+    .demographic_columns(),
+    "calibisg_race",
+    "bisg_race",
+    "in_census"
+  )
+  prediction[, col_order]
 }
 
 #' @rdname most_probable_race
@@ -216,11 +215,9 @@ print.compare_bisg <- function(x,
         x$year[j]
       )
     )
-    .print_table(x[j, ], digits)
+    .print_comparison_table(x[j, ], digits)
     cat("\n")
   }
-
-  #  tell the user how many rows weren't printed
   if (n_print < nrow(x)) {
     cat("Only the first" , n_print, "of", nrow(x), "rows printed.\n")
     cat("Use `print(max_print = ...)` or `options(calibisg.max_print = ...)`",
@@ -241,9 +238,6 @@ valid_counties <- function(state, year = 2020) {
 
 # internal ----------------------------------------------------------------
 
-.races <- function() {
-  c("AIAN", "API", "Black", "Hispanic", "White", "Other")
-}
 .race_column_order <- function() {
   # Must match the suffixes that appear after "bisg_" or "calibisg_".
   c("aian", "api", "black_nh", "hispanic", "white_nh", "other")
@@ -329,12 +323,6 @@ valid_counties <- function(state, year = 2020) {
 #' @return (data frame) Data with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
 .get_single_calibisg_record <- function(name, state, county, year) {
-  stopifnot(
-    is.character(name), length(name) == 1,
-    is.character(county), length(county) == 1,
-    is.character(state), length(state) == 1, nchar(state) == 2,
-    is.numeric(year), length(year) == 1
-  )
   name <- tolower(name)
   county <- tolower(county)
   state <- toupper(state)
@@ -345,10 +333,10 @@ valid_counties <- function(state, year = 2020) {
 
   if (NROW(subset_df) == 0) {
     out <- data.frame(
-      name   = name,
-      state  = state,
+      name = name,
+      state = state,
       county = county,
-      year   = year,
+      year = year,
       stringsAsFactors = FALSE
     )
     for (col in .calibisg_columns()) {
@@ -377,8 +365,8 @@ valid_counties <- function(state, year = 2020) {
 #' Capitalize the first letter of each string
 #'
 #' @noRd
-#' @param x (string) The input string.
-#' @return (string) The input string with the first letter capitalized.
+#' @param x (character vector) The input strings.
+#' @return (character vector) The input strings with the first letter capitalized.
 #'
 .capitalize <- function(x) {
   paste0(toupper(substr(x, 1, 1)), tolower(substr(x, 2, nchar(x))))
@@ -391,18 +379,19 @@ valid_counties <- function(state, year = 2020) {
 #' @param digits (integer) The number of digits to display in the output.
 #' @return (data frame) The input data, invisibly.
 #'
-.print_table <- function(data, digits) {
+.print_comparison_table <- function(data, digits) {
   calibisg_vals <- sapply(.calibisg_columns(), function(col) data[[col]])
   bisg_vals <- sapply(.bisg_columns(), function(col) data[[col]])
 
-  # Format them with the desired number of digits
   fmt <- paste0("%.", digits, "f")
   calibisg_vals <- sprintf(fmt, calibisg_vals)
   bisg_vals <- sprintf(fmt, bisg_vals)
 
-  row_labels <- .races()
-  cat(sprintf("\n%-10s %-12s %-10s\n",
-              "Race", "Pr_calibisg", "Pr_bisg"))
+  row_labels <- c("AIAN", "API", "Black", "Hispanic", "White", "Other")
+  cat(sprintf(
+    "\n%-10s %-12s %-10s\n",
+    "Race", "Pr_calibisg", "Pr_bisg"
+  ))
   cat(strrep("-", 40), "\n")
   for (i in seq_along(row_labels)) {
     cat(sprintf(
