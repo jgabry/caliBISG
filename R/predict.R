@@ -131,7 +131,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'      - `calibisg_other` (numeric): The caliBISG estimate for other.
 #'      - `bisg_other` (numeric): The traditional BISG estimate for other.
 #'
-#'     The data frame also has class `"compare_bisg"`, which enables defining a
+#'     The data frame also has class `"compare_calibisg"`, which enables defining a
 #'     custom `print()` method.
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
@@ -175,16 +175,14 @@ race_probabilities <- function(name, state, county, year = 2020) {
     sort = FALSE
   )
 
+  # interleave calibisg and bisg columns for easier visual comparison
   col_order <- c(
     .demographic_columns(),
-    # interleave calibisg and bisg columns for easier visual comparison
-    as.vector(rbind(
-      paste0("calibisg_", .race_column_order()),
-      paste0("bisg_", .race_column_order())
-    )),
+    as.vector(rbind(.calibisg_columns(), .bisg_columns())),
     "in_census"
   )
-  structure(out[, col_order], class = c("compare_bisg", class(out)))
+
+  structure(out[, col_order], class = c("compare_calibisg", class(out)))
 }
 
 #' @rdname caliBISG-predict
@@ -195,9 +193,9 @@ race_probabilities <- function(name, state, county, year = 2020) {
 #' easier to compare caliBISG and BISG estimates. It prints a separate
 #' table for each row in the returned data frame up to `max_print` rows.
 #'
-#' @param x (compare_bisg) For `print()`, the object returned by
+#' @param x (compare_calibisg) For `print()`, the object returned by
 #'   `race_probabilities()`, which is a data frame with subclass
-#'   `"compare_bisg"`.
+#'   `"compare_calibisg"`.
 #' @param ... Currently unused.
 #' @param digits (integer) For `print()`, the number of digits to display in the
 #'   output. The default is to use two digits unless the global option
@@ -207,11 +205,13 @@ race_probabilities <- function(name, state, county, year = 2020) {
 #'   default is to print at most four tables unless the global option
 #'   `calibisg.max_print` has been set.
 #'
+#' @return
+#' * `print()`: The input, invisibly.
 #'
-print.compare_bisg <- function(x,
-                               ...,
-                               digits = getOption("calibisg.digits", 2),
-                               max_print = getOption("calibisg.max_print", 4)) {
+print.compare_calibisg <- function(x,
+                                   ...,
+                                   digits = getOption("calibisg.digits", 2),
+                                   max_print = getOption("calibisg.max_print", 4)) {
   n_print <- min(max_print, nrow(x))
   for (j in seq_len(n_print)) {
     cat(
@@ -228,8 +228,10 @@ print.compare_bisg <- function(x,
   }
   if (n_print < nrow(x)) {
     cat("Only the first" , n_print, "of", nrow(x), "rows printed.\n")
-    cat("Use `print(max_print = ...)` or `options(calibisg.max_print = ...)`",
-        "to print more rows.\n")
+    cat(
+      "Use `print(max_print = ...)` or `options(calibisg.max_print = ...)`",
+      "to print more rows.\n"
+    )
   }
 
   invisible(x)
@@ -240,8 +242,9 @@ print.compare_bisg <- function(x,
 #'
 #' @details
 #' * `valid_counties()`: List the valid county names for a given state and year.
+#'
 #' @return
-#' * `valid_counties()`: (character vector) Valid county names.
+#' * `valid_counties()`: (character vector) County names.
 #'
 valid_counties <- function(state, year = 2020) {
   .validate_state(state, allow_multiple = FALSE)
@@ -253,7 +256,6 @@ valid_counties <- function(state, year = 2020) {
 # internal ----------------------------------------------------------------
 
 .race_column_order <- function() {
-  # Must match the suffixes that appear after "bisg_" or "calibisg_".
   c("aian", "api", "black_nh", "hispanic", "white_nh", "other")
 }
 .calibisg_columns <- function() {

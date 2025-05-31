@@ -1,4 +1,4 @@
-# print.compare_bisg() prints correctly
+# print.compare_calibisg() prints correctly
 
     Code
       print(out)

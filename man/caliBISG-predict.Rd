@@ -5,7 +5,7 @@
 \alias{calibisg-predict}
 \alias{most_probable_race}
 \alias{race_probabilities}
-\alias{print.compare_bisg}
+\alias{print.compare_calibisg}
 \alias{valid_counties}
 \title{Predict race given surname and location}
 \usage{
@@ -13,7 +13,7 @@ most_probable_race(name, state, county, year = 2020)
 
 race_probabilities(name, state, county, year = 2020)
 
-\method{print}{compare_bisg}(
+\method{print}{compare_calibisg}(
   x,
   ...,
   digits = getOption("calibisg.digits", 2),
@@ -36,9 +36,9 @@ internally.}
 The default is \code{2020}, which is currently the only available year. This
 default may change in the future when more years become available.}
 
-\item{x}{(compare_bisg) For \code{print()}, the object returned by
+\item{x}{(compare_calibisg) For \code{print()}, the object returned by
 \code{race_probabilities()}, which is a data frame with subclass
-\code{"compare_bisg"}.}
+\code{"compare_calibisg"}.}
 
 \item{...}{Currently unused.}
 
@@ -88,12 +88,16 @@ races, not just the single most probable race. Those columns are:
 \item \code{bisg_other} (numeric): The traditional BISG estimate for other.
 }
 
-The data frame also has class \code{"compare_bisg"}, which enables defining a
+The data frame also has class \code{"compare_calibisg"}, which enables defining a
 custom \code{print()} method.
 }
 
 \itemize{
-\item \code{valid_counties()}: (character vector) Valid county names.
+\item \code{print()}: The input, invisibly.
+}
+
+\itemize{
+\item \code{valid_counties()}: (character vector) County names.
 }
 }
 \description{
