@@ -3,14 +3,6 @@ note <- sprintf("R package version %s", meta$Version)
 authors <- do.call(c, lapply(meta$Author, as.person))
 authors <- grep("\\[cre|\\[aut", authors, value = TRUE)
 
-bibentry(bibtype = "Misc",
-         title = "caliBISG: A Calibrated BISG for Inferring Race from Surname and Geolocation",
-         author = authors,
-         year = year,
-         note = note,
-         header = "To cite the caliBISG R package:"
-)
-
 bibentry(bibtype = "Article",
          title = "A calibrated BISG for inferring race from surname and geolocation",
          author = c(person("Philip", "Greengard"),
@@ -20,3 +12,12 @@ bibentry(bibtype = "Article",
          doi = "10.1093/jrsssa/qnaf003",
          header = "To cite the caliBISG paper:"
 )
+
+bibentry(bibtype = "Misc",
+         title = "caliBISG: A Calibrated BISG for Inferring Race from Surname and Geolocation",
+         author = authors,
+         year = year,
+         note = note,
+         header = "To cite the caliBISG R package:"
+)
+
