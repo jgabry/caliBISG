@@ -1,8 +1,8 @@
 Package: caliBISG
 Type: Package
 Title: A Calibrated BISG for Inferring Race from Surname and Geolocation
-Version: 0.0.1
-Date: 2025-06-01
+Version: 0.0.2
+Date: 2025-06-02
 Authors@R:
     c(person(given = "Jonah", family = "Gabry", role = c("aut", "cre"),
              email = "jsg2201@columbia.edu"),
