@@ -1,8 +1,8 @@
 ---
-title: "caliBISG"
+title: "Using the caliBISG R package"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{caliBISG}
+  %\VignetteIndexEntry{Using the caliBISG R package}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Intro
+## Introduction
 
 Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for predicting
 race and ethnicity using an individual’s geolocation and surname, however
@@ -31,7 +31,7 @@ The `caliBISG` R package currently provides caliBISG using 2020 data for states
 FL, GA, NC, NY, OH, OK, VT, WA. We are working on adding more states. 
 
 In addition to caliBISG, the package provides traditional BISG for comparison.
-Traditional BISG is already available for all fifty states.
+Traditional BISG is already available for all fifty states. 
 
 ```{r setup-load-pacakge}
 library(caliBISG)
@@ -140,6 +140,12 @@ If the county is not valid then both `calibisg_race` and `bisg_race` will be `NA
 
 ```{r most_probable_race-NA}
 most_probable_race("Smith", "RI", "not_a_county")
+```
+
+To get a list of valid counties for a state, use the `valid_counties()` function.
+
+```{r valid_counties}
+valid_counties("RI")
 ```
 
 ## Probabilities for all races given surname and geolocation
