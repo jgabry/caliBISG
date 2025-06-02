@@ -122,7 +122,7 @@ test_that("race_probabilities() returns correct columns for valid inputs", {
     county = "Chittenden",
     year   = 2020
   )
-  expect_s3_class(out, c("compare_bisg", "data.frame"))
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
   expect_equal(nrow(out), 1)
   expect_named(out, c(.demographic_columns(),
                       as.vector(rbind(.calibisg_columns(), .bisg_columns())),
@@ -149,7 +149,7 @@ test_that("race_probabilities() handles multiple inputs, including a non-match",
     regexp = "Traditional BISG is not available for 1 input(s)",
     fixed = TRUE
   )
-  expect_s3_class(out, c("compare_bisg", "data.frame"))
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
   expect_equal(nrow(out), 3)
 
   # 1st row: non-NA calibisg columns
@@ -163,7 +163,7 @@ test_that("race_probabilities() handles multiple inputs, including a non-match",
   expect_true(all(is.na(out[2, .bisg_columns()])))
 })
 
-test_that("print.compare_bisg() prints correctly", {
+test_that("print.compare_calibisg() prints correctly", {
   out <- race_probabilities(
     name   = c("lopez", "jackson", "smith"),
     state  = c("VT", "VT", "WA"),

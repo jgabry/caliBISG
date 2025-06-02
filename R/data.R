@@ -104,7 +104,7 @@ download_data <- function(state, year, progress = TRUE) {
 #' @export
 #'
 #' @details
-#' * `load_data()`: Load the data for a particular `state`-`year`. This is only
+#' * `load_data()`: Load the data for a particular state and  year. This is only
 #' necessary if you want to work with the full data files directly. When using
 #' the functions provided by this package (e.g. [race_probabilities()]) the data
 #' will be loaded internally automatically.

@@ -146,7 +146,7 @@ most_probable_race("Smith", "RI", "not_a_county")
 
 The `race_probabilities()` function gives the caliBISG and BISG estimates for
 the probability of each race. The returned object is a standard data frame, 
-however it has a subclass `"compare_bisg"` and a custom print method that 
+however it has a subclass `"compare_calibisg"` and a custom print method that 
 prints the results as tables comparing caliBISG and BISG. 
 
 ```{r race_probabilities}

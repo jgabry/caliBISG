@@ -78,7 +78,7 @@ within one hour.
 }
 
 \itemize{
-\item \code{load_data()}: Load the data for a particular \code{state}-\code{year}. This is only
+\item \code{load_data()}: Load the data for a particular state and  year. This is only
 necessary if you want to work with the full data files directly. When using
 the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
 will be loaded internally automatically.
