@@ -84,16 +84,8 @@ download_data <- function(state, year, progress = TRUE) {
       df <-  readr::read_csv(temp_csv, progress = progress, show_col_types = FALSE)
       file.remove(temp_csv)
 
-      df <- as.data.frame(df)
-      df$year <- yr
-      df$state <- st
-      df$county <- tolower(df$county)
-      df$name <- tolower(df$name)
-      df <- .rename_data(df)
-      df <- .reorder_data(df)
-
       message("  (Saving ", rds_path, ")")
-      saveRDS(df, file = rds_path)
+      saveRDS(as.data.frame(df), file = rds_path)
     }
   }
 
@@ -273,36 +265,6 @@ delete_all_data <- function() {
 
   invisible(TRUE)
 }
-
-#' Rename columns in the imported data if necessary
-#'
-#' @noRd
-#' @return (data frame) The updated data.
-#'
-.rename_data <- function(data) {
-  # eventually we should rename these columns in the files before uploading them
-  colnames(data) <- gsub("nh_aian", "aian", colnames(data))
-  colnames(data) <- gsub("nh_api", "api", colnames(data))
-  colnames(data) <- gsub("nh_black", "black_nh", colnames(data))
-  colnames(data) <- gsub("nh_white", "white_nh", colnames(data))
-  colnames(data) <- gsub("in_cen_surs", "in_census", colnames(data))
-  data
-}
-
-#' Reorder columns in the imported data if necessary
-#'
-#' @noRd
-#' @return (data frame) The updated data.
-#'
-.reorder_data <- function(data) {
-  col_order <- c(
-    .demographic_columns(),
-    .calibisg_columns(),
-    "in_census"
-  )
-  data[, col_order]
-}
-
 
 
 #' Download a CSV file from assets of a specific GitHub release
