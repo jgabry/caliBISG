@@ -143,7 +143,7 @@ for (st in tolower(caliBISG:::.all_calibisg_states())) {
     dat <- reorder_data(dat)
     readr::write_csv(
       dat,
-      file = glue("{path_root}/to-upload/calibisg-{st}-{yr}.csv"),
+      file = glue("{path_root}/to-upload/calibisg_{st}{yr}.csv"),
       na = "NA",
       col_names = TRUE
     )
