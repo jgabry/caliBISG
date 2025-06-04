@@ -100,12 +100,13 @@ florida_counties <- c(
 missing_states <- c()
 for (st in tolower(state.abb)) {
   if (file.exists(glue("{path_root}county_census_{st}2020.csv"))) {
-    dat <- rename_data(read_csv(glue("{path_root}county_census_{st}2020.csv")))
+    dat <- rename_data(read_csv(glue("{path_root}county_census_{st}2020.csv"), show_col_types = FALSE))
     if (st == "fl") {
       dat$county <- unname(florida_counties[dat$county])
     }
     dat$county <- tolower(dat$county)
-    .race_x_county_list_2020[[st]] <- dat[, c("county", "prob_aian", "prob_api", "prob_black_nh", "prob_hispanic",
+    dat$state <- toupper(st)
+    .race_x_county_list_2020[[st]] <- dat[, c("state", "county", "prob_aian", "prob_api", "prob_black_nh", "prob_hispanic",
                                         "prob_white_nh", "prob_other")]
   } else
     missing_states <- c(missing_states, st)
