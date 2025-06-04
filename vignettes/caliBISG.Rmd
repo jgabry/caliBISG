@@ -19,19 +19,26 @@ knitr::opts_chunk$set(
 Bayesian Improved Surname Geocoding (BISG) is a ubiquitous tool for predicting
 race and ethnicity using an individual’s geolocation and surname, however
 statistical dependence of surname and geolocation within racial/ethnic
-categories in the United States results in biases for minority subpopulations.
-Based on the method proposed by Greengard and Gelman (2025), we augment the data
-used by traditional BISG (distributions of race by geolocation and race by
-surname) with the distribution of surname by geolocation obtained from state
-voter files. We then use a raking-based algorithm to compute calibrated BISG
-(caliBISG) predictions. caliBISG is easily interpretable, more accurate, and
-better calibrated than traditional BISG.
+categories in the United States results in biases. Based on the method proposed
+by Greengard and Gelman (2025), we augment the data used by traditional BISG
+(distributions of race by geolocation and race by surname) with the distribution
+of surname by geolocation obtained from state voter files. We then use a
+raking-based algorithm to compute calibrated BISG (caliBISG) predictions.
+caliBISG is easily interpretable, more accurate, and better calibrated than
+traditional BISG.
 
 The `caliBISG` R package currently provides caliBISG using 2020 data for states
-FL, GA, NC, NY, OH, OK, VT, WA. We are working on adding more states. 
+FL, GA, NC, NY, OH, OK, VT, WA. We are working on adding more states. In
+addition to caliBISG, the package provides traditional BISG for comparison.
+Traditional BISG is already available for all fifty states.
 
-In addition to caliBISG, the package provides traditional BISG for comparison.
-Traditional BISG is already available for all fifty states. 
+By inputting an individual’s surname, state, and county, users can obtain
+probabilistic estimates of race and ethnicity that can be used by researchers
+when self-reported data is unavailable or incomplete. The package provides
+functions to identify the single most probable race or to retrieve the full set
+of probabilities across six standard race categories often used in social
+science research.
+
 
 ```{r setup-load-pacakge}
 library(caliBISG)
