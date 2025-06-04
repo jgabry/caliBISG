@@ -1,0 +1,97 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# caliBISG
+
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jgabry/caliBISG/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/jgabry/caliBISG/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jgabry/caliBISG?branch=main)
+<!-- badges: end -->
+
+This R package implements the calibrated BISG method from Greengard and Gelman
+(2025), which is easily interpretable, more accurate, and better calibrated than
+traditional BISG. The package is currently a work in progress. We encourage you
+to test it out and provide feedback, but please note that the API may still
+change.
+
+By inputting an individual's surname, state, and county, users can obtain
+probabilistic estimates of race and ethnicity that can be used by researchers
+when self-reported data is unavailable or incomplete. The package provides
+functions to identify the single most probable race or to retrieve the full set
+of probabilities across six standard race categories often used in social
+science research.
+
+The package provides the calibrated BISG estimates and traditional BISG
+estimates side by side for direct comparison. This comparative output will allow
+researchers to understand the practical implications of using the calibrated
+approach and easily identify cases where the new and traditional methods
+disagree.
+
+
+## Installation
+
+You can install the development version of caliBISG from GitHub. 
+
+```r
+# install.packages("devtools")
+devtools::install_github("jgabry/caliBISG")
+```
+
+To also build the tutorial vignette add the argument `build_vignettes = TRUE`. 
+This will take longer to install because building the vignette requires 
+downloading some caliBISG data files.
+
+```r
+devtools::install_github("jgabry/caliBISG", build_vignettes = TRUE)
+```
+
+After installing the package with the vignette you can view the vignette by
+running `vignette("caliBISG", package = "caliBISG")` or
+`browseVignettes("caliBISG")`
+
+## Quick example
+
+We recommend the package vignette for a more detailed introduction to the package. 
+Here is a quick example.
+
+First we load the package and download the caliBISG data file for Oklahoma. 
+
+```{r eval=TRUE}
+library(caliBISG)
+download_data("OK", progress = FALSE)
+```
+
+We then ask for the most probable race based on name, state, and county. 
+Both caliBISG and tradtional BISG are provided. Here the two methods agree
+on the surname Lopez but disagree on the most probable race for the surname
+Jackson in Tulsa, OK.
+
+```{r eval=TRUE}
+most_probable_race(name = c("Lopez", "Jackson"), state = "OK", county = "Tulsa")
+```
+
+We can also compare the underlying probabilities. 
+
+```{r eval=TRUE}
+race_probabilities(name = c("Lopez", "Jackson"), state = "OK", county = "Tulsa")
+```
+
+## References
+
+Philip Greengard and Andrew Gelman (2025). A calibrated BISG for inferring race
+from surname and geolocation.
+*Journal of the Royal Statistical Society Series A: Statistics in Society*.
+https://doi.org/10.1093/jrsssa/qnaf003
+
