@@ -63,9 +63,11 @@ NULL
 #' @param name (character vector) A vector of surnames. Coerced to lowercase
 #'   internally.
 #' @param state (character vector) A vector of state abbreviations. Coerced to
-#'   uppercase internally.
+#'   uppercase internally. If a single state is provided, it is recycled to
+#'   match the length of `name`.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
-#'   internally.
+#'   internally. If a single county is provided, it is recycled to match the
+#'   length of `name`.
 #' @param year (integer) The year of the data to use to compute the estimates.
 #'   The default is `2020`, which is currently the only available year. This
 #'   default may change in the future when more years become available.
