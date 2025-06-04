@@ -42,25 +42,16 @@ bisg <- function(name, state, county, year = 2020) {
 
   # reference tables
   df_surnames <- .race_x_surname_data()
-  df_national  <- .race_x_usa_data(year)
+  df_national <- .race_x_usa_data(year)
 
   # collect county tables for each unique state once
-  unique_states <- unique(state)
-  df_counties <- do.call(
-    rbind,
-    lapply(unique_states, function(st) {
-      tmp <- .race_x_county_data(st, year)
-      if (!"state" %in% names(tmp))  # add state column if absent
-        tmp$state <- st
-      tmp
-    })
-  )
+  county_data_list <-  lapply(unique(state), function(st) .race_x_county_data(st, year))
+  df_counties <- do.call(rbind, county_data_list)
 
-  # column-name sets & sanity checks
+  # column name sanity checks
   cen_cols  <- paste0("cen_r_given_sur_", .race_column_order())
   prob_cols <- paste0("prob_", .race_column_order())
   bisg_cols <- .bisg_columns()
-
   stopifnot(
     identical(colnames(df_surnames[-1]), cen_cols),
     identical(colnames(df_national), prob_cols),
@@ -88,7 +79,7 @@ bisg <- function(name, state, county, year = 2020) {
     sort = FALSE
   )
 
-  # fill unmatched surnames with "all other names"
+  # use "all other names" distribution for unmatched surnames
   missing_name <- is.na(df[[cen_cols[1]]])
   if (any(missing_name)) {
     other_vals_row <- which(df_surnames$name == "all other names")
@@ -100,9 +91,9 @@ bisg <- function(name, state, county, year = 2020) {
   df <- merge(
     df,
     df_counties[, c("state", "county", prob_cols)],
-    by      = c("state", "county"),
-    all.x   = TRUE,
-    sort    = FALSE
+    by = c("state", "county"),
+    all.x = TRUE,
+    sort = FALSE
   )
 
   # BISG calculation
@@ -114,9 +105,9 @@ bisg <- function(name, state, county, year = 2020) {
   bisg_mat <- bisg_mat / rowSums(bisg_mat)
 
   out <- data.frame(
-    name   = df$name,
-    year   = year,
-    state  = df$state,
+    name = df$name,
+    year = year,
+    state = df$state,
     county = df$county,
     bisg_mat,
     stringsAsFactors = FALSE

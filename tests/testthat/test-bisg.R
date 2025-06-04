@@ -13,6 +13,7 @@ precomputed_bisg <- structure(
       "jurisch",
       "patterson"
     ),
+    year = rep(2020, 10),
     state = rep("WA", 10L),
     county = c(
       "island",
@@ -111,8 +112,8 @@ test_that("bisg() returns correct values", {
     year = 2020
   )
   expect_equal(
-    out[, .bisg_columns()],
-    precomputed_bisg[, .bisg_columns()]
+    out[, !colnames(out) == ".found"],
+    precomputed_bisg
   )
 })
 
