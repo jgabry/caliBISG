@@ -93,9 +93,6 @@ bisg <- function(name, state, county, year = 2020) {
   if (any(missing_name)) {
     other_vals_row <- which(df_surnames$name == "all other names")
     other_vals <- df_surnames[other_vals_row, cen_cols]
-    if (nrow(other_vals) != 1) {
-      stop("Could not find a unique 'all other names' row in surname table.", call. = FALSE)
-    }
     df[missing_name, cen_cols] <- other_vals[rep(1, sum(missing_name)), ]
   }
 

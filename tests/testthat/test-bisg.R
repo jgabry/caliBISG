@@ -139,3 +139,8 @@ test_that("BISG can be computed for all 50 states with unknown name", {
     expect_false(is.na(out$bisg_aian[1]), info = st)
   }
 })
+
+test_that("race x surname reference table has a single 'all other names' row", {
+  df <- .race_x_surname_data()
+  expect_length(which(df$name == 'all other names'), 1)
+})
