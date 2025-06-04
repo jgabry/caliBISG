@@ -40,16 +40,7 @@ test_that("valid_counties() matches caliBISG counties", {
   }
 })
 
-test_that("race_probabilities() errors if lengths are mismatched", {
-  expect_error(
-    race_probabilities(
-      name   = c("smith", "lopez"),
-      state  = "VT",
-      county = "Chittenden",
-      year   = 2020
-    ),
-    "`name`, `state`, and `county` must all have the same length."
-  )
+test_that("race_probabilities() errors for multiple years", {
   expect_error(
     race_probabilities(
       name   = "lopez",
@@ -58,6 +49,41 @@ test_that("race_probabilities() errors if lengths are mismatched", {
       year   = c(2020, 2022)
     ),
     "`year` must be a single numeric value"
+  )
+})
+
+test_that("race_probabilities() recycles state and county", {
+  expect_no_error(
+    out <- race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      county = "Chittenden",
+      year   = 2020
+    )
+  )
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
+  expect_equal(nrow(out), 2)
+  expect_equal(out$name, c("smith", "lopez"))
+  expect_equal(out$state, c("VT", "VT"))
+  expect_equal(out$county, c("chittenden", "chittenden"))
+
+  expect_error(
+    race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = rep("VT", 3),
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`state`, and `county` must be length 1 or the same length as `name`"
+  )
+  expect_error(
+    race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      county = rep("Chittenden", 3),
+      year   = 2020
+    ),
+    "`state`, and `county` must be length 1 or the same length as `name`"
   )
 })
 

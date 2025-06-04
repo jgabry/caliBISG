@@ -136,6 +136,12 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
+  if (length(state) == 1) {
+    state <- rep(state, length(name))
+  }
+  if (length(county) == 1) {
+    county <- rep(county, length(name))
+  }
   calibisg_out_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
@@ -284,8 +290,10 @@ valid_counties <- function(state, year = 2020) {
   .validate_name(name)
 
   lengths <- c(length(name), length(state), length(county))
-  if (length(unique(lengths)) != 1L) {
-    stop("`name`, `state`, and `county` must all have the same length.", call. = FALSE)
+  if (length(unique(lengths)) != 1) {
+    if (length(state) != 1 || length(county) != 1){
+      stop("`state`, and `county` must be length 1 or the same length as `name`.", call. = FALSE)
+    }
   }
   invisible(TRUE)
 }
