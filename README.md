@@ -10,11 +10,12 @@
 coverage](https://codecov.io/gh/jgabry/caliBISG/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jgabry/caliBISG?branch=main)
 <!-- badges: end -->
 
-This R package implements the calibrated BISG method from Greengard and
-Gelman (2025), which is easily interpretable, more accurate, and better
-calibrated than traditional BISG. The package is currently a work in
-progress. We encourage you to test it out and provide feedback, but
-please note that the API may still change.
+This R package implements the calibrated Bayesian improved surname
+geocoding (caliBISG) method from Greengard and Gelman (2025). caliBISG
+is easily interpretable, more accurate, and better calibrated than
+traditional BISG. The package is currently a work in progress. We
+encourage you to test it out and provide feedback, but please note that
+the API may still change.
 
 By inputting an individual’s surname, state, and county, users can
 obtain probabilistic estimates of race and ethnicity that can be used by
@@ -56,15 +57,14 @@ We recommend the package vignette for a more detailed introduction to
 the package. Here is a quick example.
 
 First we load the package and download the caliBISG data file for
-Oklahoma.
+Oklahoma. If the data has already been downloaded then it will not be
+downloaded again.
 
 ``` r
 library(caliBISG)
 #> This is caliBISG version 0.0.2
-download_data("OK", progress = FALSE)
-#> * Downloading, reading, and saving file for: OK, 2020
-#>   (Downloading calibisg_ok2020.csv from caliBISG release v0.0.2)
-#>   (Saving /Users/jgabry/Library/Application Support/org.R-project.R/R/caliBISG/OK-2020.rds)
+download_data("OK")
+#> * OK-2020.rds already exists. Skipping.
 ```
 
 We then ask for the most probable race based on name, state, and county.
