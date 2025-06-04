@@ -63,9 +63,11 @@ NULL
 #' @param name (character vector) A vector of surnames. Coerced to lowercase
 #'   internally.
 #' @param state (character vector) A vector of state abbreviations. Coerced to
-#'   uppercase internally.
+#'   uppercase internally. If a single state is provided, it is recycled to
+#'   match the length of `name`.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
-#'   internally.
+#'   internally. If a single county is provided, it is recycled to match the
+#'   length of `name`.
 #' @param year (integer) The year of the data to use to compute the estimates.
 #'   The default is `2020`, which is currently the only available year. This
 #'   default may change in the future when more years become available.
@@ -136,6 +138,12 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
+  if (length(state) == 1) {
+    state <- rep(state, length(name))
+  }
+  if (length(county) == 1) {
+    county <- rep(county, length(name))
+  }
   calibisg_out_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
@@ -284,8 +292,10 @@ valid_counties <- function(state, year = 2020) {
   .validate_name(name)
 
   lengths <- c(length(name), length(state), length(county))
-  if (length(unique(lengths)) != 1L) {
-    stop("`name`, `state`, and `county` must all have the same length.", call. = FALSE)
+  if (length(unique(lengths)) != 1) {
+    if (length(state) != 1 || length(county) != 1){
+      stop("`state`, and `county` must be length 1 or the same length as `name`.", call. = FALSE)
+    }
   }
   invisible(TRUE)
 }
