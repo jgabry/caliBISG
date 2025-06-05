@@ -1,5 +1,5 @@
 # precomputed values created by data-raw/test-compute-bisg.R
-precomputed_bisg <- dget("tests/testthat/bisg-test-answers/precomputed-bisg.R")
+precomputed_bisg <- dget(test_path("bisg-test-answers", "precomputed-bisg.R"))
 
 test_that("bisg() returns correct values", {
   out <- bisg(
