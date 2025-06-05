@@ -1,3 +1,29 @@
+# race_probabilities() output hasn't changed
+
+    structure(list(name = c("lopez", "jackson", "smith", "chan"), 
+        year = c(2020, 2020, 2020, 2020), state = c("VT", "OK", "WA", 
+        "NC"), county = c("chittenden", "tulsa", "king", "wake"), 
+        calibisg_aian = c(0.00444499293612104, 0.0865198796172794, 
+        0.0128805826771118, 0.00010959346581308), bisg_aian = c(0.0043254372504238, 
+        0.085706741255251, 0.00790690484565127, 0.00013328779713989
+        ), calibisg_api = c(0.0601409377957273, 0.00024340136434384, 
+        0.00725714551754538, 0.970454984877748), bisg_api = c(0.0321881051000928, 
+        0.00247960083768865, 0.019629623969696, 0.932059766770018
+        ), calibisg_black_nh = c(0.00056859873351467, 0.36738985303624, 
+        0.138842891999807, 0.00308193552380715), bisg_black_nh = c(0.0059794334503795, 
+        0.437046518988705, 0.144887416123048, 0.00835292922521302
+        ), calibisg_hispanic = c(0.626410161004443, 0.0261435348724924, 
+        0.0148025512086416, 0.0146463076400229), bisg_hispanic = c(0.626333990237397, 
+        0.0200353412280451, 0.0159140226673941, 0.02057604953591), 
+        calibisg_white_nh = c(0.303816045869699, 0.478357661221058, 
+        0.802940394633816, 0.00765046979828608), bisg_white_nh = c(0.319047021114721, 
+        0.38484390426569, 0.770937323755778, 0.0201238342473797), 
+        calibisg_other = c(0.00461926366049439, 0.0413456698885861, 
+        0.0232764339630785, 0.00405670869432229), bisg_other = c(0.0121260128469858, 
+        0.0698878934246207, 0.0407247086384323, 0.0187541324243397
+        ), in_census = c(TRUE, TRUE, TRUE, TRUE)), class = c("compare_calibisg", 
+    "data.frame"), row.names = c(NA, 4L))
+
 # print.compare_calibisg() prints correctly
 
     Code
@@ -211,4 +237,14 @@
       
       Only the first 2 of 3 rows printed.
       Use `print(max_print = ...)` or `options(calibisg.max_print = ...)` to print more rows.
+
+# most_probable_race() output hasn't changed
+
+    structure(list(name = c("lopez", "jackson", "smith", "chan"), 
+        year = c(2020, 2020, 2020, 2020), state = c("VT", "OK", "WA", 
+        "NC"), county = c("chittenden", "tulsa", "king", "wake"), 
+        calibisg_race = c("hispanic", "white_nh", "white_nh", "api"
+        ), bisg_race = c("hispanic", "black_nh", "white_nh", "api"
+        ), in_census = c(TRUE, TRUE, TRUE, TRUE)), class = "data.frame", row.names = c(NA, 
+    4L))
 

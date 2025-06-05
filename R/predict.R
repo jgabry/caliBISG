@@ -291,12 +291,13 @@ valid_counties <- function(state, year = 2020) {
   .validate_county(county)
   .validate_name(name)
 
-  lengths <- c(length(name), length(state), length(county))
-  if (length(unique(lengths)) != 1) {
-    if (length(state) != 1 || length(county) != 1){
-      stop("`state`, and `county` must be length 1 or the same length as `name`.", call. = FALSE)
-    }
+  if (length(state) != 1L && length(state) != length(name)) {
+    stop("`state` must be length 1 or the same length as `name`.", call. = FALSE)
   }
+  if (length(county) != 1L && length(county) != length(name)) {
+    stop("`county` must be length 1 or the same length as `name`.", call. = FALSE)
+  }
+
   invisible(TRUE)
 }
 .validate_year <- function(year) {
