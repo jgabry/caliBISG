@@ -52,7 +52,7 @@ NULL
 #'   The default is to download caliBISG data for all available years. For
 #'   `load_data()`, a single year to load.
 #' @param progress (logical) Whether to show a progress bar while downloading
-#'   and reading the data. The default is `TRUE`.
+#'   the data. The default is `TRUE`.
 #'
 #' @return
 #' * `download_data()`: (logical) `TRUE`, invisibly, if no error.
@@ -81,7 +81,7 @@ download_data <- function(state, year, progress = TRUE) {
 
       message("* Downloading, reading, and saving file for: ", st, ", ", yr)
       temp_csv <- .download_calibisg_csv(st, yr, progress)
-      df <-  readr::read_csv(temp_csv, progress = progress, show_col_types = FALSE)
+      df <-  readr::read_csv(temp_csv, progress = FALSE, show_col_types = FALSE)
       file.remove(temp_csv)
 
       message("  (Saving ", rds_path, ")")

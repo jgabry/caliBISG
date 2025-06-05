@@ -28,7 +28,7 @@ The default is to download caliBISG data for all available years. For
 \code{load_data()}, a single year to load.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
-and reading the data. The default is \code{TRUE}.}
+the data. The default is \code{TRUE}.}
 }
 \value{
 \itemize{
