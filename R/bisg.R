@@ -1,8 +1,7 @@
 #' Compute traditional BISG
 #'
-#' @description Compute Bayesian Improved Surname Geocoding (BISG)
-#'   race‐probability estimates using census surname and county reference
-#'   tables.
+#' @description Compute Bayesian Improved Surname Geocoding (BISG) estimates
+#'   using census surname and county reference tables.
 #'
 #' @keywords internal
 #' @export
