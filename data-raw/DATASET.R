@@ -21,6 +21,42 @@ reorder_data <- function(data) {
   data[, col_order]
 }
 
+
+# change cases like "st.lawrence" to "st. lawrence"
+fix_spaces_in_county_name <- function(county, state) {
+  orig <- county
+
+  # replace any period not followed by a space with a period and a space
+  step1 <- gsub("\\.(?! )", ". ", orig, perl = TRUE)
+
+  # replace two or more consecutive spaces with a single space.
+  modified <- gsub(" {2,}", " ", step1)
+
+  # identify which entries actually changed
+  changed_idx <- which(orig != modified & !is.na(orig))
+
+  # print table of changes, if any
+  if (length(changed_idx) > 0) {
+    changes_df <- data.frame(
+      original = orig[changed_idx],
+      modified = modified[changed_idx],
+      stringsAsFactors = FALSE
+    )
+    counts <- aggregate(
+      x = changes_df$original,
+      by = list(original = changes_df$original, modified = changes_df$modified),
+      FUN = length
+    )
+    names(counts)[3] <- "count"
+    message(glue("Changes made for state {state}:"))
+    print(counts, row.names = FALSE)
+  }
+
+  modified
+}
+
+
+
 # For Florida only we need to convert abbreviations to full county names using
 # the following:
 florida_counties <- c(
@@ -105,6 +141,7 @@ for (st in tolower(state.abb)) {
       dat$county <- unname(florida_counties[dat$county])
     }
     dat$county <- tolower(dat$county)
+    dat$county <- fix_spaces_in_county_name(dat$county, st)
     dat$state <- toupper(st)
     .race_x_county_list_2020[[st]] <- dat[, c("state", "county", "prob_aian", "prob_api", "prob_black_nh", "prob_hispanic",
                                         "prob_white_nh", "prob_other")]
@@ -131,7 +168,7 @@ usethis::use_data(
 
 for (st in tolower(caliBISG:::.all_calibisg_states())) {
   for (yr in caliBISG:::.all_calibisg_years()) {
-    dat <- read_csv(glue("{path_root}calibisg_{st}{yr}.csv"))
+    dat <- read_csv(glue("{path_root}calibisg_{st}{yr}.csv"), show_col_types = FALSE)
     dat <- as.data.frame(dat)
     if (st == "fl") {
       dat$county <- unname(florida_counties[dat$county])
@@ -139,6 +176,7 @@ for (st in tolower(caliBISG:::.all_calibisg_states())) {
     dat$year <- yr
     dat$state <- toupper(st)
     dat$county <- tolower(dat$county)
+    dat$county <- fix_spaces_in_county_name(dat$county, st)
     dat$name <- tolower(dat$name)
     dat <- rename_data(dat)
     dat <- reorder_data(dat)
@@ -150,6 +188,7 @@ for (st in tolower(caliBISG:::.all_calibisg_states())) {
     )
   }
 }
+
 
 
 
