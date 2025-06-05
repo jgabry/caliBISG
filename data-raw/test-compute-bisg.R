@@ -1,5 +1,6 @@
 # R version of original Python code
-# used to produce the test data for tests/testthat/test-bisg.R
+# writes the precomputed BISG values to data-raw/precomputed-bisg.R
+# these values were used to create the snapshot for testthat in tests/testthat/test-bisg.R
 
 library(tidyverse)
 library(glue)
@@ -87,6 +88,6 @@ result <- result %>%
     bisg_white_nh = bisg_cen_county_nh_white,
     bisg_other = bisg_cen_county_other
   )
-dput(as.data.frame(result), file = "tests/testthat/bisg-test-answers/precomputed-bisg.R")
+dput(as.data.frame(result), file = "data-raw/precomputed-bisg.R")
 rm(list = ls())
 

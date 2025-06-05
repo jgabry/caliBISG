@@ -1,58 +1,19 @@
 suppressMessages(download_data(year = 2020, progress = FALSE))
 
-test_that("valid_counties() errors with invalid inputs", {
-  expect_error(
-    valid_counties("XX", 2020),
-    "Invalid state abbreviations: XX"
-  )
-  expect_error(
-    valid_counties(10, 2020),
-    "`state` must be a character vector"
-  )
-  expect_error(
-    valid_counties(c("WA", "NC"), 2020),
-    "`state` must be a single two-letter state abbreviation"
-  )
-  expect_error(
-    valid_counties("VT", 2021),
-    "`year` must be one of the available years: 2020"
-  )
-  expect_error(
-    valid_counties("VT", c(2020, 2023)),
-    "`year` must be a single numeric value"
-  )
-})
-
-test_that("valid_counties() returns correct values", {
-  for (st in datasets::state.abb) {
-    out <- valid_counties(st, 2020)
-    counties <- sort(unique(.race_x_county_data(st, 2020)$county))
-    expect_equal(out, counties, info = st)
-  }
-})
-
-test_that("valid_counties() matches caliBISG counties", {
-  calibisg_states <- substr(available_data(), 1, 2)
-  for (st in calibisg_states) {
-    out <- valid_counties(st, 2020)
-    counties <- sort(unique(load_data(st, 2020)$county))
-    expect_equal(out, counties, info = st)
-  }
-})
-
-test_that("race_probabilities() errors for multiple years", {
-  expect_error(
+test_that("race_probabilities() output hasn't changed", {
+  expect_snapshot_value(
     race_probabilities(
-      name   = "lopez",
-      state  = "VT",
-      county = "Chittenden",
-      year   = c(2020, 2022)
+      name   = c("lopez", "jackson", "smith", "chan"),
+      state  = c("VT", "OK", "WA", "NC"),
+      county = c("Chittenden", "Tulsa", "King", "Wake"),
+      year   = 2020
     ),
-    "`year` must be a single numeric value"
+    style = "deparse"
   )
 })
 
 test_that("race_probabilities() recycles state and county", {
+  # both state and county are length 1
   expect_no_error(
     out <- race_probabilities(
       name   = c("smith", "lopez"),
@@ -67,6 +28,37 @@ test_that("race_probabilities() recycles state and county", {
   expect_equal(out$state, c("VT", "VT"))
   expect_equal(out$county, c("chittenden", "chittenden"))
 
+  # state is length 1, county is length 2
+  expect_no_error(
+    out <- race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      county = c("Chittenden", "Windsor"),
+      year   = 2020
+    )
+  )
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
+  expect_equal(nrow(out), 2)
+  expect_equal(out$name, c("smith", "lopez"))
+  expect_equal(out$state, c("VT", "VT"))
+  expect_equal(out$county, c("chittenden", "windsor"))
+
+  # state is length 2, county is length 1
+  expect_no_error(
+    out <- race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = c("VT", "VT"),
+      county = "Chittenden",
+      year   = 2020
+    )
+  )
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
+  expect_equal(nrow(out), 2)
+  expect_equal(out$name, c("smith", "lopez"))
+  expect_equal(out$state, c("VT", "VT"))
+  expect_equal(out$county, c("chittenden", "chittenden"))
+
+  # state longer than name
   expect_error(
     race_probabilities(
       name   = c("smith", "lopez"),
@@ -74,8 +66,10 @@ test_that("race_probabilities() recycles state and county", {
       county = "Chittenden",
       year   = 2020
     ),
-    "`state`, and `county` must be length 1 or the same length as `name`"
+    "`state` must be length 1 or the same length as `name`"
   )
+
+  # county longer than name
   expect_error(
     race_probabilities(
       name   = c("smith", "lopez"),
@@ -83,7 +77,7 @@ test_that("race_probabilities() recycles state and county", {
       county = rep("Chittenden", 3),
       year   = 2020
     ),
-    "`state`, and `county` must be length 1 or the same length as `name`"
+    "`county` must be length 1 or the same length as `name`"
   )
 })
 
@@ -108,6 +102,18 @@ test_that("race_probabilities() errors if invalid year is used", {
       year   = 2021
     ),
     "`year` must be one of the available years: 2020"
+  )
+})
+
+test_that("race_probabilities() errors for multiple years", {
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = "Chittenden",
+      year   = c(2020, 2022)
+    ),
+    "`year` must be a single numeric value"
   )
 })
 
@@ -207,6 +213,18 @@ test_that("print.compare_calibisg() prints correctly", {
 })
 
 
+test_that("most_probable_race() output hasn't changed", {
+  expect_snapshot_value(
+    most_probable_race(
+      name   = c("lopez", "jackson", "smith", "chan"),
+      state  = c("VT", "OK", "WA", "NC"),
+      county = c("Chittenden", "Tulsa", "King", "Wake"),
+      year   = 2020
+    ),
+    style = "deparse"
+  )
+})
+
 test_that("most_probable_race() returns correct columns", {
   out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
   expect_s3_class(out, "data.frame")
@@ -293,3 +311,45 @@ test_that("most_probable_race() handles missing caliBISG state correctly", {
   expect_true(is.na(out$calibisg_race))
   expect_false(is.na(out$bisg_race))
 })
+
+
+test_that("valid_counties() errors with invalid inputs", {
+  expect_error(
+    valid_counties("XX", 2020),
+    "Invalid state abbreviations: XX"
+  )
+  expect_error(
+    valid_counties(10, 2020),
+    "`state` must be a character vector"
+  )
+  expect_error(
+    valid_counties(c("WA", "NC"), 2020),
+    "`state` must be a single two-letter state abbreviation"
+  )
+  expect_error(
+    valid_counties("VT", 2021),
+    "`year` must be one of the available years: 2020"
+  )
+  expect_error(
+    valid_counties("VT", c(2020, 2023)),
+    "`year` must be a single numeric value"
+  )
+})
+
+test_that("valid_counties() returns correct values", {
+  for (st in datasets::state.abb) {
+    out <- valid_counties(st, 2020)
+    counties <- sort(unique(.race_x_county_data(st, 2020)$county))
+    expect_equal(out, counties, info = st)
+  }
+})
+
+test_that("valid_counties() matches caliBISG counties", {
+  calibisg_states <- substr(available_data(), 1, 2)
+  for (st in calibisg_states) {
+    out <- valid_counties(st, 2020)
+    counties <- sort(unique(load_data(st, 2020)$county))
+    expect_equal(out, counties, info = st)
+  }
+})
+
