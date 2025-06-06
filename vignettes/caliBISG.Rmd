@@ -10,7 +10,7 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = ""
+  comment = "#>"
 )
 ```
 
@@ -27,10 +27,14 @@ raking-based algorithm to compute calibrated BISG (caliBISG) predictions.
 caliBISG is easily interpretable, more accurate, and better calibrated than
 traditional BISG.
 
-The `caliBISG` R package currently provides caliBISG using 2020 data for states
-FL, GA, NC, NY, OH, OK, VT, WA. We are working on adding more states. In
-addition to caliBISG, the package provides traditional BISG for comparison.
-Traditional BISG is already available for all fifty states.
+Currently, caliBISG is available for the following states and years:
+
+- States: FL, GA, NC, NY, OH, OK, VT, WA
+- Years: 2020
+
+We are working on adding more states. In addition to caliBISG, the package
+provides traditional BISG for comparison. Traditional BISG is already available
+for all fifty states.
 
 By inputting an individual’s surname, state, and county, users can obtain
 probabilistic estimates of race and ethnicity that can be used by researchers
@@ -40,7 +44,7 @@ of probabilities across six standard race categories often used in social
 science research.
 
 
-```{r setup-load-pacakge}
+```{r setup-load-pacakge, message=FALSE}
 library(caliBISG)
 ```
 
@@ -70,25 +74,27 @@ If the user just wants to use the package's functions like
 `most_probable_race()` and `race_probabilities()` they never need to load the
 caliBISG data files manually after downloading them. However, if the user wants
 to work directly with the large caliBISG files they can load the data themselves
-with `load_data()`.
+with `load_data()`. Each row in the data frame corresponds to one surname and
+county pair.
 
 ```{r load_data}
 ok_2020_data <- load_data("OK", 2020)
 nrow(ok_2020_data)
-colnames(ok_2020_data)
+head(ok_2020_data, 10)
 ```
 
-The `available_data()` function lists the files the user has already downloaded
-that are available for use. 
+The `available_data()` function lists the files that have already been
+downloaded and are available for use. Since we downloaded 2020 data for OK and
+WA, we should see `OK-2020.rds` and `WA-2020.rds`.
 
 ```{r available_data}
 available_data()
 ```
 
-The `delete_all_data()` function deletes all the files in the internal data
-storage directory. 
+The `delete_all_data()` function deletes all files that have been downloaded.
 
 ```{r delete_all_data, eval = FALSE}
+# not actually evaluated to avoid deleting the data we just downloaded
 delete_all_data()
 ```
 
@@ -103,20 +109,27 @@ according to caliBISG and traditional BISG. The function takes four arguments:
 - `county`: a vector of county names
 - `year`: the year of the data to use
 
+
+```{r most_probable_race}
+most_probable_race(name = "Smith", state = "WA", county = "King", year = 2020)
+```
+
 None of the arguments are case sensitive. The `year` argument defaults to 2020,
 which is the only year currently available. 
 
-```{r most_probable_race}
-most_probable_race(name = "Smith", state = "WA", county = "king", year = 2020)
+```{r most_probable_race-case-insensitivity}
+most_probable_race(name = "smith", state = "wa", county = "king")
 ```
 
-In this case the most probable race is Non-Hispanic White according to both
-methods. The `in_census` column indicates whether the surname is found in the
-list of names that appear at least 100 times in the census.
+In this case, the most probable race is Non-Hispanic White (`white_nh`)
+according to both caliBISG and traditional BISG (the `calibisg_race` and
+`bisg_race` columns). The `in_census` column indicates whether the surname is
+found in the list of names that appear at least 100 times in the census.
 
-In some cases the caliBISG and BISG predictions will disagree. For example, 
-for the surname Jackson in Tulsa, Oklahoma, the caliBISG prediction is 
-Non-Hispanic White and the BISG prediction is Non-Hispanic Black.
+In some cases the caliBISG and BISG predictions will disagree. For example, for
+the surname Jackson in Tulsa, Oklahoma, the caliBISG prediction is Non-Hispanic
+White and the BISG prediction is Non-Hispanic Black. This reflects the
+raking-based correction used by the caliBISG method.
 
 ```{r most_probable_race-disagree}
 most_probable_race("Jackson", "OK", "Tulsa")

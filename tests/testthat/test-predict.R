@@ -212,6 +212,19 @@ test_that("print.compare_calibisg() prints correctly", {
   expect_snapshot(print(out, max_print = 2, digits = 5))
 })
 
+test_that("print.compare_calibisg() handles edge cases", {
+  out <- race_probabilities("Smith", "WA", "King")
+  expect_snapshot(print(out, max_print = 0))
+  expect_snapshot(print(out, digits = 0))
+
+  expect_error(print(out, max_print = -1), "`max_print` must be a single non-negative integer")
+  expect_error(print(out, max_print = c(1, 2)), "`max_print` must be a single non-negative integer")
+  expect_error(print(out, max_print = "A"), "`max_print` must be a single non-negative integer")
+  expect_error(print(out, digits = -1), "`digits` must be a single non-negative integer")
+  expect_error(print(out, digits = c(1, 2)), "`digits` must be a single non-negative integer")
+  expect_error(print(out, digits = "A"), "`digits` must be a single non-negative integer")
+})
+
 
 test_that("most_probable_race() output hasn't changed", {
   expect_snapshot_value(
@@ -340,7 +353,7 @@ test_that("valid_counties() returns correct values", {
   for (st in datasets::state.abb) {
     out <- valid_counties(st, 2020)
     counties <- sort(unique(.race_x_county_data(st, 2020)$county))
-    expect_equal(out, counties, info = st)
+    expect_equal(out, counties, info = paste("State =", st))
   }
 })
 
@@ -349,7 +362,7 @@ test_that("valid_counties() matches caliBISG counties", {
   for (st in calibisg_states) {
     out <- valid_counties(st, 2020)
     counties <- sort(unique(load_data(st, 2020)$county))
-    expect_equal(out, counties, info = st)
+    expect_equal(out, counties, info = paste("State =", st))
   }
 })
 

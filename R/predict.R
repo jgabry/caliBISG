@@ -220,6 +220,13 @@ print.compare_calibisg <- function(x,
                                    ...,
                                    digits = getOption("calibisg.digits", 2),
                                    max_print = getOption("calibisg.max_print", 4)) {
+  if (!is.numeric(digits) || length(digits) != 1L || digits < 0) {
+    stop("`digits` must be a single non-negative integer.", call. = FALSE)
+  }
+  if (!is.numeric(max_print) || length(max_print) != 1L || max_print < 0) {
+    stop("`max_print` must be a single non-negative integer.", call. = FALSE)
+  }
+
   n_print <- min(max_print, nrow(x))
   for (j in seq_len(n_print)) {
     cat(
@@ -257,7 +264,8 @@ print.compare_calibisg <- function(x,
 valid_counties <- function(state, year = 2020) {
   .validate_state(state, allow_multiple = FALSE)
   .validate_year(year)
-  sort(unique(.race_x_county_data(state, year)$county))
+  counties <- .race_x_county_data(state, year)$county
+  sort(unique(counties))
 }
 
 
