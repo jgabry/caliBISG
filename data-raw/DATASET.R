@@ -1,9 +1,12 @@
 library(readr)
 library(glue)
+library(usethis)
 
 path_root <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
 
-
+csv_to_dataframe <- function(file_path) {
+  as.data.frame(readr::read_csv(file_path, show_col_types = FALSE, progress = FALSE))
+}
 rename_data <- function(data) {
   colnames(data) <- gsub("nh_aian", "aian", colnames(data))
   colnames(data) <- gsub("nh_api", "api", colnames(data))
@@ -20,13 +23,11 @@ reorder_data <- function(data) {
   )
   data[, col_order]
 }
-
-
-# change cases like "st.lawrence" to "st. lawrence"
 fix_spaces_in_county_name <- function(county, state) {
   orig <- county
 
   # replace any period not followed by a space with a period and a space
+  # change cases like "st.lawrence" to "st. lawrence"
   step1 <- gsub("\\.(?! )", ". ", orig, perl = TRUE)
 
   # replace two or more consecutive spaces with a single space.
@@ -55,105 +56,63 @@ fix_spaces_in_county_name <- function(county, state) {
   modified
 }
 
-
-
-# For Florida only we need to convert abbreviations to full county names using
-# the following:
-florida_counties <- c(
-  ALA = "Alachua",
-  BAK = "Baker",
-  BAY = "Bay",
-  BRA = "Bradford",
-  BRE = "Brevard",
-  BRO = "Broward",
-  CAL = "Calhoun",
-  CHA = "Charlotte",
-  CIT = "Citrus",
-  CLA = "Clay",
-  CLL = "Collier",
-  CLM = "Columbia",
-  DAD = "Miami-Dade",
-  DES = "Desoto",
-  DIX = "Dixie",
-  DUV = "Duval",
-  ESC = "Escambia",
-  FLA = "Flagler",
-  FRA = "Franklin",
-  GAD = "Gadsden",
-  GIL = "Gilchrist",
-  GLA = "Glades",
-  GUL = "Gulf",
-  HAM = "Hamilton",
-  HAR = "Hardee",
-  HEN = "Hendry",
-  HER = "Hernando",
-  HIG = "Highlands",
-  HIL = "Hillsborough",
-  HOL = "Holmes",
-  IND = "Indian River",
-  JAC = "Jackson",
-  JEF = "Jefferson",
-  LAF = "Lafayette",
-  LAK = "Lake",
-  LEE = "Lee",
-  LEO = "Leon",
-  LEV = "Levy",
-  LIB = "Liberty",
-  MAD = "Madison",
-  MAN = "Manatee",
-  MRN = "Marion",
-  MRT = "Martin",
-  MON = "Monroe",
-  NAS = "Nassau",
-  OKA = "Okaloosa",
-  OKE = "Okeechobee",
-  ORA = "Orange",
-  OSC = "Osceola",
-  PAL = "Palm Beach",
-  PAS = "Pasco",
-  PIN = "Pinellas",
-  POL = "Polk",
-  PUT = "Putnam",
-  SAN = "Santa Rosa",
-  SAR = "Sarasota",
-  SEM = "Seminole",
-  STJ = "St. Johns",
-  STL = "St. Lucie",
-  SUM = "Sumter",
-  SUW = "Suwannee",
-  TAY = "Taylor",
-  UNI = "Union",
-  VOL = "Volusia",
-  WAK = "Wakulla",
-  WAL = "Walton",
-  WAS = "Washington"
-)
+# For Florida only we need to convert abbreviations to full county names
+fix_florida_county_names <- function(county) {
+  florida_counties <- c(ALA = "Alachua", BAK = "Baker", BAY = "Bay", BRA = "Bradford",
+                        BRE = "Brevard", BRO = "Broward", CAL = "Calhoun", CHA = "Charlotte",
+                        CIT = "Citrus", CLA = "Clay", CLL = "Collier", CLM = "Columbia",
+                        DAD = "Miami-Dade", DES = "Desoto", DIX = "Dixie", DUV = "Duval",
+                        ESC = "Escambia", FLA = "Flagler", FRA = "Franklin", GAD = "Gadsden",
+                        GIL = "Gilchrist", GLA = "Glades", GUL = "Gulf", HAM = "Hamilton",
+                        HAR = "Hardee", HEN = "Hendry", HER = "Hernando", HIG = "Highlands",
+                        HIL = "Hillsborough", HOL = "Holmes", IND = "Indian River", JAC = "Jackson",
+                        JEF = "Jefferson", LAF = "Lafayette", LAK = "Lake", LEE = "Lee",
+                        LEO = "Leon", LEV = "Levy", LIB = "Liberty", MAD = "Madison",
+                        MAN = "Manatee", MRN = "Marion", MRT = "Martin", MON = "Monroe",
+                        NAS = "Nassau", OKA = "Okaloosa", OKE = "Okeechobee", ORA = "Orange",
+                        OSC = "Osceola", PAL = "Palm Beach", PAS = "Pasco", PIN = "Pinellas",
+                        POL = "Polk", PUT = "Putnam", SAN = "Santa Rosa", SAR = "Sarasota",
+                        SEM = "Seminole", STJ = "St. Johns", STL = "St. Lucie", SUM = "Sumter",
+                        SUW = "Suwannee", TAY = "Taylor", UNI = "Union", VOL = "Volusia",
+                        WAK = "Wakulla", WAL = "Walton", WAS = "Washington")
+  unname(florida_counties[county])
+}
 
 
 # internal package data ---------------------------------------------------
 
+.race_x_surname_df <- rename_data(csv_to_dataframe(glue("{path_root}df_surnames.csv")))
+.race_x_usa_df_2020  <- rename_data(csv_to_dataframe(glue("{path_root}usa_census_2020.csv")))
 .race_x_county_list_2020 <- list()
-missing_states <- c()
+
+missing_county_data <- c()
 for (st in tolower(state.abb)) {
   if (file.exists(glue("{path_root}county_census_{st}2020.csv"))) {
-    dat <- rename_data(read_csv(glue("{path_root}county_census_{st}2020.csv"), show_col_types = FALSE))
+    dat <- rename_data(csv_to_dataframe(glue("{path_root}county_census_{st}2020.csv")))
     if (st == "fl") {
-      dat$county <- unname(florida_counties[dat$county])
+      dat$county <- fix_florida_county_names(dat$county)
     }
     dat$county <- tolower(dat$county)
     dat$county <- fix_spaces_in_county_name(dat$county, st)
     dat$state <- toupper(st)
-    .race_x_county_list_2020[[st]] <- dat[, c("state", "county", "prob_aian", "prob_api", "prob_black_nh", "prob_hispanic",
-                                        "prob_white_nh", "prob_other")]
+    .race_x_county_list_2020[[st]] <- dat[, c(
+      "state",
+      "county",
+      "prob_aian",
+      "prob_api",
+      "prob_black_nh",
+      "prob_hispanic",
+      "prob_white_nh",
+      "prob_other"
+    )]
   } else
-    missing_states <- c(missing_states, st)
+    missing_county_data <- c(missing_county_data, st)
 }
-print(missing_states)
+if (length(missing_county_data)) {
+  stop(glue("Missing county data for states: {paste(missing_county_data, collapse = ', ')}"))
+}
 
-.race_x_surname_df <- as.data.frame(rename_data(read_csv(glue("{path_root}df_surnames.csv"))))
-.race_x_usa_df_2020  <- rename_data(read_csv(glue("{path_root}usa_census_2020.csv")))
-
-usethis::use_data(
+use_data(
   .race_x_surname_df,
   .race_x_usa_df_2020,
   .race_x_county_list_2020,
@@ -164,14 +123,14 @@ usethis::use_data(
 
 
 
-# caliBISG files to upload as release assets  -----------------------------
+# caliBISG files to upload as GitHub release assets  ---------------------------
 
 for (st in tolower(caliBISG:::.all_calibisg_states())) {
   for (yr in caliBISG:::.all_calibisg_years()) {
-    dat <- read_csv(glue("{path_root}calibisg_{st}{yr}.csv"), show_col_types = FALSE)
+    dat <- csv_to_dataframe(glue("{path_root}calibisg_{st}{yr}.csv"))
     dat <- as.data.frame(dat)
     if (st == "fl") {
-      dat$county <- unname(florida_counties[dat$county])
+      dat$county <- fix_florida_county_names(dat$county)
     }
     dat$year <- yr
     dat$state <- toupper(st)

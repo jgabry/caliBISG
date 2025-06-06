@@ -50,13 +50,18 @@ indicating success or failure.
 }
 }
 \description{
-Various functions for downloading and loading the caliBISG data
-files used by the package. Currently caliBISG is available for the
-following states and years:
+Currently caliBISG is available for the following states and
+years:
 \itemize{
 \item States: FL, GA, NC, NY, OH, OK, VT, WA
 \item Years: 2020
 }
+
+Each state-year combination has a separate data file that is used
+internally by the package when the user requests caliBISG estimates for
+that state and year. Because most of the files are hundreds of megabytes
+each, they are not included with the package by default and must instead be
+downloaded from GitHub. See \strong{Details}.
 
 We are working on adding additional states and years. When caliBISG is
 unavailable we still provide traditional BISG, which does not require
@@ -73,8 +78,8 @@ has a credential for \code{github.com}, the token provided by
 \code{\link[gitcreds:gitcreds_get]{gitcreds::gitcreds_get()}} will be used. Otherwise the environment variables
 \code{GITHUB_PAT} and \code{GITHUB_TOKEN} will be checked in that order. If no token is
 found, the request will be made anonymously, in which case you may run into
-GitHub's unauthenticated rate limit if you are trying to download many files
-within one hour.
+GitHub's unauthenticated rate limit if you are trying to download files many
+times within one hour.
 }
 
 \itemize{

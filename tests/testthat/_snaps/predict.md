@@ -238,6 +238,35 @@
       Only the first 2 of 3 rows printed.
       Use `print(max_print = ...)` or `options(calibisg.max_print = ...)` to print more rows.
 
+# print.compare_calibisg() handles edge cases
+
+    Code
+      print(out, max_print = 0)
+    Output
+      Only the first 0 of 1 rows printed.
+      Use `print(max_print = ...)` or `options(calibisg.max_print = ...)` to print more rows.
+
+---
+
+    Code
+      print(out, digits = 0)
+    Output
+      Surname:  Smith     
+      State:    WA        
+      County:   King      
+      Year:     2020      
+      
+      Race       Pr_calibisg  Pr_bisg   
+      ---------------------------------------- 
+      AIAN       0            0         
+      API        0            0         
+      Black      0            0         
+      Hispanic   0            0         
+      White      1            1         
+      Other      0            0         
+      ---------------------------------------- 
+      
+
 # most_probable_race() output hasn't changed
 
     structure(list(name = c("lopez", "jackson", "smith", "chan"), 

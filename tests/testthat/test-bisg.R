@@ -1,3 +1,26 @@
+test_that("race x surname reference table has a single 'all other names' row", {
+  df <- .race_x_surname_data()
+  expect_length(which(df$name == 'all other names'), 1)
+})
+
+test_that("all rows of race x surname data sum to 1", {
+  df <- .race_x_surname_data()[, -1] # drop 'name' column
+  sums <- rowSums(df)
+  expect_equal(sums, rep(1, length(sums)))
+})
+
+test_that("national probabilities sum to 1", {
+  expect_equal(sum(.race_x_usa_data(2020)), 1)
+})
+
+test_that("all rows of race x county data sum to 1", {
+  for (st in datasets::state.abb) {
+    df <- .race_x_county_data(st, 2020)[, -c(1,2)] # drop 'state' and 'county' columns
+    sums <- rowSums(df)
+    expect_equal(sums, rep(1, length(sums)), info = paste("State =", st))
+  }
+})
+
 test_that("bisg() returns correct values", {
   # the values in the snapshot were originally computed with data-raw/test-compute-bisg.R
   # and should match the values in data-raw/precomputed-bisg.R
@@ -53,7 +76,7 @@ test_that("BISG can be computed for all 50 states with known name", {
       county = .race_x_county_data(st, 2020)$county[1],
       year = 2020
     )
-    expect_false(is.na(out$bisg_aian[1]), info = st)
+    expect_false(is.na(out$bisg_aian[1]), info = paste("State =", st))
   }
 })
 
@@ -65,11 +88,9 @@ test_that("BISG can be computed for all 50 states with unknown name", {
       county = .race_x_county_data(st, 2020)$county[1],
       year = 2020
     )
-    expect_false(is.na(out$bisg_aian[1]), info = st)
+    expect_false(is.na(out$bisg_aian[1]), info = paste("State =", st))
   }
 })
 
-test_that("race x surname reference table has a single 'all other names' row", {
-  df <- .race_x_surname_data()
-  expect_length(which(df$name == 'all other names'), 1)
-})
+
+

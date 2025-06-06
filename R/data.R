@@ -3,12 +3,17 @@
 #' @name caliBISG-data
 #' @aliases calibisg-data
 #'
-#' @description Various functions for downloading and loading the caliBISG data
-#'   files used by the package. Currently caliBISG is available for the
-#'   following states and years:
+#' @description Currently caliBISG is available for the following states and
+#'   years:
 #'
 #'   * States: FL, GA, NC, NY, OH, OK, VT, WA
 #'   * Years: 2020
+#'
+#'   Each state-year combination has a separate data file that is used
+#'   internally by the package when the user requests caliBISG estimates for
+#'   that state and year. Because most of the files are hundreds of megabytes
+#'   each, they are not included with the package by default and must instead be
+#'   downloaded from GitHub. See **Details**.
 #'
 #'   We are working on adding additional states and years. When caliBISG is
 #'   unavailable we still provide traditional BISG, which does not require
@@ -41,8 +46,8 @@ NULL
 #' [gitcreds::gitcreds_get()] will be used. Otherwise the environment variables
 #' `GITHUB_PAT` and `GITHUB_TOKEN` will be checked in that order. If no token is
 #' found, the request will be made anonymously, in which case you may run into
-#' GitHub's unauthenticated rate limit if you are trying to download many files
-#' within one hour.
+#' GitHub's unauthenticated rate limit if you are trying to download files many
+#' times within one hour.
 #'
 #' @param state (character vector) For `download_data()`, the states to
 #'   download. The default is to download caliBISG data for all available

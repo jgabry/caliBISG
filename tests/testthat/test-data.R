@@ -1,3 +1,7 @@
+test_that("available_data() returns empty when no data downloaded", {
+  expect_equal(available_data(), character(0))
+})
+
 test_that("load_data() errors if not downloaded", {
   expect_error(
     load_data("VT", 2020),
@@ -16,8 +20,9 @@ test_that("download_data() throws expected messages and errors", {
       regexp = "Downloading, reading, and saving file for: VT, 2020"),
       regexp = "Downloading calibisg_vt2020.csv"
     ),
-    regexp = "R/caliBISG/VT-2020.rds"
+    regexp = "VT-2020.rds"
   )
+
   expect_message(
     expect_message(
       expect_message(
@@ -31,7 +36,7 @@ test_that("download_data() throws expected messages and errors", {
       ),
       regexp = "Downloading calibisg_wa2020.csv"
     ),
-    regexp = "R/caliBISG/WA-2020.rds"
+    regexp = "WA-2020.rds"
   )
 
   expect_error(
@@ -44,7 +49,7 @@ test_that("download_data() throws expected messages and errors", {
   )
 })
 
-test_that("available_data() returns a character vector", {
+test_that("downloaded data recognized by available_data()", {
   expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
 })
 
