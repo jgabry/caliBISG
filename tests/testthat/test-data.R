@@ -53,10 +53,6 @@ test_that("downloaded data recognized by available_data()", {
   expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
 })
 
-test_that("available_data() uses uppercase state codes", {
-  expect_true(all(grepl("^[A-Z]{2}-[0-9]{4}\\.rds$", available_data())))
-})
-
 test_that("load_data() works as expected", {
   wa_2020_data <- load_data("WA", 2020)
   expect_true(is.data.frame(wa_2020_data))
@@ -81,4 +77,11 @@ test_that("the rest of the states can be downloaded", {
     sort(available_data()),
     sort(paste0(.all_calibisg_states(), "-2020.rds"))
   )
+})
+
+test_that("all rows of caliBISG data frames are unique", {
+  for (st in .all_calibisg_states()) {
+    df <- load_data(st, 2020)
+    expect_equal(anyDuplicated(df), 0, info = paste("State =", st))
+  }
 })

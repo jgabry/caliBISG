@@ -12,7 +12,18 @@ test_that("race_probabilities() output hasn't changed", {
   )
 })
 
-test_that("race_probabilities() recycles state and county", {
+test_that("race_probabilities() gives same answer with fips or county", {
+  name <- c("lopez", "jackson", "smith", "chan")
+  state <- c("VT", "OK", "WA", "NC")
+  county <- c("Chittenden", "Tulsa", "King", "Wake")
+  fips <- .lookup_county_fips(county, state, 2020, "county_to_fips")
+  expect_identical(
+    race_probabilities(name, state, county, year = 2020),
+    race_probabilities(name, state, fips = fips, year = 2020),
+  )
+})
+
+test_that("race_probabilities() recycles state, county, and fips", {
   # both state and county are length 1
   expect_no_error(
     out <- race_probabilities(
@@ -27,6 +38,18 @@ test_that("race_probabilities() recycles state and county", {
   expect_equal(out$name, c("smith", "lopez"))
   expect_equal(out$state, c("VT", "VT"))
   expect_equal(out$county, c("chittenden", "chittenden"))
+  expect_equal(out$fips, c("007", "007"))
+
+  # both state and fips are length 1
+  expect_no_error(
+    out2 <- race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      fips = "007",
+      year   = 2020
+    )
+  )
+  expect_identical(out, out2)
 
   # state is length 1, county is length 2
   expect_no_error(
@@ -77,7 +100,18 @@ test_that("race_probabilities() recycles state and county", {
       county = rep("Chittenden", 3),
       year   = 2020
     ),
-    "`county` must be length 1 or the same length as `name`"
+    "`county` or `fips` must be length 1 or the same length as `name`"
+  )
+
+  # fips longer than name
+  expect_error(
+    race_probabilities(
+      name   = c("smith", "lopez"),
+      state  = "VT",
+      fips = rep("003", 3),
+      year   = 2020
+    ),
+    "`county` or `fips` must be length 1 or the same length as `name`"
   )
 })
 
@@ -145,7 +179,22 @@ test_that("race_probabilities() errors if inputs are wrong type", {
     ),
     "`county` must be a character vector"
   )
+  expect_error(
+    race_probabilities("lopez", "VT", fips = c("001001", "099999"), year = 2020),
+    "`fips` must be 3-digit or 5-digit FIPS county codes"
+  )
 })
+
+test_that("race_probabilities() errors if invalid fips codes", {
+  name <- c("lopez", "jackson")
+  state <- c("VT", "OK")
+  expect_error(
+    race_probabilities(name, state, fips = c("000", "999"), year = 2020),
+    "No county found for: (VT, 000), (OK, 999)",
+    fixed = TRUE
+  )
+})
+
 
 test_that("race_probabilities() returns correct columns for valid inputs", {
   out <- race_probabilities(
@@ -239,13 +288,14 @@ test_that("most_probable_race() output hasn't changed", {
 })
 
 test_that("most_probable_race() returns correct columns", {
-  out <- most_probable_race("lopez", "VT", "Chittenden", 2020)
+  out <- most_probable_race("lopez", "VT", "Chittenden", year = 2020)
   expect_s3_class(out, "data.frame")
   expect_equal(nrow(out), 1)
   expect_named(out, c(.demographic_columns(), "calibisg_race", "bisg_race", "in_census"))
   expect_equal(out$name, "lopez")
   expect_equal(out$state, "VT")
   expect_equal(out$county, "chittenden")
+  expect_equal(out$fips, "007")
   expect_equal(out$year, 2020)
   expect_equal(out$calibisg_race, "hispanic")
   expect_equal(out$bisg_race, "hispanic")
@@ -265,6 +315,7 @@ test_that("most_probable_race() handles multiple inputs", {
   expect_equal(out$name, c("lopez", "jackson", "smith"))
   expect_equal(out$state, c("VT", "VT", "WA"))
   expect_equal(out$county, c("chittenden", "windsor", "king"))
+  expect_equal(out$fips, c("007", "027", "033"))
   expect_equal(out$year, c(2020, 2020, 2020))
   expect_equal(out$calibisg_race, c("hispanic", "white_nh" , "white_nh"))
   expect_equal(out$bisg_race, c("hispanic", "white_nh" , "white_nh"))
@@ -317,7 +368,7 @@ test_that("most_probable_race() handles missing records for name and county corr
 test_that("most_probable_race() handles missing caliBISG state correctly", {
   # Currently caliBISG not available for RI but BISG is
   expect_warning(
-    out <- most_probable_race("Jones", "RI", "Providence", 2020),
+    out <- most_probable_race("Jones", "RI", "Providence", year = 2020),
     "caliBISG is not available for 1 input"
   )
   expect_s3_class(out, "data.frame")
@@ -366,3 +417,20 @@ test_that("valid_counties() matches caliBISG counties", {
   }
 })
 
+test_that(".lookup_county_fips works as expected", {
+  county1 <- "king"
+  fips <- .lookup_county_fips(county1, "WA", 2020, "county_to_fips")
+  county2 <- .lookup_county_fips(fips, "WA", 2020, "fips_to_county")
+  expect_identical(county1, county2)
+
+  fips1 <- "003"
+  county <- .lookup_county_fips(fips1, "NY", 2020, "fips_to_county")
+  fips2 <- .lookup_county_fips(county, "NY", 2020, "county_to_fips")
+  expect_identical(fips1, fips2)
+
+  # should strip first 2 digits if 5 digits
+  expect_equal(
+    .lookup_county_fips("003", "NY", 2020, "fips_to_county"),
+    .lookup_county_fips("XX003", "NY", 2020, "fips_to_county")
+  )
+})

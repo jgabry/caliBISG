@@ -94,7 +94,7 @@ available_data()
 The `delete_all_data()` function deletes all files that have been downloaded.
 
 ```{r delete_all_data, eval = FALSE}
-# not actually evaluated to avoid deleting the data we just downloaded
+# not evaluated to avoid deleting the data we just downloaded
 delete_all_data()
 ```
 
@@ -102,12 +102,13 @@ delete_all_data()
 ## Most probable race given surname and geolocation
 
 The `most_probable_race()` function provides the single most probable race
-according to caliBISG and traditional BISG. The function takes four arguments:
+according to caliBISG and traditional BISG. The function has five arguments:
 
 - `name`: a vector of surnames
 - `state`: a vector of state abbreviations
 - `county`: a vector of county names
 - `year`: the year of the data to use
+- `fips`: a vector of FIPS codes as an alternative to county names
 
 
 ```{r most_probable_race}
@@ -119,6 +120,7 @@ which is the only year currently available.
 
 ```{r most_probable_race-case-insensitivity}
 most_probable_race(name = "smith", state = "wa", county = "king")
+most_probable_race(name = "smith", state = "wa", fips = "033")
 ```
 
 In this case, the most probable race is Non-Hispanic White (`white_nh`)
@@ -171,9 +173,10 @@ valid_counties("RI")
 ## Probabilities for all races given surname and geolocation
 
 The `race_probabilities()` function gives the caliBISG and BISG estimates for
-the probability of each race. The returned object is a standard data frame, 
-however it has a subclass `"compare_calibisg"` and a custom print method that 
-prints the results as tables comparing caliBISG and BISG. 
+the probability of each race. It takes the same arguments as
+`most_probable_race()`. The returned object is a standard data frame, however it
+has a subclass `"compare_calibisg"` and a custom print method that prints the
+results as tables comparing caliBISG and BISG.
 
 ```{r race_probabilities}
 probs <- race_probabilities(

@@ -15,7 +15,7 @@ test_that("national probabilities sum to 1", {
 
 test_that("all rows of race x county data sum to 1", {
   for (st in datasets::state.abb) {
-    df <- .race_x_county_data(st, 2020)[, -c(1,2)] # drop 'state' and 'county' columns
+    df <- .race_x_county_data(st, 2020)[, -c(1,2,3)] # drop 'state', 'county', 'fips' columns
     sums <- rowSums(df)
     expect_equal(sums, rep(1, length(sums)), info = paste("State =", st))
   }
@@ -91,6 +91,3 @@ test_that("BISG can be computed for all 50 states with unknown name", {
     expect_false(is.na(out$bisg_aian[1]), info = paste("State =", st))
   }
 })
-
-
-

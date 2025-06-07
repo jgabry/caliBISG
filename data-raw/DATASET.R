@@ -1,6 +1,7 @@
 library(readr)
 library(glue)
 library(usethis)
+library(dplyr)
 
 path_root <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
 
@@ -23,6 +24,7 @@ reorder_data <- function(data) {
   )
   data[, col_order]
 }
+
 fix_spaces_in_county_name <- function(county, state) {
   orig <- county
 
@@ -78,26 +80,28 @@ fix_florida_county_names <- function(county) {
   unname(florida_counties[county])
 }
 
-
 # internal package data ---------------------------------------------------
 
 .race_x_surname_df <- rename_data(csv_to_dataframe(glue("{path_root}df_surnames.csv")))
 .race_x_usa_df_2020  <- rename_data(csv_to_dataframe(glue("{path_root}usa_census_2020.csv")))
 .race_x_county_list_2020 <- list()
+.fips_x_county_list_2020 <- list()
 
-missing_county_data <- c()
+missing_states <- c()
 for (st in tolower(state.abb)) {
-  if (file.exists(glue("{path_root}county_census_{st}2020.csv"))) {
-    dat <- rename_data(csv_to_dataframe(glue("{path_root}county_census_{st}2020.csv")))
-    if (st == "fl") {
-      dat$county <- fix_florida_county_names(dat$county)
-    }
-    dat$county <- tolower(dat$county)
+  path <- glue("{path_root}county_census_{st}2020.csv")
+  if (file.exists(path)) {
+    dat <- csv_to_dataframe(path)
+    dat <- rename_data(dat)
+    dat$county <- tolower(gsub(" County", "", dat$NAME))
     dat$county <- fix_spaces_in_county_name(dat$county, st)
+    dat$fips <- dat$COUNTY
     dat$state <- toupper(st)
+
     .race_x_county_list_2020[[st]] <- dat[, c(
       "state",
       "county",
+      "fips",
       "prob_aian",
       "prob_api",
       "prob_black_nh",
@@ -105,17 +109,19 @@ for (st in tolower(state.abb)) {
       "prob_white_nh",
       "prob_other"
     )]
+    .fips_x_county_list_2020[[st]] <- arrange(dat[, c("state", "county", "fips")], county)
   } else
-    missing_county_data <- c(missing_county_data, st)
+    missing_states <- c(missing_states, st)
 }
-if (length(missing_county_data)) {
-  stop(glue("Missing county data for states: {paste(missing_county_data, collapse = ', ')}"))
+if (length(missing_states)) {
+  stop(glue("Missing county data for states: {paste(missing_states, collapse = ', ')}"))
 }
 
 use_data(
   .race_x_surname_df,
   .race_x_usa_df_2020,
   .race_x_county_list_2020,
+  .fips_x_county_list_2020,
   internal = TRUE,
   overwrite = TRUE,
   compress = "xz"
@@ -127,18 +133,27 @@ use_data(
 
 for (st in tolower(caliBISG:::.all_calibisg_states())) {
   for (yr in caliBISG:::.all_calibisg_years()) {
+    print(paste("State:", st, "| Year:", yr))
     dat <- csv_to_dataframe(glue("{path_root}calibisg_{st}{yr}.csv"))
-    dat <- as.data.frame(dat)
-    if (st == "fl") {
-      dat$county <- fix_florida_county_names(dat$county)
-    }
     dat$year <- yr
     dat$state <- toupper(st)
-    dat$county <- tolower(dat$county)
+    if (st == "fl") {
+      # For Florida, convert county abbreviations to full names
+      dat$county <- fix_florida_county_names(dat$county)
+    }
     dat$county <- fix_spaces_in_county_name(dat$county, st)
+    dat$county <- tolower(dat$county)
     dat$name <- tolower(dat$name)
     dat <- rename_data(dat)
+    dat <- left_join( # add FIPS
+      dat,
+      select(.race_x_county_list_2020[[st]], county, fips),
+      by = "county"
+    )
     dat <- reorder_data(dat)
+    dat <- as.data.frame(dat)
+    dat <- unique(dat)
+    rownames(dat) <- NULL
     readr::write_csv(
       dat,
       file = glue("{path_root}/to-upload/calibisg_{st}{yr}.csv"),
@@ -147,7 +162,3 @@ for (st in tolower(caliBISG:::.all_calibisg_states())) {
     )
   }
 }
-
-
-
-

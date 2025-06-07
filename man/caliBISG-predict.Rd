@@ -9,9 +9,9 @@
 \alias{valid_counties}
 \title{Predict race given surname and location}
 \usage{
-most_probable_race(name, state, county, year = 2020)
+most_probable_race(name, state, county, ..., year = 2020, fips = NULL)
 
-race_probabilities(name, state, county, year = 2020)
+race_probabilities(name, state, county, ..., year = 2020, fips = NULL)
 
 \method{print}{compare_calibisg}(
   x,
@@ -32,17 +32,23 @@ match the length of \code{name}.}
 
 \item{county}{(character vector) A vector of counties. Coerced to lowercase
 internally. If a single county is provided, it is recycled to match the
-length of \code{name}.}
+length of \code{name}. Either \code{county} or \code{fips} must be provided, but not both.}
+
+\item{...}{Currently unused.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
 The default is \code{2020}, which is currently the only available year. This
 default may change in the future when more years become available.}
 
+\item{fips}{(character vector) A vector of FIPS county codes that can be
+provided as an alternative to county names. Since \code{state} already has to be
+specified, only 3-digit FIPS codes are necessary. If 5-digit codes are
+provided the first two digits are not used (and not validated). If a single
+FIPS code is provided, it is recycled to match the length of \code{name}.}
+
 \item{x}{(compare_calibisg) For \code{print()}, the object returned by
 \code{race_probabilities()}, which is a data frame with subclass
 \code{"compare_calibisg"}.}
-
-\item{...}{Currently unused.}
 
 \item{digits}{(integer) For \code{print()}, the number of digits to display in the
 output. The default is to use two digits unless the global option
@@ -61,7 +67,8 @@ to the length of the input vectors and the following columns:
 \item \code{name} (string): The surname.
 \item \code{year} (integer): The year of the data used to compute the estimates.
 \item \code{state} (string): The state.
-\item \code{county} (string): The county.
+\item \code{county} (string): The county name.
+\item \code{fips} (string): The 3-digit FIPS county code.
 \item \code{calibisg_race} (string): The most probable race according to caliBISG.
 \item \code{bisg_race} (string): The most probable race according to traditional BISG.
 \item \code{in_census} (logical): Whether the surname is found in the list of
@@ -108,10 +115,11 @@ BISG (caliBISG) method from Greengard and Gelman (2025). Traditional BISG
 estimates are also provided. For some state, county, and surname
 combinations the caliBISG estimate will not be available. In those cases we
 still provide traditional BISG estimates as long as the state and county
-are valid.
+(or FIPS code) are valid.
 
 Before caliBISG is available, the data files for the relevant states and
-years must be downloaded using \code{\link[=download_data]{download_data()}}.
+years must be downloaded using \code{\link[=download_data]{download_data()}}. Traditional BISG does not
+require any downloads.
 
 The first query to \code{most_probable_race()} or \code{race_probabilities()} for a
 particular state and year may take a few seconds to first load the relevant
@@ -136,7 +144,7 @@ table for each row in the returned data frame up to \code{max_print} rows.
 }
 
 \itemize{
-\item \code{valid_counties()}: List the valid county names for a given state and year.
+\item \code{valid_counties()}: List the valid county names for a given state.
 }
 }
 \examples{
@@ -159,6 +167,10 @@ probs2 <- race_probabilities(
 )
 str(probs2)
 print(probs2, digits = 3)
+
+# can provide FIPS county code instead of county name
+# only 3-digit FIPS codes are necessary since we already have the state
+race_probabilities("Jackson", "VT", fips = "007")
 
 # caliBISG is not yet available for RI but we can still get
 # regular BISG if we input a valid county

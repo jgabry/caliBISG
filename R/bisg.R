@@ -5,14 +5,7 @@
 #'
 #' @keywords internal
 #' @export
-#' @param name (character vector) A vector of surnames. Coerced to lowercase
-#'   internally.
-#' @param county (character vector) A vector of counties. Coerced to lowercase
-#'   internally.
-#' @param state (character vector) A vector of state abbreviations. Coerced to
-#'   uppercase internally.
-#' @param year (integer) The year of the data to use to compute the estimates.
-#'   Currently only 2020 is available.
+#' @inheritParams most_probable_race
 #'
 #' @return (data frame) A data frame with colums `name`, `year`, `state`,
 #'   `county`, plus six BISG probability columns:
@@ -34,10 +27,10 @@
 #' }
 #'
 bisg <- function(name, state, county, year = 2020) {
-  .validate_inputs(name, state, county, year)
-  county <- tolower(county)
+  .validate_inputs(name, state, year, county)
   name <- tolower(name)
-  state <- toupper(state)
+  county <- .recycle(tolower(county), size = length(name))
+  state <- .recycle(toupper(state), size = length(name))
 
   # reference tables
   df_surnames <- .race_x_surname_data()
@@ -55,7 +48,7 @@ bisg <- function(name, state, county, year = 2020) {
     identical(colnames(df_surnames[-1]), cen_cols),
     identical(colnames(df_national), prob_cols),
     identical(
-      colnames(df_counties)[!(colnames(df_counties) %in% c("state", "county")) ],
+      colnames(df_counties)[!(colnames(df_counties) %in% c("state", "county", "fips")) ],
       prob_cols
     )
   )
@@ -65,8 +58,7 @@ bisg <- function(name, state, county, year = 2020) {
     id = seq_along(name), # used later to preserve original order
     name = name,
     county = county,
-    state = state,
-    stringsAsFactors = FALSE
+    state = state
   )
 
   # merge surname distributions
@@ -108,8 +100,7 @@ bisg <- function(name, state, county, year = 2020) {
     year = year,
     state = df$state,
     county = df$county,
-    bisg_mat,
-    stringsAsFactors = FALSE
+    bisg_mat
   )
   names(out)[-(1:4)] <- bisg_cols
   out <- out[order(df$id), ] # restore original order

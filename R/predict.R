@@ -8,10 +8,11 @@
 #'   estimates are also provided. For some state, county, and surname
 #'   combinations the caliBISG estimate will not be available. In those cases we
 #'   still provide traditional BISG estimates as long as the state and county
-#'   are valid.
+#'   (or FIPS code) are valid.
 #'
 #'   Before caliBISG is available, the data files for the relevant states and
-#'   years must be downloaded using [download_data()].
+#'   years must be downloaded using [download_data()]. Traditional BISG does not
+#'   require any downloads.
 #'
 #'   The first query to `most_probable_race()` or `race_probabilities()` for a
 #'   particular state and year may take a few seconds to first load the relevant
@@ -44,6 +45,10 @@
 #' str(probs2)
 #' print(probs2, digits = 3)
 #'
+#' # can provide FIPS county code instead of county name
+#' # only 3-digit FIPS codes are necessary since we already have the state
+#' race_probabilities("Jackson", "VT", fips = "007")
+#'
 #' # caliBISG is not yet available for RI but we can still get
 #' # regular BISG if we input a valid county
 #' valid_counties("RI")
@@ -67,10 +72,16 @@ NULL
 #'   match the length of `name`.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally. If a single county is provided, it is recycled to match the
-#'   length of `name`.
+#'   length of `name`. Either `county` or `fips` must be provided, but not both.
+#' @param fips (character vector) A vector of FIPS county codes that can be
+#'   provided as an alternative to county names. Since `state` already has to be
+#'   specified, only 3-digit FIPS codes are necessary. If 5-digit codes are
+#'   provided the first two digits are not used (and not validated). If a single
+#'   FIPS code is provided, it is recycled to match the length of `name`.
 #' @param year (integer) The year of the data to use to compute the estimates.
 #'   The default is `2020`, which is currently the only available year. This
 #'   default may change in the future when more years become available.
+#' @param ... Currently unused.
 #'
 #' @return
 #' * `most_probable_race()`: (data frame) A data frame with number of rows equal
@@ -78,14 +89,23 @@ NULL
 #'      - `name` (string): The surname.
 #'      - `year` (integer): The year of the data used to compute the estimates.
 #'      - `state` (string): The state.
-#'      - `county` (string): The county.
+#'      - `county` (string): The county name.
+#'      - `fips` (string): The 3-digit FIPS county code.
 #'      - `calibisg_race` (string): The most probable race according to caliBISG.
 #'      - `bisg_race` (string): The most probable race according to traditional BISG.
 #'      - `in_census` (logical): Whether the surname is found in the list of
 #'         names that appear at least 100 times in the census.
 #'
-most_probable_race <- function(name, state, county, year = 2020) {
-  prediction <- as.data.frame(race_probabilities(name, state, county, year))
+most_probable_race <- function(name, state, county, ..., year = 2020, fips = NULL) {
+  prediction <- as.data.frame(
+    race_probabilities(
+      name = name,
+      state = state,
+      county = county,
+      year = year,
+      fips = fips
+    )
+  )
   prediction$calibisg_race <- apply(
     prediction[, .calibisg_columns()], 1, function(probs) {
       if (anyNA(probs)) return(NA)
@@ -136,18 +156,19 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'     The data frame also has class `"compare_calibisg"`, which enables defining a
 #'     custom `print()` method.
 #'
-race_probabilities <- function(name, state, county, year = 2020) {
-  .validate_inputs(name, state, county, year)
-  if (length(state) == 1) {
-    state <- rep(state, length(name))
+race_probabilities <- function(name, state, county, ..., year = 2020, fips = NULL) {
+  .validate_inputs(name, state, year, county, fips)
+  name <- tolower(name)
+  state <- .recycle(toupper(state), size = length(name))
+  if (!is.null(fips)) {
+    county <- .lookup_county_fips(fips, state, year, "fips_to_county")
   }
-  if (length(county) == 1) {
-    county <- rep(county, length(name))
-  }
-  calibisg_out_list <- lapply(seq_along(name), function(i) {
+  county <- .recycle(tolower(county), size = length(name))
+
+  calibisg_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
-  calibisg_out <- do.call(rbind, calibisg_out_list)
+  calibisg_out <- do.call(rbind, calibisg_list)
   bisg_out <- bisg(
     name = calibisg_out$name,
     state = calibisg_out$state,
@@ -256,7 +277,7 @@ print.compare_calibisg <- function(x,
 #' @export
 #'
 #' @details
-#' * `valid_counties()`: List the valid county names for a given state and year.
+#' * `valid_counties()`: List the valid county names for a given state.
 #'
 #' @return
 #' * `valid_counties()`: (character vector) County names.
@@ -281,7 +302,7 @@ valid_counties <- function(state, year = 2020) {
   paste0("bisg_", .race_column_order())
 }
 .demographic_columns <- function() {
-  c("name", "year", "state", "county")
+  c("name", "year", "state", "county", "fips")
 }
 
 #' Input validation
@@ -290,20 +311,32 @@ valid_counties <- function(state, year = 2020) {
 #' @param name,state,county,year The inputs to validate.
 #' @return (logical) `TRUE`, invisibly, if no error is thrown.
 #'
-.validate_inputs <- function(name, state, county, year) {
+.validate_inputs <- function(name, state, year, county, fips = NULL) {
   .validate_year(year)
   .validate_state(state, allow_multiple = TRUE)
+  if (missing(county)) {
+    county <- NULL
+  }
 
-  # these two don't check if the name/county are legit just that they are
-  # character vectors
-  .validate_county(county)
+  # these don't check if the name/fips/county are legit just that they are
+  # the right type
   .validate_name(name)
+  if (!is.null(fips) && !is.null(county)) {
+    stop("Only one of `county` or `fips` should be provided.", call. = FALSE)
+  } else if (is.null(fips) && !is.null(county)) {
+    .validate_county(county)
+  } else if (!is.null(fips)) {
+    .validate_fips(fips)
+    county <- fips
+  } else {
+    stop("Either `county` or `fips` must be provided.", call. = FALSE)
+  }
 
   if (length(state) != 1L && length(state) != length(name)) {
     stop("`state` must be length 1 or the same length as `name`.", call. = FALSE)
   }
   if (length(county) != 1L && length(county) != length(name)) {
-    stop("`county` must be length 1 or the same length as `name`.", call. = FALSE)
+    stop("`county` or `fips` must be length 1 or the same length as `name`.", call. = FALSE)
   }
 
   invisible(TRUE)
@@ -350,29 +383,102 @@ valid_counties <- function(state, year = 2020) {
   }
   invisible(TRUE)
 }
+.validate_fips <- function(fips) {
+  if (!is.character(fips)) {
+    stop("`fips` must be a character vector.", call. = FALSE)
+  }
+  if (!all(grepl("^\\d{3}$", fips)) && !all(grepl("^\\d{5}$", fips))) {
+    stop("`fips` must be 3-digit or 5-digit FIPS county codes.", call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+#' Convert fips to county or county to fips
+#'
+#' @param codes (character vector) The FIPS codes or county names to convert.
+#' @param state (character vector) The state abbreviations.
+#' @param year (numeric) A single year.
+#' @param direction (character) Either `"fips_to_county"` or `"county_to_fips"`.
+#' @param error_if_missing (logical) Whether to error or return `NA` for codes
+#'   that can't be converted.
+#' @return (character vector) The county names or FIPS codes corresponding to
+#'   the input.
+#' @noRd
+#'
+#'
+.lookup_county_fips <- function(codes, state, year,
+                                direction = c("fips_to_county", "county_to_fips"),
+                                error_if_missing = TRUE) {
+  direction <- match.arg(direction)
+  codes <- tolower(codes)
+  state <- .recycle(toupper(state), size = length(codes))
+  lookup_df <- do.call(rbind, lapply(unique(state), function(st) {
+    get(paste0(".fips_x_county_list_", year))[[tolower(st)]]
+  }))
+
+  if (direction == "fips_to_county") {
+    by_cols <- c("state", "fips")
+    query_col <- "fips"
+    out_col <- "county"
+    if (nchar(codes[1]) == 5) {
+      # we've already verified that they are all either 5 or 3 chars
+      codes <- substr(codes, 3, 5)
+    }
+  } else {
+    by_cols <- c("state", "county")
+    query_col <- "county"
+    out_col <- "fips"
+  }
+  query_df <- data.frame(state, codes)
+  names(query_df)[2] <- query_col
+
+  merged <- merge(
+    query_df,
+    lookup_df[, c(by_cols, out_col)],
+    by = by_cols,
+    all.x = TRUE,
+    sort = FALSE
+  )
+
+  if (error_if_missing) {
+    not_found <- which(is.na(merged[[out_col]]))
+    if (length(not_found)) {
+      not_found_states <- merged$state[not_found]
+      not_found_codes <- merged[[query_col]][not_found]
+      not_found_msg <- paste0("(", not_found_states, ", ", not_found_codes, ")")
+      stop(sprintf(
+        "No %s found for: %s",
+        out_col,
+        paste(not_found_msg, collapse = ", ")
+      ))
+    }
+  }
+  merged[[out_col]]
+}
+
 
 #' Load the state-year data, filter by a single county and surname
 #'
 #' @noRd
-#' @param name,state,county,year Scalar inputs.
+#' @param name (string) A single lowercase name.
+#' @param state (string) A single uppercase state abbreviation.
+#' @param county (string) A single lowercase county name.
+#' @param year (integer) A single year.
 #' @return (data frame) Data with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
+#'
 .get_single_calibisg_record <- function(name, state, county, year) {
-  name <- tolower(name)
-  county <- tolower(county)
-  state <- toupper(state)
-
   df <- .load_data_internal(state, year, error_if_missing = FALSE)
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
   rownames(subset_df) <- NULL
-
   if (NROW(subset_df) == 0) {
     out <- data.frame(
       name = name,
       state = state,
       county = county,
-      year = year,
-      stringsAsFactors = FALSE
+      fips = .lookup_county_fips(county, state, year, "county_to_fips",
+                                 error_if_missing = FALSE),
+      year = year
     )
     for (col in .calibisg_columns()) {
       out[[col]] <- NA
@@ -381,18 +487,6 @@ valid_counties <- function(state, year = 2020) {
     out$.found <- FALSE
     return(out)
   }
-
-  # I don't think this is necessary anymore, but leaving it here for now
-  # if (nrow(subset_df) > 1) {
-  #   warning(
-  #     "Multiple rows found for caliBISG for (name=", name,
-  #     ", state=", state, ", county=", county, ", year=", year, "). ",
-  #     "Returning the first match.",
-  #     call. = FALSE
-  #   )
-  #   subset_df <- subset_df[1, ]
-  # }
-
   subset_df$.found <- TRUE
   subset_df
 }
@@ -406,6 +500,24 @@ valid_counties <- function(state, year = 2020) {
 .capitalize <- function(x) {
   paste0(toupper(substr(x, 1, 1)), tolower(substr(x, 2, nchar(x))))
 }
+
+#' Recycle to a certain size if length 1
+#'
+#' @param x (vector) A vector that is either length 1 or length `size`
+#'   (this will have already been verified by `.validate_inputs()`), typically
+#'   `state` or `county`.
+#' @param size (integer) The desired length, typically `length(name)`.
+#' @param return (vector) The maybe recycled vector `x`.
+#' @noRd
+#'
+.recycle <- function(x, size) {
+  if (length(x) == 1L) {
+    rep(x, size)
+  } else {
+    x
+  }
+}
+
 
 #' Pretty print the table of estimates
 #'
