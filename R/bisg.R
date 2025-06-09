@@ -28,9 +28,9 @@
 #'
 bisg <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
-  county <- tolower(county)
   name <- tolower(name)
-  state <- toupper(state)
+  state <- .recycle(toupper(state), size = length(name))
+  county <- .recycle(tolower(county), size = length(name))
 
   # reference tables
   df_surnames <- .race_x_surname_data()
