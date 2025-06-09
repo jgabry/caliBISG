@@ -145,7 +145,6 @@ race_probabilities <- function(name, state, county, year = 2020) {
   calibisg_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
-  calibisg_out <- do.call(rbind, calibisg_out_list)
   calibisg_out <- do.call(rbind, calibisg_list)
   bisg_out <- bisg(
     name = calibisg_out$name,
