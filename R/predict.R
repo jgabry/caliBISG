@@ -141,6 +141,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
   name <- tolower(name)
   state <- .recycle(toupper(state), size = length(name))
   county <- .recycle(tolower(county), size = length(name))
+
   calibisg_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
@@ -380,6 +381,23 @@ valid_counties <- function(state, year = 2020) {
   }
   subset_df$.found <- TRUE
   subset_df
+}
+
+#' Recycle to a certain size if length 1
+#'
+#' @param x (vector) A vector that is either length 1 or length `size`
+#'   (this will have already been verified by `.validate_inputs()`), typically
+#'   `state` or `county`.
+#' @param size (integer) The desired length, typically `length(name)`.
+#' @param return (vector) The maybe recycled vector `x`.
+#' @noRd
+#'
+.recycle <- function(x, size) {
+  if (length(x) == 1L) {
+    rep(x, size)
+  } else {
+    x
+  }
 }
 
 #' Capitalize the first letter of each string
