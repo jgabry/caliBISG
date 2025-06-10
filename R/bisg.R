@@ -5,14 +5,7 @@
 #'
 #' @keywords internal
 #' @export
-#' @param name (character vector) A vector of surnames. Coerced to lowercase
-#'   internally.
-#' @param county (character vector) A vector of counties. Coerced to lowercase
-#'   internally.
-#' @param state (character vector) A vector of state abbreviations. Coerced to
-#'   uppercase internally.
-#' @param year (integer) The year of the data to use to compute the estimates.
-#'   Currently only 2020 is available.
+#' @inheritParams most_probable_race
 #'
 #' @return (data frame) A data frame with colums `name`, `year`, `state`,
 #'   `county`, plus six BISG probability columns:
@@ -35,9 +28,9 @@
 #'
 bisg <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
-  county <- tolower(county)
   name <- tolower(name)
-  state <- toupper(state)
+  state <- .recycle(toupper(state), size = length(name))
+  county <- .recycle(tolower(county), size = length(name))
 
   # reference tables
   df_surnames <- .race_x_surname_data()

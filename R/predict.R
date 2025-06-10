@@ -138,16 +138,14 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'
 race_probabilities <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
-  if (length(state) == 1) {
-    state <- rep(state, length(name))
-  }
-  if (length(county) == 1) {
-    county <- rep(county, length(name))
-  }
-  calibisg_out_list <- lapply(seq_along(name), function(i) {
+  name <- tolower(name)
+  state <- .recycle(toupper(state), size = length(name))
+  county <- .recycle(tolower(county), size = length(name))
+
+  calibisg_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
-  calibisg_out <- do.call(rbind, calibisg_out_list)
+  calibisg_out <- do.call(rbind, calibisg_list)
   bisg_out <- bisg(
     name = calibisg_out$name,
     state = calibisg_out$state,
@@ -354,14 +352,13 @@ valid_counties <- function(state, year = 2020) {
 #' Load the state-year data, filter by a single county and surname
 #'
 #' @noRd
-#' @param name,state,county,year Scalar inputs.
+#' @param name (string) A single lowercase name.
+#' @param state (string) A single uppercase state abbreviation.
+#' @param county (string) A single lowercase county name.
+#' @param year (integer) A single year.
 #' @return (data frame) Data with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
 .get_single_calibisg_record <- function(name, state, county, year) {
-  name <- tolower(name)
-  county <- tolower(county)
-  state <- toupper(state)
-
   df <- .load_data_internal(state, year, error_if_missing = FALSE)
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
   rownames(subset_df) <- NULL
@@ -381,20 +378,25 @@ valid_counties <- function(state, year = 2020) {
     out$.found <- FALSE
     return(out)
   }
-
-  # I don't think this is necessary anymore, but leaving it here for now
-  # if (nrow(subset_df) > 1) {
-  #   warning(
-  #     "Multiple rows found for caliBISG for (name=", name,
-  #     ", state=", state, ", county=", county, ", year=", year, "). ",
-  #     "Returning the first match.",
-  #     call. = FALSE
-  #   )
-  #   subset_df <- subset_df[1, ]
-  # }
-
   subset_df$.found <- TRUE
   subset_df
+}
+
+#' Recycle to a certain size if length 1
+#'
+#' @param x (vector) A vector that is either length 1 or length `size`
+#'   (this will have already been verified by `.validate_inputs()`), typically
+#'   `state` or `county`.
+#' @param size (integer) The desired length, typically `length(name)`.
+#' @param return (vector) The maybe recycled vector `x`.
+#' @noRd
+#'
+.recycle <- function(x, size) {
+  if (length(x) == 1L) {
+    rep(x, size)
+  } else {
+    x
+  }
 }
 
 #' Capitalize the first letter of each string

@@ -11,13 +11,16 @@ bisg(name, state, county, year = 2020)
 internally.}
 
 \item{state}{(character vector) A vector of state abbreviations. Coerced to
-uppercase internally.}
+uppercase internally. If a single state is provided, it is recycled to
+match the length of \code{name}.}
 
 \item{county}{(character vector) A vector of counties. Coerced to lowercase
-internally.}
+internally. If a single county is provided, it is recycled to match the
+length of \code{name}.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
-Currently only 2020 is available.}
+The default is \code{2020}, which is currently the only available year. This
+default may change in the future when more years become available.}
 }
 \value{
 (data frame) A data frame with colums \code{name}, \code{year}, \code{state},
