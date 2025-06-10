@@ -155,21 +155,21 @@ table for each row in the returned data frame up to \code{max_print} rows.
 }
 \examples{
 \dontrun{
-download_data(c("VT", "WA"), 2020)
+download_data(c("VT", "OK"), 2020)
 
-most_probable_race("Smith", "WA", "King")
+most_probable_race("Smith", "OK", "Tulsa")
 most_probable_race(
   name = c("Lopez", "Jackson"),
-  state = c("VT", "WA"),
-  county = c("Chittenden", "King")
+  state = c("VT", "OK"),
+  county = c("Chittenden", "Tulsa")
 )
 
-race_probabilities("Smith", "WA", "King")
+race_probabilities("Smith", "OK", "Tulsa")
 race_probabilities("Lopez", "VT", "Chittenden")
 probs2 <- race_probabilities(
   name = c("Lopez", "Smith"),
-  state = c("VT", "WA"),
-  county = c("Chittenden", "King")
+  state = c("VT", "OK"),
+  county = c("Chittenden", "Tulsa")
 )
 str(probs2)
 print(probs2, digits = 3)

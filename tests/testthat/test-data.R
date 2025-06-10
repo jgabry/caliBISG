@@ -49,8 +49,52 @@ test_that("download_data() throws expected messages and errors", {
   )
 })
 
-test_that("downloaded data recognized by available_data()", {
+test_that("download_data() can overwrite existing files", {
+  expect_message(
+    download_data("VT"),
+    "VT-2020.rds already exists. Skipping."
+  )
+
+  expect_message(
+    expect_message(
+      expect_message({
+        res <- download_data("VT", 2020, progress = FALSE, overwrite = TRUE)
+        expect_true(res)
+      },
+      regexp = "Downloading, reading, and saving file for: VT, 2020"),
+      regexp = "Downloading calibisg_vt2020.csv"
+    ),
+    regexp = "VT-2020.rds"
+  )
+})
+
+test_that("available_data() recognizes downloaded data", {
   expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
+})
+
+test_that("delete_data() deletes downloaded data", {
+  suppressMessages(download_data("OK", progress = FALSE))
+  expect_equal(available_data(), c("OK-2020.rds", "VT-2020.rds", "WA-2020.rds"))
+  expect_message(
+    expect_true(delete_data("OK")),
+    "Deleting data file(s): OK-2020.rds",
+    fixed = TRUE
+  )
+  expect_equal(available_data(), c("VT-2020.rds", "WA-2020.rds"))
+
+  expect_message(
+    expect_equal(delete_data("OK"), logical()),
+    "No files found for deletion"
+  )
+
+  suppressMessages(download_data("OK", progress = FALSE))
+  expect_message(
+    expect_true(all(delete_data(c("OK", "VT")))),
+    "Deleting data file(s): OK-2020.rds, VT-2020.rds",
+    fixed = TRUE
+  )
+  expect_equal(available_data(), "WA-2020.rds")
+  suppressMessages(download_data("VT", progress = FALSE))
 })
 
 test_that("load_data() works as expected", {

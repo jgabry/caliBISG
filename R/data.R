@@ -21,14 +21,20 @@
 #'
 #' @examples
 #' \dontrun{
-#' # Download data just for Oklahoma and Washington for 2020
-#' download_data(state = c("OK", "WA"), year = 2020)
+#' # Download data just for Oklahoma and Vermont for 2020
+#' download_data(state = c("OK", "VT"), year = 2020)
 #'
 #' # Download all available data
 #' download_data()
 #'
 #' # List the data files that have already been downloaded
 #' available_data()
+#'
+#' # Delete the downloaded data for OK
+#' delete_data("OK")
+#'
+#' # Delete all downloaded data
+#' delete_data()
 #' }
 NULL
 
@@ -49,20 +55,23 @@ NULL
 #' GitHub's unauthenticated rate limit if you are trying to download files many
 #' times within one hour.
 #'
-#' @param state (character vector) For `download_data()`, the states to
-#'   download. The default is to download caliBISG data for all available
-#'   states. If specifying particular states, they should be provided as
-#'   two-letter abbreviations. For `load_data()`, a single state to load.
-#' @param year (integer vector) For `download_data()`, the years to download.
-#'   The default is to download caliBISG data for all available years. For
+#' @param state (character vector) For `download_data()` or `delete_data()`, the
+#'   states to download or delete. The default is all available states. If
+#'   specifying particular states, they should be provided as two-letter
+#'   abbreviations. For `load_data()`, a single state to load.
+#' @param year (integer vector) For `download_data()` or `delete_data()`, the
+#'   years to download or delete. The default is all available years. For
 #'   `load_data()`, a single year to load.
 #' @param progress (logical) Whether to show a progress bar while downloading
 #'   the data. The default is `TRUE`.
+#' @param overwrite (logical) For `download_data()`, whether to overwrite
+#'   existing files if files with the same names already exist. The default is
+#'   `FALSE`.
 #'
 #' @return
 #' * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
-download_data <- function(state, year, progress = TRUE) {
+download_data <- function(state, year, progress = TRUE, overwrite = FALSE) {
   if (missing(state)) {
     states <- .all_calibisg_states()
   } else {
@@ -79,7 +88,7 @@ download_data <- function(state, year, progress = TRUE) {
     for (yr in years) {
       rds_name <- paste0(st, "-", yr, ".rds")
       rds_path <- file.path(.data_dir(), rds_name)
-      if (file.exists(rds_path)) {
+      if (file.exists(rds_path) && !overwrite) {
         message("* ", rds_name, " already exists. Skipping.")
         next
       }
@@ -101,21 +110,35 @@ download_data <- function(state, year, progress = TRUE) {
 #' @export
 #'
 #' @details
-#' * `load_data()`: Load the data for a particular state and  year. This is only
-#' necessary if you want to work with the full data files directly. When using
-#' the functions provided by this package (e.g. [race_probabilities()]) the data
-#' will be loaded internally automatically.
+#' * `delete_data()`: Delete all or a subset of the data files stored internally.
 #'
 #' @return
-#' * `load_data()`: (data frame) The caliBISG data for the specified state and year.
+#' * `delete_data()`: (logical) Invisibly, a vector indicating if each specified
+#' file has been deleted successfully.
 #'
-load_data <- function(state, year = 2020) {
-  stopifnot(
-    is.character(state), length(state) == 1,
-    is.numeric(year), length(year) == 1
-  )
-  .ensure_data_available(state, year)
-  readRDS(.data_path(state, year))
+delete_data <- function(state, year) {
+  if (missing(state) && missing(year)) {
+    to_delete <- available_data()
+  } else {
+    if (missing(state)) {
+      states <- .all_calibisg_states()
+    } else {
+      states <- toupper(state)
+    }
+    if (missing(year)) {
+      years <- .all_calibisg_years()
+    } else {
+      years <- as.integer(year)
+    }
+    .validate_calibisg_states_years(states, years)
+    to_delete <- intersect(paste0(states, "-", years, ".rds"), available_data())
+  }
+  if (length(to_delete)) {
+    message("Deleting data file(s): ", paste(to_delete, collapse = ", "))
+  } else {
+    message("No files found for deletion.")
+  }
+  invisible(file.remove(file.path(.data_dir(), to_delete)))
 }
 
 #' @rdname caliBISG-data
@@ -136,16 +159,21 @@ available_data <- function() {
 #' @export
 #'
 #' @details
-#' * `delete_all_data()`: Delete all the data files stored internally.
+#' * `load_data()`: Load the data for a particular state and  year. This is only
+#' necessary if you want to work with the full data files directly. When using
+#' the functions provided by this package (e.g. [race_probabilities()]) the data
+#' will be loaded internally automatically.
 #'
 #' @return
-#' * `delete_all_data()`: (logical) `TRUE` or `FALSE`, invisibly,
-#' indicating success or failure.
+#' * `load_data()`: (data frame) The caliBISG data for the specified state and year.
 #'
-delete_all_data <- function() {
-  message("Deleting data files: ", paste(available_data(), collapse = ", "))
-  out <- unlink(.data_dir(), recursive = TRUE)
-  invisible(as.logical(out))
+load_data <- function(state, year = 2020) {
+  stopifnot(
+    is.character(state), length(state) == 1,
+    is.numeric(year), length(year) == 1
+  )
+  .ensure_data_available(state, year)
+  readRDS(.data_path(state, year))
 }
 
 

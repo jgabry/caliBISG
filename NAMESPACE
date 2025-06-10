@@ -3,7 +3,7 @@
 S3method(print,compare_calibisg)
 export(available_data)
 export(bisg)
-export(delete_all_data)
+export(delete_data)
 export(download_data)
 export(fips_to_county)
 export(load_data)
