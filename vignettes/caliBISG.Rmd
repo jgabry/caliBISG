@@ -51,8 +51,8 @@ library(caliBISG)
 ## Download caliBISG data
 
 
-```{r setup-delete_all_data, echo=FALSE, message=FALSE}
-delete_all_data()
+```{r setup-delete_data, echo=FALSE, message=FALSE}
+delete_data()
 ```
 
 The `download_data()` function downloads the caliBISG data files from GitHub for
@@ -91,11 +91,13 @@ WA, we should see `OK-2020.rds` and `WA-2020.rds`.
 available_data()
 ```
 
-The `delete_all_data()` function deletes all files that have been downloaded.
+The `delete_data()` function deletes downloaded data files. Individual files can
+be specified via the `state` and `year` arguments. If no arguments are specified
+all files are deleted.
 
-```{r delete_all_data, eval = FALSE}
-# not actually evaluated to avoid deleting the data we just downloaded
-delete_all_data()
+```{r delete_data, eval = FALSE}
+# not evaluated to avoid deleting the data we just downloaded
+delete_data()
 ```
 
 

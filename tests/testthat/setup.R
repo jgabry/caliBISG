@@ -1,2 +1,2 @@
 # start with a clean slate
-suppressMessages(delete_all_data())
+suppressMessages(delete_data())

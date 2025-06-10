@@ -4,31 +4,35 @@
 \alias{caliBISG-data}
 \alias{calibisg-data}
 \alias{download_data}
-\alias{load_data}
+\alias{delete_data}
 \alias{available_data}
-\alias{delete_all_data}
+\alias{load_data}
 \title{Download caliBISG data files}
 \usage{
-download_data(state, year, progress = TRUE)
+download_data(state, year, progress = TRUE, overwrite = FALSE)
 
-load_data(state, year = 2020)
+delete_data(state, year)
 
 available_data()
 
-delete_all_data()
+load_data(state, year = 2020)
 }
 \arguments{
-\item{state}{(character vector) For \code{download_data()}, the states to
-download. The default is to download caliBISG data for all available
-states. If specifying particular states, they should be provided as
-two-letter abbreviations. For \code{load_data()}, a single state to load.}
+\item{state}{(character vector) For \code{download_data()} or \code{delete_data()}, the
+states to download or delete. The default is all available states. If
+specifying particular states, they should be provided as two-letter
+abbreviations. For \code{load_data()}, a single state to load.}
 
-\item{year}{(integer vector) For \code{download_data()}, the years to download.
-The default is to download caliBISG data for all available years. For
+\item{year}{(integer vector) For \code{download_data()} or \code{delete_data()}, the
+years to download or delete. The default is all available years. For
 \code{load_data()}, a single year to load.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
 the data. The default is \code{TRUE}.}
+
+\item{overwrite}{(logical) For \code{download_data()}, whether to overwrite
+existing files if files with the same names already exist. The default is
+\code{FALSE}.}
 }
 \value{
 \itemize{
@@ -36,7 +40,8 @@ the data. The default is \code{TRUE}.}
 }
 
 \itemize{
-\item \code{load_data()}: (data frame) The caliBISG data for the specified state and year.
+\item \code{delete_data()}: (logical) Invisibly, a vector indicating if each specified
+file has been deleted successfully.
 }
 
 \itemize{
@@ -45,8 +50,7 @@ that have already been downloaded.
 }
 
 \itemize{
-\item \code{delete_all_data()}: (logical) \code{TRUE} or \code{FALSE}, invisibly,
-indicating success or failure.
+\item \code{load_data()}: (data frame) The caliBISG data for the specified state and year.
 }
 }
 \description{
@@ -83,10 +87,7 @@ times within one hour.
 }
 
 \itemize{
-\item \code{load_data()}: Load the data for a particular state and  year. This is only
-necessary if you want to work with the full data files directly. When using
-the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
-will be loaded internally automatically.
+\item \code{delete_data()}: Delete all or a subset of the data files stored internally.
 }
 
 \itemize{
@@ -95,18 +96,27 @@ downloaded and are available for use.
 }
 
 \itemize{
-\item \code{delete_all_data()}: Delete all the data files stored internally.
+\item \code{load_data()}: Load the data for a particular state and  year. This is only
+necessary if you want to work with the full data files directly. When using
+the functions provided by this package (e.g. \code{\link[=race_probabilities]{race_probabilities()}}) the data
+will be loaded internally automatically.
 }
 }
 \examples{
 \dontrun{
-# Download data just for Oklahoma and Washington for 2020
-download_data(state = c("OK", "WA"), year = 2020)
+# Download data just for Oklahoma and Vermont for 2020
+download_data(state = c("OK", "VT"), year = 2020)
 
 # Download all available data
 download_data()
 
 # List the data files that have already been downloaded
 available_data()
+
+# Delete the downloaded data for OK
+delete_data("OK")
+
+# Delete all downloaded data
+delete_data()
 }
 }
