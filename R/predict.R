@@ -48,6 +48,19 @@
 #' # regular BISG if we input a valid county
 #' valid_counties("RI")
 #' race_probabilities("Jones", "RI", "Providence")
+#'
+#' # using FIPS codes
+#' # we can specify Albany County either by name or by its code 36001
+#' most_probable_race(
+#'  name = "Chan",
+#'  state = "NY",
+#'  county = "Albany"
+#' )
+#' most_probable_race(
+#'  name = "Chan",
+#'  state = "NY",
+#'  county = fips_to_county("36001")
+#' )
 #' }
 #'
 #'
@@ -67,7 +80,8 @@ NULL
 #'   match the length of `name`.
 #' @param county (character vector) A vector of counties. Coerced to lowercase
 #'   internally. If a single county is provided, it is recycled to match the
-#'   length of `name`.
+#'   length of `name`. To use FIPS codes instead of county names, use the
+#'   `fips_to_county()` function to convert FIPS codes to county names first.
 #' @param year (integer) The year of the data to use to compute the estimates.
 #'   The default is `2020`, which is currently the only available year. This
 #'   default may change in the future when more years become available.
@@ -255,7 +269,6 @@ print.compare_calibisg <- function(x,
 #'
 #' @details
 #' * `valid_counties()`: List the valid county names for a given state and year.
-#'
 #' @return
 #' * `valid_counties()`: (character vector) County names.
 #'
@@ -264,6 +277,33 @@ valid_counties <- function(state, year = 2020) {
   .validate_year(year)
   counties <- .race_x_county_data(state, year)$county
   sort(unique(counties))
+}
+
+#' @rdname caliBISG-predict
+#' @export
+#'
+#' @param fips (character vector) A vector of 5-digit FIPS codes.
+#' @details
+#' * `fips_to_county()`: Convert 5-digit FIPS codes to county names.
+#' @return
+#' * `fips_to_county()`: (character vector) County names.
+#'
+fips_to_county <- function(fips, year = 2020) {
+  .validate_year(year)
+  if (!is.character(fips) || any(nchar(fips) != 5) || any(!grepl("^[0-9]{5}$", fips))) {
+    stop("`fips` must be a character vector of 5-digit FIPS codes.", call. = FALSE)
+  }
+  df <- .fips_x_county_data(2020)
+  county <- df$county[match(fips, df$fips)]
+  if (anyNA(county)) {
+    invalid_fips <- fips[is.na(county)]
+    stop(
+      "The following FIPS codes could not be converted: ",
+      paste(invalid_fips, collapse = ", "),
+      call. = FALSE
+    )
+  }
+  county
 }
 
 
@@ -348,6 +388,13 @@ valid_counties <- function(state, year = 2020) {
   }
   invisible(TRUE)
 }
+
+#' Access internal data for converting fips to county
+#' @noRd
+.fips_x_county_data <- function(year) {
+  get(paste0(".fips_x_county_df_", year))
+}
+
 
 #' Load the state-year data, filter by a single county and surname
 #'

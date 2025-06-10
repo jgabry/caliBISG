@@ -195,7 +195,22 @@ print(probs, digits = 4, max_print = 2)
 The defaults for an entire R session can be changed using
 `options(calibisg.digits = ...)` and `options(calibisg.max_print = ...)`.
 
+## Using FIPS codes
 
+In some cases users may want to use FIPS codes instead of county names. The
+`fips_to_county()` function converts 5-digit FIPS codes to county names that 
+can be passed to the `county` argument of `most_probable_race()` or 
+`race_probabilities()`. For example, King County in Washington and Tulsa County
+in Oklahoma have FIPS codes 53033 and 40143, respectively. So we can redo
+the same example from above using these codes. 
+
+```{r fips_to_county}
+race_probabilities(
+  name = c("smith", "lopez", "jackson"), 
+  state = c("WA", "OK", "OK"), 
+  county = fips_to_county(c("53033", "40143", "40143"))
+)
+```
 ## References
 
 Philip Greengard and Andrew Gelman (2025). A calibrated BISG for inferring race

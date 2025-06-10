@@ -325,6 +325,21 @@ test_that("most_probable_race() handles missing caliBISG state correctly", {
   expect_false(is.na(out$bisg_race))
 })
 
+test_that("most_probable_race() gives same answer with county or fips", {
+  expect_identical(
+    most_probable_race(
+      name = c("Chan", "Jones"),
+      state = "NY",
+      county = fips_to_county("36001")
+    ),
+    most_probable_race(
+      name = c("Chan", "Jones"),
+      state = "NY",
+      county = "Albany"
+    )
+  )
+})
+
 
 test_that("valid_counties() errors with invalid inputs", {
   expect_error(
@@ -364,5 +379,41 @@ test_that("valid_counties() matches caliBISG counties", {
     counties <- sort(unique(load_data(st, 2020)$county))
     expect_equal(out, counties, info = paste("State =", st))
   }
+})
+
+test_that("fips_to_county() errors with invalid inputs", {
+  expect_error(
+    fips_to_county(12345),
+    "`fips` must be a character vector of 5-digit FIPS codes"
+  )
+  expect_error(
+    fips_to_county("001"),
+    "`fips` must be a character vector of 5-digit FIPS codes"
+  )
+  expect_error(
+    fips_to_county("1XXX5"),
+    "`fips` must be a character vector of 5-digit FIPS codes"
+  )
+  expect_error(
+    fips_to_county("36001", year = 1950),
+    "`year` must be one of the available years"
+  )
+  expect_error(
+    fips_to_county(c("36001", "00000", "36003", "99999")),
+    "The following FIPS codes could not be converted: 00000, 99999"
+  )
+})
+
+test_that("fips_to_county() handles multiple inputs", {
+  fips <- c(
+    "01001", "02013", "06037", "08013", "12086",
+    "17031", "21037", "36061", "41007", "53033"
+  )
+  county <- c(
+    "autauga", "aleutians east borough", "los angeles",
+    "boulder", "miami-dade", "cook", "campbell",
+    "new york", "clatsop", "king"
+  )
+  expect_identical(fips_to_county(fips), county)
 })
 

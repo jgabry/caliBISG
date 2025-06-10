@@ -7,6 +7,7 @@
 \alias{race_probabilities}
 \alias{print.compare_calibisg}
 \alias{valid_counties}
+\alias{fips_to_county}
 \title{Predict race given surname and location}
 \usage{
 most_probable_race(name, state, county, year = 2020)
@@ -21,6 +22,8 @@ race_probabilities(name, state, county, year = 2020)
 )
 
 valid_counties(state, year = 2020)
+
+fips_to_county(fips, year = 2020)
 }
 \arguments{
 \item{name}{(character vector) A vector of surnames. Coerced to lowercase
@@ -32,7 +35,8 @@ match the length of \code{name}.}
 
 \item{county}{(character vector) A vector of counties. Coerced to lowercase
 internally. If a single county is provided, it is recycled to match the
-length of \code{name}.}
+length of \code{name}. To use FIPS codes instead of county names, use the
+\code{fips_to_county()} function to convert FIPS codes to county names first.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
 The default is \code{2020}, which is currently the only available year. This
@@ -52,6 +56,8 @@ output. The default is to use two digits unless the global option
 print. Because the tables take up a lot of space in the console, the
 default is to print at most four tables unless the global option
 \code{calibisg.max_print} has been set.}
+
+\item{fips}{(character vector) A vector of 5-digit FIPS codes.}
 }
 \value{
 \itemize{
@@ -101,6 +107,10 @@ custom \code{print()} method.
 \itemize{
 \item \code{valid_counties()}: (character vector) County names.
 }
+
+\itemize{
+\item \code{fips_to_county()}: (character vector) County names.
+}
 }
 \description{
 Predict race given surname and location using the calibrated
@@ -138,6 +148,10 @@ table for each row in the returned data frame up to \code{max_print} rows.
 \itemize{
 \item \code{valid_counties()}: List the valid county names for a given state and year.
 }
+
+\itemize{
+\item \code{fips_to_county()}: Convert 5-digit FIPS codes to county names.
+}
 }
 \examples{
 \dontrun{
@@ -164,6 +178,19 @@ print(probs2, digits = 3)
 # regular BISG if we input a valid county
 valid_counties("RI")
 race_probabilities("Jones", "RI", "Providence")
+
+# using FIPS codes
+# we can specify Albany County either by name or by its code 36001
+most_probable_race(
+ name = "Chan",
+ state = "NY",
+ county = "Albany"
+)
+most_probable_race(
+ name = "Chan",
+ state = "NY",
+ county = fips_to_county("36001")
+)
 }
 
 
