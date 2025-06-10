@@ -84,6 +84,7 @@ fix_florida_county_names <- function(county) {
 .race_x_surname_df <- rename_data(csv_to_dataframe(glue("{path_root}df_surnames.csv")))
 .race_x_usa_df_2020  <- rename_data(csv_to_dataframe(glue("{path_root}usa_census_2020.csv")))
 .race_x_county_list_2020 <- list()
+.fips_x_county_list_2020 <- list()
 
 missing_county_data <- c()
 for (st in tolower(state.abb)) {
@@ -105,6 +106,11 @@ for (st in tolower(state.abb)) {
       "prob_white_nh",
       "prob_other"
     )]
+    .fips_x_county_list_2020[[st]] <- data.frame(
+      state = dat$state,
+      fips = glue("{dat$STATE}{dat$COUNTY}"),
+      county = dat$county
+    )
   } else
     missing_county_data <- c(missing_county_data, st)
 }
@@ -112,10 +118,14 @@ if (length(missing_county_data)) {
   stop(glue("Missing county data for states: {paste(missing_county_data, collapse = ', ')}"))
 }
 
+.fips_x_county_df_2020 <- do.call(rbind, .fips_x_county_list_2020)
+rownames(.fips_x_county_df_2020) <- NULL
+
 use_data(
   .race_x_surname_df,
   .race_x_usa_df_2020,
   .race_x_county_list_2020,
+  .fips_x_county_df_2020,
   internal = TRUE,
   overwrite = TRUE,
   compress = "xz"

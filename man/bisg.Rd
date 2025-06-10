@@ -16,7 +16,8 @@ match the length of \code{name}.}
 
 \item{county}{(character vector) A vector of counties. Coerced to lowercase
 internally. If a single county is provided, it is recycled to match the
-length of \code{name}.}
+length of \code{name}. To use FIPS codes instead of county names, use the
+\code{fips_to_county()} function to convert FIPS codes to county names first.}
 
 \item{year}{(integer) The year of the data to use to compute the estimates.
 The default is \code{2020}, which is currently the only available year. This
