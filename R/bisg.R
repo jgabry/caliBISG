@@ -5,7 +5,9 @@
 #'
 #' @keywords internal
 #' @export
+#'
 #' @inheritParams most_probable_race
+#' @template census-ref
 #'
 #' @return (data frame) A data frame with colums `name`, `year`, `state`,
 #'   `county`, plus six BISG probability columns:
