@@ -3,8 +3,8 @@
 #' @name caliBISG-data
 #' @aliases calibisg-data
 #'
-#' @description Currently caliBISG is available for the following states and
-#'   years:
+#' @description Currently caliBISG (Greengard and Gelman, 2025) is available for
+#'   the following states and years:
 #'
 #'   * States: FL, GA, NC, NY, OH, OK, VT, WA
 #'   * Years: 2020
@@ -18,6 +18,8 @@
 #'   We are working on adding additional states and years. When caliBISG is
 #'   unavailable we still provide traditional BISG, which does not require
 #'   downloading any files.
+#'
+#' @template calibisg-ref
 #'
 #' @examples
 #' \dontrun{

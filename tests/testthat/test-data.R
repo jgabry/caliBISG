@@ -76,7 +76,7 @@ test_that("delete_data() deletes downloaded data", {
   suppressMessages(download_data("OK", progress = FALSE))
   expect_equal(available_data(), c("OK-2020.rds", "VT-2020.rds", "WA-2020.rds"))
   expect_message(
-    expect_true(delete_data("OK")),
+    expect_true(delete_data("OK", 2020)),
     "Deleting data file(s): OK-2020.rds",
     fixed = TRUE
   )
