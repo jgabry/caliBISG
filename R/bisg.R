@@ -19,14 +19,12 @@
 #'   * `bisg_other`
 #'
 #' @examples
-#' \dontrun{
 #' bisg(
 #'   name = c("Lopez", "Jackson", "Smith"),
 #'   county = c("King", "King", "Chittenden"),
 #'   state = c("WA", "WA", "VT"),
 #'   year = 2020
 #' )
-#' }
 #'
 bisg <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
@@ -43,14 +41,14 @@ bisg <- function(name, state, county, year = 2020) {
   df_counties <- do.call(rbind, county_data_list)
 
   # column name sanity checks
-  cen_cols  <- paste0("cen_r_given_sur_", .race_column_order())
-  prob_cols <- paste0("prob_", .race_column_order())
+  cen_cols  <- paste0("cen_r_given_sur_", .column_order())
+  prob_cols <- paste0("prob_", .column_order())
   bisg_cols <- .bisg_columns()
   stopifnot(
     identical(colnames(df_surnames[-1]), cen_cols),
     identical(colnames(df_national), prob_cols),
     identical(
-      colnames(df_counties)[!(colnames(df_counties) %in% c("state", "county")) ],
+      colnames(df_counties)[!(colnames(df_counties) %in% c("state", "county"))],
       prob_cols
     )
   )
@@ -93,8 +91,8 @@ bisg <- function(name, state, county, year = 2020) {
   # BISG calculation
   sur_mat <- as.matrix(df[, cen_cols])
   geo_mat <- as.matrix(df[, prob_cols])
-  bisg_mat <- sur_mat * geo_mat
   nat_vec  <- as.numeric(df_national[1, prob_cols])
+  bisg_mat <- sur_mat * geo_mat
   bisg_mat <- sweep(bisg_mat, 2, nat_vec, FUN = "/")
   bisg_mat <- bisg_mat / rowSums(bisg_mat)
 
@@ -107,7 +105,7 @@ bisg <- function(name, state, county, year = 2020) {
     stringsAsFactors = FALSE
   )
   names(out)[-(1:4)] <- bisg_cols
-  out <- out[order(df$id), ] # restore original order
+  out <- out[order(df$id), ]
   rownames(out) <- NULL
   out$.found <- !.is_bisg_na(out)
   out
@@ -116,27 +114,27 @@ bisg <- function(name, state, county, year = 2020) {
 # internal ----------------------------------------------------------------
 
 #' Access internal data files for use in computing regular BISG probabilities
+#'
 #' @return (data frame) The requested data frame.
 #' @noRd
+#'
 .race_x_county_data <- function(state, year) {
   get(paste0(".race_x_county_list_", year))[[tolower(state)]]
 }
-#' @noRd
 .race_x_surname_data <- function() {
   .race_x_surname_df
 }
-#' @noRd
 .race_x_usa_data <- function(year) {
   get(paste0(".race_x_usa_df_", year))
 }
 
-
 #' Check if all BISG columns are NA
+#'
 #' @noRd
 #' @param data (data frame) The data frame to check.
-#' @return (logical vector) A vector with each element indicating if the corresponding
-#' row in `data` has NAs for all the BISG columns.
+#' @return (logical vector) A vector with each element indicating if the
+#'   corresponding row in `data` has NAs for all the BISG columns.
+#'
 .is_bisg_na <- function(data) {
   rowSums(is.na(data[, .bisg_columns()])) == length(.bisg_columns())
 }
-

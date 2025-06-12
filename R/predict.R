@@ -306,14 +306,14 @@ fips_to_county <- function(fips, year = 2020) {
 
 # internal ----------------------------------------------------------------
 
-.race_column_order <- function() {
+.column_order <- function() {
   c("aian", "api", "black_nh", "hispanic", "white_nh", "other")
 }
 .calibisg_columns <- function() {
-  paste0("calibisg_", .race_column_order())
+  paste0("calibisg_", .column_order())
 }
 .bisg_columns <- function() {
-  paste0("bisg_", .race_column_order())
+  paste0("bisg_", .column_order())
 }
 .demographic_columns <- function() {
   c("name", "year", "state", "county")
@@ -406,7 +406,6 @@ fips_to_county <- function(fips, year = 2020) {
   df <- .load_data_internal(state, year, error_if_missing = FALSE)
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
   rownames(subset_df) <- NULL
-
   if (NROW(subset_df) == 0) {
     out <- data.frame(
       name = name,
@@ -436,11 +435,7 @@ fips_to_county <- function(fips, year = 2020) {
 #' @noRd
 #'
 .recycle <- function(x, size) {
-  if (length(x) == 1L) {
-    rep(x, size)
-  } else {
-    x
-  }
+  if (length(x) == 1L) rep(x, size) else x
 }
 
 #' Capitalize the first letter of each string
