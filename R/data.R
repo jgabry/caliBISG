@@ -87,7 +87,7 @@ download_data <- function(state, year, progress = TRUE, overwrite = FALSE) {
         next
       }
 
-      message("* Downloading, reading, and saving file for: ", st, ", ", yr)
+      message("\n* Downloading, reading, and saving caliBISG file for: ", st, ", ", yr)
       temp_csv <- .download_calibisg_csv(st, yr, progress)
       df <-  readr::read_csv(temp_csv, progress = FALSE, show_col_types = FALSE)
       file.remove(temp_csv)
