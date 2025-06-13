@@ -291,9 +291,9 @@ load_data <- function(state, year = 2020) {
 #' @noRd
 #' @description Fetches release metadata from the GitHub API, finds the CSV that
 #'   matches the requested state and year, and streams it straight to a
-#'   temporary file.  We keep error‑handling intentionally simple: **any** HTTP
+#'   temporary file.  We keep error-handling intentionally simple: **any** HTTP
 #'   error triggers the same generic message that reminds the user to set a
-#'   personal‑access token if the failure is due to rate‑limiting.
+#'   personal access token if the failure is due to rate-limiting.
 #'
 #' @param state,year,progress Same as above.
 #' @param version The version of the caliBISG package release.
@@ -304,7 +304,7 @@ load_data <- function(state, year = 2020) {
                                    year,
                                    progress = TRUE,
                                    version = NULL) {
-  # Resolve GitHub personal‑access token:
+  # Resolve GitHub personal access token:
   #   gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
   token <- NULL
   if (requireNamespace("gitcreds", quietly = TRUE)) {
@@ -348,7 +348,7 @@ load_data <- function(state, year = 2020) {
     status <- httr2::resp_status(resp)
     stop(
       "Failed to fetch release info (HTTP ", status, ").\n",
-      "If this is due to rate‑limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
+      "If this is due to rate-limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
       call. = FALSE
     )
   }
@@ -385,7 +385,7 @@ load_data <- function(state, year = 2020) {
     file.remove(temp_csv_file)
     stop(
       "Failed to download asset (HTTP ", status2, ").\n",
-      "If this is due to rate‑limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
+      "If this is due to rate-limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
       call. = FALSE
     )
   }
