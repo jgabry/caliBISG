@@ -11,33 +11,16 @@ test_that("load_data() errors if not downloaded", {
 })
 
 test_that("download_data() throws expected messages and errors", {
-  expect_message(
-    expect_message(
-      expect_message({
-        res <- download_data("VT", 2020, progress = FALSE)
-        expect_true(res)
-      },
-      regexp = "Downloading, reading, and saving file for: VT, 2020"),
-      regexp = "Downloading calibisg_vt2020.csv"
-    ),
-    regexp = "VT-2020.rds"
-  )
+  expect_message({
+    res <- download_data("VT", 2020, progress = FALSE)
+    expect_true(res)
+  }, regexp = "Downloading, reading, and saving file for: VT, 2020")
 
-  expect_message(
-    expect_message(
-      expect_message(
-        expect_message({
-          res <- download_data(c("VT", "WA"), 2020, progress = FALSE)
-          expect_true(res)
-        },
-        regexp = "VT-2020.rds already exists. Skipping."
-        ),
-        regexp = "Downloading, reading, and saving file for: WA, 2020",
-      ),
-      regexp = "Downloading calibisg_wa2020.csv"
-    ),
-    regexp = "WA-2020.rds"
-  )
+  expect_message(expect_message({
+    res <- download_data(c("VT", "WA"), 2020, progress = FALSE)
+    expect_true(res)
+  }, regexp = "VT-2020.rds already exists. Skipping."),
+  regexp = "Downloading, reading, and saving file for: WA, 2020")
 
   expect_error(
     download_data("CO", 2020),
@@ -55,17 +38,10 @@ test_that("download_data() can overwrite existing files", {
     "VT-2020.rds already exists. Skipping."
   )
 
-  expect_message(
-    expect_message(
-      expect_message({
-        res <- download_data("VT", 2020, progress = FALSE, overwrite = TRUE)
-        expect_true(res)
-      },
-      regexp = "Downloading, reading, and saving file for: VT, 2020"),
-      regexp = "Downloading calibisg_vt2020.csv"
-    ),
-    regexp = "VT-2020.rds"
-  )
+  expect_message({
+    res <- download_data("VT", 2020, progress = FALSE, overwrite = TRUE)
+    expect_true(res)
+  }, regexp = "Downloading, reading, and saving file for: VT, 2020")
 })
 
 test_that("available_data() recognizes downloaded data", {

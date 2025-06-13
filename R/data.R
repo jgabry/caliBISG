@@ -91,8 +91,6 @@ download_data <- function(state, year, progress = TRUE, overwrite = FALSE) {
       temp_csv <- .download_calibisg_csv(st, yr, progress)
       df <-  readr::read_csv(temp_csv, progress = FALSE, show_col_types = FALSE)
       file.remove(temp_csv)
-
-      message("  (Saving ", rds_path, ")")
       saveRDS(as.data.frame(df), file = rds_path)
     }
   }
@@ -291,6 +289,13 @@ load_data <- function(state, year = 2020) {
 #' Download a CSV file from assets of a specific GitHub release
 #'
 #' @noRd
+#' @description Fetches release metadata from the GitHub API, finds the CSV that
+#'   matches the requested state and year, and streams it straight to a
+#'   temporary file.  We keep error‑handling intentionally simple: **any** HTTP
+#'   error triggers the same generic message that reminds the user to set a
+#'   personal‑access token if the failure is due to rate‑limiting.
+#'
+#' @param state,year,progress Same as above.
 #' @param version The version of the caliBISG package release.
 #' @return (string) The path to the local temporary file containing the
 #'   downloaded CSV file.
@@ -299,8 +304,8 @@ load_data <- function(state, year = 2020) {
                                    year,
                                    progress = TRUE,
                                    version = NULL) {
-
-  # Resolve token: gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
+  # Resolve GitHub personal‑access token:
+  #   gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
   token <- NULL
   if (requireNamespace("gitcreds", quietly = TRUE)) {
     cred <- try(gitcreds::gitcreds_get(), silent = TRUE)
@@ -314,48 +319,42 @@ load_data <- function(state, year = 2020) {
     token <- Sys.getenv("GITHUB_PAT", unset = Sys.getenv("GITHUB_TOKEN", ""))
   }
 
-  # Build auth config if we have a token
-  configs <- if (nzchar(token)) {
-    list(httr::add_headers(Authorization = paste("token", token)))
-  } else {
-    list()
+  # Helper: attach Authorization header when we have a token
+  add_auth_header <- function(request) {
+    if (nzchar(token)) {
+      request <- httr2::req_headers(request, Authorization = paste("token", token))
+    }
+    request
   }
 
   owner <- "jgabry"
-  repo  <- "caliBISG"
+  repo <- "caliBISG"
   state <- tolower(state)
 
-  # Get release JSON (latest or specific tag)
+  # Build the releases endpoint
   release_url <- if (is.null(version)) {
     sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
   } else {
     tag <- if (grepl("^v", version, ignore.case = TRUE)) version else paste0("v", version)
     sprintf("https://api.github.com/repos/%s/%s/releases/tags/%s", owner, repo, tag)
   }
-  resp <- do.call(httr::GET, c(list(release_url), configs))
-  status <- httr::status_code(resp)
 
-  # Rate-limit check
-  if (status == 403) {
-    body <- httr::content(resp, as = "text", encoding = "UTF-8")
-    if (grepl("rate limit exceeded", body, ignore.case = TRUE)) {
-      stop(
-        "GitHub API rate limit exceeded.\n",
-        "Please set GITHUB_PAT (or GITHUB_TOKEN) to raise the limit.",
-        call. = FALSE
-      )
-    }
-  }
-  if (httr::http_error(resp)) {
+  # Request release metadata
+  req  <- httr2::request(release_url)
+  req  <- add_auth_header(req)
+  resp <- httr2::req_perform(req)
+
+  if (httr2::resp_is_error(resp)) {
+    status <- httr2::resp_status(resp)
     stop(
-      "Failed to fetch release info: HTTP ", status,
+      "Failed to fetch release info (HTTP ", status, ").\n",
+      "If this is due to rate‑limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
       call. = FALSE
     )
   }
 
-  release_info <- httr::content(resp)
-
-  # Locate the right asset by name
+  # Find the right asset
+  release_info <- httr2::resp_body_json(resp)
   file_name <- sprintf("calibisg_%s%s.csv", state, year)
   assets <- release_info$assets
   idx <- which(vapply(assets, `[[`, "", "name") == file_name)
@@ -366,30 +365,27 @@ load_data <- function(state, year = 2020) {
     )
   }
   asset_id <- assets[[idx]]$id
-
-  # Download the asset via the API
   asset_url_api <- sprintf(
     "https://api.github.com/repos/%s/%s/releases/assets/%s",
     owner, repo, asset_id
   )
-  message(
-    "  (Downloading ", file_name,
-    " from caliBISG release ", release_info$tag_name, ")"
-  )
 
+  # Download the asset straight to disk
   temp_csv_file <- tempfile(fileext = ".csv")
-  resp2 <- do.call(httr::GET, c(
-    list(
-      asset_url_api,
-      httr::add_headers(Accept = "application/octet-stream"),
-      httr::write_disk(temp_csv_file, overwrite = TRUE),
-      if (progress) httr::progress()
-    ),
-    configs
-  ))
-  if (httr::http_error(resp2)) {
+  req2 <- httr2::request(asset_url_api)
+  req2 <- httr2::req_headers(req2, Accept = "application/octet-stream")
+  req2 <- add_auth_header(req2)
+  if (isTRUE(progress)) {
+    req2 <- httr2::req_progress(req2)
+  }
+  resp2 <- httr2::req_perform(req2, path = temp_csv_file)
+
+  if (httr2::resp_is_error(resp2)) {
+    status2 <- httr2::resp_status(resp2)
+    file.remove(temp_csv_file)
     stop(
-      "Failed to download asset: HTTP ", httr::status_code(resp2),
+      "Failed to download asset (HTTP ", status2, ").\n",
+      "If this is due to rate‑limiting, set GITHUB_PAT (or GITHUB_TOKEN) and try again.",
       call. = FALSE
     )
   }
