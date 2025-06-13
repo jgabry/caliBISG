@@ -74,16 +74,8 @@ NULL
 #' * `download_data()`: (logical) `TRUE`, invisibly, if no error.
 #'
 download_data <- function(state, year, progress = TRUE, overwrite = FALSE) {
-  if (missing(state)) {
-    states <- .all_calibisg_states()
-  } else {
-    states <- toupper(state)
-  }
-  if (missing(year)) {
-    years <- .all_calibisg_years()
-  } else {
-    years <- as.integer(year)
-  }
+  states <- if (missing(state)) .all_calibisg_states() else toupper(state)
+  years <- if (missing(year)) .all_calibisg_years() else as.integer(year)
   .validate_calibisg_states_years(states, years)
 
   for (st in states) {
@@ -122,16 +114,8 @@ delete_data <- function(state, year) {
   if (missing(state) && missing(year)) {
     to_delete <- available_data()
   } else {
-    if (missing(state)) {
-      states <- .all_calibisg_states()
-    } else {
-      states <- toupper(state)
-    }
-    if (missing(year)) {
-      years <- .all_calibisg_years()
-    } else {
-      years <- as.integer(year)
-    }
+    states <- if (missing(state)) .all_calibisg_states() else toupper(state)
+    years <- if (missing(year)) .all_calibisg_years() else as.integer(year)
     .validate_calibisg_states_years(states, years)
     to_delete <- intersect(paste0(states, "-", years, ".rds"), available_data())
   }
@@ -171,8 +155,10 @@ available_data <- function() {
 #'
 load_data <- function(state, year = 2020) {
   stopifnot(
-    is.character(state), length(state) == 1,
-    is.numeric(year), length(year) == 1
+    is.character(state),
+    length(state) == 1,
+    is.numeric(year),
+    length(year) == 1
   )
   .ensure_data_available(state, year)
   readRDS(.data_path(state, year))
@@ -339,7 +325,7 @@ load_data <- function(state, year = 2020) {
   repo  <- "caliBISG"
   state <- tolower(state)
 
-  # Fetch release JSON (latest or specific tag)
+  # Get release JSON (latest or specific tag)
   release_url <- if (is.null(version)) {
     sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
   } else {
@@ -386,7 +372,10 @@ load_data <- function(state, year = 2020) {
     "https://api.github.com/repos/%s/%s/releases/assets/%s",
     owner, repo, asset_id
   )
-  message("  (Downloading ", file_name, " from caliBISG release ", release_info$tag_name, ")")
+  message(
+    "  (Downloading ", file_name,
+    " from caliBISG release ", release_info$tag_name, ")"
+  )
 
   temp_csv_file <- tempfile(fileext = ".csv")
   resp2 <- do.call(httr::GET, c(
@@ -407,4 +396,3 @@ load_data <- function(state, year = 2020) {
 
   temp_csv_file
 }
-
