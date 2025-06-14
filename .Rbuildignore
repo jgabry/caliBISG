@@ -9,3 +9,4 @@
 ^codecov\.yml$
 ^caliBISG-data$
 ^README\.Rmd$
+^man-roxygen$
