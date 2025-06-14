@@ -287,16 +287,20 @@ valid_counties <- function(state, year = 2020) {
 #'
 fips_to_county <- function(fips, year = 2020) {
   .validate_year(year)
-  if (!is.character(fips) || any(nchar(fips) != 5) || any(!grepl("^[0-9]{5}$", fips))) {
-    stop("`fips` must be a character vector of 5-digit FIPS codes.", call. = FALSE)
+  if (!is.character(fips) ||
+      any(nchar(fips) != 5) ||
+      any(!grepl("^[0-9]{5}$", fips))) {
+    stop(
+      "`fips` must be a character vector of 5-digit FIPS codes.",
+      call. = FALSE
+    )
   }
   df <- .fips_x_county_data(2020)
   county <- df$county[match(fips, df$fips)]
   if (anyNA(county)) {
-    invalid_fips <- fips[is.na(county)]
     stop(
       "The following FIPS codes could not be converted: ",
-      paste(invalid_fips, collapse = ", "),
+      paste(fips[is.na(county)], collapse = ", "),
       call. = FALSE
     )
   }
@@ -402,6 +406,7 @@ fips_to_county <- function(fips, year = 2020) {
 #' @param year (integer) A single year.
 #' @return (data frame) Data with all available columns plus a column `.found`
 #'   indicating if the requested record was found.
+#'
 .get_single_calibisg_record <- function(name, state, county, year) {
   df <- .load_data_internal(state, year, error_if_missing = FALSE)
   subset_df <- df[df$name == name & df$county == county & df$year == year, ]
@@ -411,8 +416,7 @@ fips_to_county <- function(fips, year = 2020) {
       name = name,
       state = state,
       county = county,
-      year = year,
-      stringsAsFactors = FALSE
+      year = year
     )
     for (col in .calibisg_columns()) {
       out[[col]] <- NA

@@ -74,16 +74,15 @@ downloading any files.
 \details{
 \itemize{
 \item \code{download_data()}: Download the CSV data files from GitHub for the
-specified states and years. The downloaded files are converted to data frames
-and stored as \link[base:readRDS]{RDS} files internally in a package-specific
-data \link[tools:userdir]{directory}. A GitHub personal access token (PAT) can
-be used to increase rate limits. If the \strong{gitcreds} package is installed and
-has a credential for \code{github.com}, the token provided by
-\code{\link[gitcreds:gitcreds_get]{gitcreds::gitcreds_get()}} will be used. Otherwise the environment variables
-\code{GITHUB_PAT} and \code{GITHUB_TOKEN} will be checked in that order. If no token is
-found, the request will be made anonymously, in which case you may run into
-GitHub's unauthenticated rate limit if you are trying to download files many
-times within one hour.
+specified states and years. The downloaded CSV files are converted to data
+frames and stored as \link[base:readRDS]{RDS} files internally in a
+package-specific data \link[tools:userdir]{directory}. A GitHub personal
+access token (PAT) is not required but can be used to increase rate limits.
+If the \strong{gitcreds} package is installed and has a credential for
+\code{github.com}, the token provided by \code{\link[gitcreds:gitcreds_get]{gitcreds::gitcreds_get()}} will be used.
+Otherwise the environment variables \code{GITHUB_PAT} and \code{GITHUB_TOKEN} will be
+checked in that order. If no token is found, the request will be made
+anonymously.
 }
 
 \itemize{

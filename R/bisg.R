@@ -58,8 +58,7 @@ bisg <- function(name, state, county, year = 2020) {
     id = seq_along(name), # used later to preserve original order
     name = name,
     county = county,
-    state = state,
-    stringsAsFactors = FALSE
+    state = state
   )
 
   # merge surname distributions
@@ -101,8 +100,7 @@ bisg <- function(name, state, county, year = 2020) {
     year = year,
     state = df$state,
     county = df$county,
-    bisg_mat,
-    stringsAsFactors = FALSE
+    bisg_mat
   )
   names(out)[-(1:4)] <- bisg_cols
   out <- out[order(df$id), ]
