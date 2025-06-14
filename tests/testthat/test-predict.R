@@ -400,7 +400,8 @@ test_that("fips_to_county() errors with invalid inputs", {
   )
   expect_error(
     fips_to_county(c("36001", "00000", "36003", "99999")),
-    "The following FIPS codes could not be converted: 00000, 99999"
+    "The following FIPS codes could not be converted: 00000, 99999",
+    fixed = TRUE
   )
 })
 

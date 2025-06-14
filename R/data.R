@@ -46,16 +46,15 @@ NULL
 #'
 #' @details
 #' * `download_data()`: Download the CSV data files from GitHub for the
-#' specified states and years. The downloaded files are converted to data frames
-#' and stored as [RDS][base::readRDS] files internally in a package-specific
-#' data [directory][tools::R_user_dir]. A GitHub personal access token (PAT) can
-#' be used to increase rate limits. If the **gitcreds** package is installed and
-#' has a credential for `github.com`, the token provided by
-#' [gitcreds::gitcreds_get()] will be used. Otherwise the environment variables
-#' `GITHUB_PAT` and `GITHUB_TOKEN` will be checked in that order. If no token is
-#' found, the request will be made anonymously, in which case you may run into
-#' GitHub's unauthenticated rate limit if you are trying to download files many
-#' times within one hour.
+#' specified states and years. The downloaded CSV files are converted to data
+#' frames and stored as [RDS][base::readRDS] files internally in a
+#' package-specific data [directory][tools::R_user_dir]. A GitHub personal
+#' access token (PAT) is not required but can be used to increase rate limits.
+#' If the **gitcreds** package is installed and has a credential for
+#' `github.com`, the token provided by [gitcreds::gitcreds_get()] will be used.
+#' Otherwise the environment variables `GITHUB_PAT` and `GITHUB_TOKEN` will be
+#' checked in that order. If no token is found, the request will be made
+#' anonymously.
 #'
 #' @param state (character vector) For `download_data()` or `delete_data()`, the
 #'   states to download or delete. The default is all available states. If
@@ -77,24 +76,21 @@ download_data <- function(state, year, progress = TRUE, overwrite = FALSE) {
   states <- if (missing(state)) .all_calibisg_states() else toupper(state)
   years <- if (missing(year)) .all_calibisg_years() else as.integer(year)
   .validate_calibisg_states_years(states, years)
-
   for (st in states) {
     for (yr in years) {
       rds_name <- paste0(st, "-", yr, ".rds")
       rds_path <- file.path(.data_dir(), rds_name)
       if (file.exists(rds_path) && !overwrite) {
-        message("* ", rds_name, " already exists. Skipping.")
+        message("\n", rds_name, " already exists. Skipping.")
         next
       }
-
-      message("\n* Downloading, reading, and saving caliBISG file for: ", st, ", ", yr)
+      message("\nDownloading, reading, and saving caliBISG file for: ", st, ", ", yr)
       temp_csv <- .download_calibisg_csv(st, yr, progress)
       df <-  readr::read_csv(temp_csv, progress = FALSE, show_col_types = FALSE)
       file.remove(temp_csv)
       saveRDS(as.data.frame(df), file = rds_path)
     }
   }
-
   invisible(TRUE)
 }
 
@@ -118,7 +114,7 @@ delete_data <- function(state, year) {
     to_delete <- intersect(paste0(states, "-", years, ".rds"), available_data())
   }
   if (length(to_delete)) {
-    message("Deleting data file(s): ", paste(to_delete, collapse = ", "))
+    message("Deleting data files: ", paste(to_delete, collapse = ", "))
   } else {
     message("No files found for deletion.")
   }
@@ -305,7 +301,7 @@ load_data <- function(state, year = 2020) {
                                    progress = TRUE,
                                    version = NULL) {
   # Resolve GitHub personal access token:
-  #   gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
+  # gitcreds -> GITHUB_PAT -> GITHUB_TOKEN -> anonymous
   token <- NULL
   if (requireNamespace("gitcreds", quietly = TRUE)) {
     cred <- try(gitcreds::gitcreds_get(), silent = TRUE)
@@ -319,7 +315,7 @@ load_data <- function(state, year = 2020) {
     token <- Sys.getenv("GITHUB_PAT", unset = Sys.getenv("GITHUB_TOKEN", ""))
   }
 
-  # Helper: attach Authorization header when we have a token
+  # Attach Authorization header when we have a token
   add_auth_header <- function(request) {
     if (nzchar(token)) {
       request <- httr2::req_headers(request, Authorization = paste("token", token))
@@ -327,11 +323,9 @@ load_data <- function(state, year = 2020) {
     request
   }
 
+  # Build the releases endpoint
   owner <- "jgabry"
   repo <- "caliBISG"
-  state <- tolower(state)
-
-  # Build the releases endpoint
   release_url <- if (is.null(version)) {
     sprintf("https://api.github.com/repos/%s/%s/releases/latest", owner, repo)
   } else {
@@ -355,7 +349,7 @@ load_data <- function(state, year = 2020) {
 
   # Find the right asset
   release_info <- httr2::resp_body_json(resp)
-  file_name <- sprintf("calibisg_%s%s.csv", state, year)
+  file_name <- sprintf("calibisg_%s%s.csv", tolower(state), year)
   assets <- release_info$assets
   idx <- which(vapply(assets, `[[`, "", "name") == file_name)
   if (length(idx) == 0) {
@@ -370,7 +364,7 @@ load_data <- function(state, year = 2020) {
     owner, repo, asset_id
   )
 
-  # Download the asset straight to disk
+  # Download the asset
   temp_csv_file <- tempfile(fileext = ".csv")
   req2 <- httr2::request(asset_url_api)
   req2 <- httr2::req_headers(req2, Accept = "application/octet-stream")

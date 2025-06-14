@@ -64,7 +64,7 @@ downloads are required for traditional BISG, which is computed by the package
 when requested.
 
 ```{r download_data}
-download_data(state = c("OK", "WA"), year = 2020, progress = FALSE) 
+download_data(state = c("OK", "WA"), year = 2020) 
 ```
 
 
@@ -213,6 +213,7 @@ race_probabilities(
   county = fips_to_county(c("53033", "40143", "40143"))
 )
 ```
+
 ## References
 
 Philip Greengard and Andrew Gelman (2025). A calibrated BISG for inferring race
