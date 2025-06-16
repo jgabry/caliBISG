@@ -295,7 +295,7 @@ fips_to_county <- function(fips, year = 2020) {
       call. = FALSE
     )
   }
-  df <- .fips_x_county_data(2020)
+  df <- .fips_x_county_data(year)
   county <- df$county[match(fips, df$fips)]
   if (anyNA(county)) {
     stop(
