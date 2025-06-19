@@ -35,8 +35,8 @@ traditional methods disagree.
 You can install the development version of caliBISG from GitHub.
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("jgabry/caliBISG")
+# install.packages("remotes")
+remotes::install_github("jgabry/caliBISG")
 ```
 
 To also build the tutorial vignette add the argument
@@ -44,7 +44,7 @@ To also build the tutorial vignette add the argument
 building the vignette requires downloading some caliBISG data files.
 
 ``` r
-devtools::install_github("jgabry/caliBISG", build_vignettes = TRUE)
+remotes::install_github("jgabry/caliBISG", build_vignettes = TRUE)
 ```
 
 After installing the package with the vignette you can view the vignette
@@ -56,15 +56,19 @@ by running `vignette("caliBISG", package = "caliBISG")` or
 We recommend the package vignette for a more detailed introduction to
 the package. Here is a quick example.
 
+``` r
+library(caliBISG)
+#> This is caliBISG version 0.1.0
+```
+
 First we load the package and download the caliBISG data file for
 Oklahoma. If the data has already been downloaded then it will not be
 downloaded again.
 
 ``` r
-library(caliBISG)
-#> This is caliBISG version 0.0.2
 download_data("OK")
-#> * OK-2020.rds already exists. Skipping.
+#> 
+#> OK-2020.rds already exists. Skipping.
 ```
 
 We then ask for the most probable race based on name, state, and county.
