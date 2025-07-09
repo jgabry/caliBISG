@@ -62,7 +62,8 @@ NULL
 #'   abbreviations. For `load_data()`, a single state to load.
 #' @param year (integer vector) For `download_data()` or `delete_data()`, the
 #'   years to download or delete. The default is all available years. For
-#'   `load_data()`, a single year to load.
+#'   `load_data()`, a single year to load. For `available_data()`, an optional
+#'   single year to filter the available data files.
 #' @param progress (logical) Whether to show a progress bar while downloading
 #'   the data. The default is `TRUE`.
 #' @param overwrite (logical) For `download_data()`, whether to overwrite
@@ -131,8 +132,12 @@ delete_data <- function(state, year) {
 #' @return * `available_data()`: (character vector) The names of the data files
 #'   that have already been downloaded.
 #'
-available_data <- function() {
-  list.files(.data_dir(), full.names = FALSE)
+available_data <- function(year) {
+  files <- list.files(.data_dir(), full.names = FALSE)
+  if (!missing(year)) {
+    files <- files[grepl(paste0("-", year, ".rds$"), files)]
+  }
+  files
 }
 
 #' @rdname caliBISG-data

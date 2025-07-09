@@ -1,3 +1,15 @@
+test_that("race_probabilities() warns if caliBISG files not downloaded", {
+  expect_warning(
+    expect_warning(
+      race_probabilities(c("Chan", "Chan"), c("FL", "NC"), c("miami-dade", "burke")),
+      "The caliBISG files for these states have not been downloaded: FL, NC"
+    ),
+    "caliBISG is not available for 2 input(s). Returning NA estimates for those cases.",
+    fixed = TRUE
+  )
+})
+
+# download the rest of the states
 suppressMessages(download_data(year = 2020, progress = FALSE))
 
 test_that("race_probabilities() output hasn't changed", {

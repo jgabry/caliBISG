@@ -13,7 +13,7 @@ download_data(state, year, progress = TRUE, overwrite = FALSE)
 
 delete_data(state, year)
 
-available_data()
+available_data(year)
 
 load_data(state, year = 2020)
 }
@@ -25,7 +25,9 @@ abbreviations. For \code{load_data()}, a single state to load.}
 
 \item{year}{(integer vector) For \code{download_data()} or \code{delete_data()}, the
 years to download or delete. The default is all available years. For
-\code{load_data()}, a single year to load.}
+\code{load_data()}, a single year to load. For \code{available_data()}, a single year
+to filter the available data files. If not specified, all years are
+considered.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
 the data. The default is \code{TRUE}.}
