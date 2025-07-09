@@ -152,6 +152,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
   name <- tolower(name)
   state <- .recycle(toupper(state), size = length(name))
   county <- .recycle(tolower(county), size = length(name))
+  .warn_if_not_downloaded(state, year)
 
   calibisg_list <- lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
@@ -388,6 +389,27 @@ fips_to_county <- function(fips, year = 2020) {
     stop("`name` must be a character vector.", call. = FALSE)
   }
   invisible(TRUE)
+}
+
+#' Warn if the caliBISG data for the given states and year haven't been downloaded
+#'
+#' @noRd
+#' @param state (character vector) A vector of state abbreviations.
+#' @param year (integer) The year of the data to check.
+#'
+.warn_if_not_downloaded <- function(state, year) {
+  states <- unique(state)
+  calibisg_states <- state[state %in% .all_calibisg_states()]
+  downloaded_states <- substr(available_data(year), 1, 2)
+  not_downloaded_states <- calibisg_states[!calibisg_states %in% downloaded_states]
+  if (length(not_downloaded_states)) {
+    warning(
+      "The caliBISG files for these states have not been downloaded: ",
+      paste(not_downloaded_states, collapse = ", "),
+      ". Please run `download_data()` first.",
+      call. = FALSE
+    )
+  }
 }
 
 #' Access internal data for converting fips to county
