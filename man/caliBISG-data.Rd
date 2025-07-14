@@ -25,9 +25,8 @@ abbreviations. For \code{load_data()}, a single state to load.}
 
 \item{year}{(integer vector) For \code{download_data()} or \code{delete_data()}, the
 years to download or delete. The default is all available years. For
-\code{load_data()}, a single year to load. For \code{available_data()}, a single year
-to filter the available data files. If not specified, all years are
-considered.}
+\code{load_data()}, a single year to load. For \code{available_data()}, an optional
+single year to filter the available data files.}
 
 \item{progress}{(logical) Whether to show a progress bar while downloading
 the data. The default is \code{TRUE}.}
