@@ -29,6 +29,7 @@ Roxygen: list(markdown = TRUE)
 Depends: 
     R (>= 4.0)
 Imports: 
+    future.apply,
     httr2 (>= 1.0),
     readr
 Suggests: 

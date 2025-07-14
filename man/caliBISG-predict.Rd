@@ -127,6 +127,10 @@ The first query to \code{most_probable_race()} or \code{race_probabilities()} fo
 particular state and year may take a few seconds to first load the relevant
 caliBISG data internally. Subsequent queries for the same state and year
 will be faster.
+
+The \pkg{future} package can be used for parallelization when providing
+many inputs to \code{most_probable_race()} or \code{race_probabilities()}. See
+\strong{Examples}.
 }
 \details{
 \itemize{
@@ -155,21 +159,25 @@ table for each row in the returned data frame up to \code{max_print} rows.
 }
 \examples{
 \dontrun{
-download_data(c("VT", "OK"), 2020)
+download_data(c("NY", "OK"), 2020)
 
-most_probable_race("Smith", "OK", "Tulsa")
+most_probable_race("Lopez", "NY", "New York")
+most_probable_race("Jackson", "OK", "Tulsa")
+
+# can handle multiple inputs at once
 most_probable_race(
   name = c("Lopez", "Jackson"),
-  state = c("VT", "OK"),
-  county = c("Chittenden", "Tulsa")
+  state = c("NY", "OK"),
+  county = c("New York", "Tulsa")
 )
 
+# get all probabilities instead of single most probable
 race_probabilities("Smith", "OK", "Tulsa")
-race_probabilities("Lopez", "VT", "Chittenden")
+race_probabilities("Lopez", "NY", "New York")
 probs2 <- race_probabilities(
   name = c("Lopez", "Smith"),
-  state = c("VT", "OK"),
-  county = c("Chittenden", "Tulsa")
+  state = c("NY", "OK"),
+  county = c("New York", "Tulsa")
 )
 str(probs2)
 print(probs2, digits = 3)
@@ -191,6 +199,26 @@ most_probable_race(
  state = "NY",
  county = fips_to_county("36001")
 )
+
+# use the future package for parallelization
+# compare no parallelization and parallelization
+library(future)
+
+name <- rep("Lee", 200)  # need a large number of inputs to see real improvement
+state <- "NY"
+county <- "New York"
+
+plan(sequential)
+time_sequential <- system.time(race_probabilities(name, state, county))["elapsed"]
+
+plan(multisession(workers = 4))
+time_parallel <- system.time(race_probabilities(name, state, county))["elapsed"]
+
+cat("Sequential time:", time_sequential, "seconds\n")
+cat("Parallel time:", time_parallel, "seconds\n")
+
+# reset
+plan(sequential)
 }
 
 

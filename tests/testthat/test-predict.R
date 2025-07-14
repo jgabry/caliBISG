@@ -228,6 +228,21 @@ test_that("race_probabilities() handles duplicates correctly", {
   expect_equal(out$county, rep("chittenden", 3))
 })
 
+test_that("race_probabilities runs faster in parallel", {
+  name <- rep("smith", 100)
+  state <- "WA"
+  county <- "king"
+
+  future::plan(future::sequential)
+  seq_time <- system.time(race_probabilities(name, state, county, 2020))["elapsed"]
+
+  future::plan(future::multisession(workers = 2))
+  par_time <- system.time(race_probabilities(name, state, county, 2020))["elapsed"]
+
+  expect_lt(par_time, seq_time)
+  future::plan(future::sequential)
+})
+
 test_that("print.compare_calibisg() prints correctly", {
   out <- race_probabilities(
     name   = c("lopez", "jackson", "smith"),

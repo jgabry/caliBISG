@@ -18,25 +18,33 @@
 #'   caliBISG data internally. Subsequent queries for the same state and year
 #'   will be faster.
 #'
+#'   The \pkg{future} package can be used for parallelization when providing
+#'   many inputs to `most_probable_race()` or `race_probabilities()`. See
+#'   **Examples**.
+#'
 #' @template calibisg-ref
 #'
 #' @examples
 #' \dontrun{
-#' download_data(c("VT", "OK"), 2020)
+#' download_data(c("NY", "OK"), 2020)
 #'
-#' most_probable_race("Smith", "OK", "Tulsa")
+#' most_probable_race("Lopez", "NY", "New York")
+#' most_probable_race("Jackson", "OK", "Tulsa")
+#'
+#' # can handle multiple inputs at once
 #' most_probable_race(
 #'   name = c("Lopez", "Jackson"),
-#'   state = c("VT", "OK"),
-#'   county = c("Chittenden", "Tulsa")
+#'   state = c("NY", "OK"),
+#'   county = c("New York", "Tulsa")
 #' )
 #'
+#' # get all probabilities instead of single most probable
 #' race_probabilities("Smith", "OK", "Tulsa")
-#' race_probabilities("Lopez", "VT", "Chittenden")
+#' race_probabilities("Lopez", "NY", "New York")
 #' probs2 <- race_probabilities(
 #'   name = c("Lopez", "Smith"),
-#'   state = c("VT", "OK"),
-#'   county = c("Chittenden", "Tulsa")
+#'   state = c("NY", "OK"),
+#'   county = c("New York", "Tulsa")
 #' )
 #' str(probs2)
 #' print(probs2, digits = 3)
@@ -58,6 +66,26 @@
 #'  state = "NY",
 #'  county = fips_to_county("36001")
 #' )
+#'
+#' # use the future package for parallelization
+#' # compare sequential evaluation vs parallelization
+#' library(future)
+#'
+#' name <- rep("Lee", 200)  # need a large number of inputs to see real improvement
+#' state <- "NY"
+#' county <- "New York"
+#'
+#' plan(sequential)
+#' time_sequential <- system.time(race_probabilities(name, state, county))["elapsed"]
+#'
+#' plan(multisession(workers = 4))
+#' time_parallel <- system.time(race_probabilities(name, state, county))["elapsed"]
+#'
+#' cat("Sequential time:", time_sequential, "seconds\n")
+#' cat("Parallel time:", time_parallel, "seconds\n")
+#'
+#' # reset
+#' plan(sequential)
 #' }
 #'
 #'
@@ -154,7 +182,7 @@ race_probabilities <- function(name, state, county, year = 2020) {
   county <- .recycle(tolower(county), size = length(name))
   .warn_if_not_downloaded(state, year)
 
-  calibisg_list <- lapply(seq_along(name), function(i) {
+  calibisg_list <- future.apply::future_lapply(seq_along(name), function(i) {
     .get_single_calibisg_record(name[i], state[i], county[i], year)
   })
   calibisg_out <- do.call(rbind, calibisg_list)
