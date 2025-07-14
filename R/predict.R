@@ -395,7 +395,7 @@ fips_to_county <- function(fips, year = 2020) {
 #'
 .warn_if_not_downloaded <- function(state, year) {
   states <- unique(state)
-  calibisg_states <- state[state %in% .all_calibisg_states()]
+  calibisg_states <- states[states %in% .all_calibisg_states()]
   downloaded_states <- substr(available_data(year), 1, 2)
   not_downloaded_states <- calibisg_states[!calibisg_states %in% downloaded_states]
   if (length(not_downloaded_states)) {

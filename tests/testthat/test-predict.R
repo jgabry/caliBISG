@@ -5,13 +5,13 @@ test_that("race_probabilities() warns if caliBISG files not downloaded", {
   expect_warning(
     expect_warning(
       race_probabilities(
-        name = c("Chan", "Chan", "Chan"),
-        state = c("FL", "VA", "NC"),
-        county = c("miami-dade", "fairfax", "burke")
+        name = c("Chan", "Chan", "Chan", "Chan"),
+        state = c("FL", "VA", "NC", "NC"),
+        county = c("miami-dade", "fairfax", "burke", "burke")
       ),
       "The caliBISG files for these states have not been downloaded: FL, NC"
     ),
-    "caliBISG is not available for 3 input(s). Returning NA estimates for those cases.",
+    "caliBISG is not available for 4 input(s). Returning NA estimates for those cases.",
     fixed = TRUE
   )
 })
