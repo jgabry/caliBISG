@@ -174,7 +174,6 @@ race_probabilities <- function(name, state, county, year = 2020) {
       call. = FALSE
     )
   }
-
   not_found_count_bisg <- sum(!bisg_out$.found)
   if (not_found_count_bisg > 0) {
     warning(
@@ -185,12 +184,9 @@ race_probabilities <- function(name, state, county, year = 2020) {
     )
   }
 
-  out <- merge(
-    calibisg_out,
-    bisg_out,
-    by = c("name", "state", "county", "year"),
-    all = TRUE,
-    sort = FALSE
+  out <- cbind(
+    calibisg_out[, c(.demographic_columns(), .calibisg_columns(), "in_census")],
+    bisg_out[, .bisg_columns(), drop = FALSE]
   )
 
   # interleave calibisg and bisg columns for easier visual comparison

@@ -214,6 +214,20 @@ test_that("race_probabilities() handles multiple inputs, including a non-match",
   expect_true(all(is.na(out[2, .bisg_columns()])))
 })
 
+test_that("race_probabilities() handles duplicates correctly", {
+  out <- race_probabilities(
+    name = c("lopez", "lopez", "jackson"),
+    state = "VT",
+    county = rep("Chittenden", 3),
+    year = 2020
+  )
+  expect_s3_class(out, c("compare_calibisg", "data.frame"))
+  expect_equal(nrow(out), 3)
+  expect_equal(out$name, c("lopez", "lopez", "jackson"))
+  expect_equal(out$state, c("VT", "VT", "VT"))
+  expect_equal(out$county, rep("chittenden", 3))
+})
+
 test_that("print.compare_calibisg() prints correctly", {
   out <- race_probabilities(
     name   = c("lopez", "jackson", "smith"),
