@@ -345,7 +345,7 @@ fips_to_county <- function(fips, year = 2020) {
   invisible(TRUE)
 }
 .validate_year <- function(year) {
-  if (length(year) != 1L || !is.numeric(year)) {
+  if (length(year) != 1L || !is.numeric(year) || is.na(year)) {
     stop("`year` must be a single numeric value.", call. = FALSE)
   }
   if (!year %in% .all_calibisg_years()) {
@@ -360,6 +360,9 @@ fips_to_county <- function(fips, year = 2020) {
 .validate_state <- function(state, allow_multiple = TRUE) {
   if (!is.character(state)) {
     stop("`state` must be a character vector.", call. = FALSE)
+  }
+  if (anyNA(state)) {
+    stop("`state` must not contain NA values.", call. = FALSE)
   }
   if (length(state) > 1 && !allow_multiple) {
     stop("`state` must be a single two-letter state abbreviation.", call. = FALSE)
@@ -378,11 +381,17 @@ fips_to_county <- function(fips, year = 2020) {
   if (!is.character(county)) {
     stop("`county` must be a character vector.", call. = FALSE)
   }
+  if (anyNA(county)) {
+    stop("`county` must not contain NA values.", call. = FALSE)
+  }
   invisible(TRUE)
 }
 .validate_name <- function(name) {
   if (!is.character(name)) {
     stop("`name` must be a character vector.", call. = FALSE)
+  }
+  if (anyNA(name)) {
+    stop("`name` must not contain NA values.", call. = FALSE)
   }
   invisible(TRUE)
 }
