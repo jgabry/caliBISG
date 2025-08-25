@@ -96,19 +96,26 @@ NULL
 #'         names that appear at least 100 times in the census.
 #'
 most_probable_race <- function(name, state, county, year = 2020) {
-  prediction <- as.data.frame(race_probabilities(name, state, county, year))
-  prediction$calibisg_race <- apply(
-    prediction[, .calibisg_columns()], 1, function(probs) {
-      if (anyNA(probs)) return(NA)
-      sub("^calibisg_", "", names(probs)[which.max(probs)])
-    }
-  )
-  prediction$bisg_race <- apply(
-    prediction[, .bisg_columns()], 1, function(probs) {
-      if (anyNA(probs)) return(NA)
-      sub("^bisg_", "", names(probs)[which.max(probs)])
-    }
-  )
+  prediction <- race_probabilities(name, state, county, year)
+  class(prediction) <- "data.frame"
+
+  calibisg_cols <- .calibisg_columns()
+  bisg_cols <- .bisg_columns()
+  calibisg_labels <- sub("^calibisg_", "", calibisg_cols)
+  bisg_labels <- sub("^bisg_", "", bisg_cols)
+
+  calibisg_matrix <- prediction[, calibisg_cols, drop = FALSE]
+  bisg_matrix <- prediction[, bisg_cols, drop = FALSE]
+  complete_calibisg <- stats::complete.cases(calibisg_matrix)
+  complete_bisg <- stats::complete.cases(bisg_matrix)
+
+  calibisg_idx <- rep(NA_integer_, nrow(calibisg_matrix))
+  bisg_idx <- rep(NA_integer_, nrow(bisg_matrix))
+  calibisg_idx[complete_calibisg] <- max.col(calibisg_matrix[complete_calibisg, , drop = FALSE])
+  bisg_idx[complete_bisg] <- max.col(bisg_matrix[complete_bisg, , drop = FALSE])
+
+  prediction$calibisg_race <- calibisg_labels[calibisg_idx]
+  prediction$bisg_race <- bisg_labels[bisg_idx]
   col_order <- c(
     .demographic_columns(),
     "calibisg_race",
@@ -117,6 +124,7 @@ most_probable_race <- function(name, state, county, year = 2020) {
   )
   prediction[, col_order]
 }
+
 
 #' @rdname caliBISG-predict
 #' @export
