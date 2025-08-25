@@ -104,18 +104,11 @@ most_probable_race <- function(name, state, county, year = 2020) {
   calibisg_labels <- sub("^calibisg_", "", calibisg_cols)
   bisg_labels <- sub("^bisg_", "", bisg_cols)
 
-  calibisg_matrix <- prediction[, calibisg_cols, drop = FALSE]
-  bisg_matrix <- prediction[, bisg_cols, drop = FALSE]
-  complete_calibisg <- stats::complete.cases(calibisg_matrix)
-  complete_bisg <- stats::complete.cases(bisg_matrix)
-
-  calibisg_idx <- rep(NA_integer_, nrow(calibisg_matrix))
-  bisg_idx <- rep(NA_integer_, nrow(bisg_matrix))
-  calibisg_idx[complete_calibisg] <- max.col(calibisg_matrix[complete_calibisg, , drop = FALSE])
-  bisg_idx[complete_bisg] <- max.col(bisg_matrix[complete_bisg, , drop = FALSE])
-
+  calibisg_idx <- max.col(prediction[, calibisg_cols, drop = FALSE])
+  bisg_idx <- max.col(prediction[, bisg_cols, drop = FALSE])
   prediction$calibisg_race <- calibisg_labels[calibisg_idx]
   prediction$bisg_race <- bisg_labels[bisg_idx]
+
   col_order <- c(
     .demographic_columns(),
     "calibisg_race",

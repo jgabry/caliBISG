@@ -303,7 +303,7 @@ test_that("most_probable_race() output hasn't changed", {
     suppressWarnings(most_probable_race(
       name   = c("lopez", "jackson", "smith", "chan", "noname", "thomas"),
       state  = c("VT", "OK", "WA", "NC", "WA", "OK"),
-      county = c("Chittenden", "Tulsa", "King", "Wake", "King", "Tulsa"),
+      county = c("Chittenden", "Tulsa", "King", "Wake", "King", "noname"),
       year   = 2020
     )),
     style = "deparse"

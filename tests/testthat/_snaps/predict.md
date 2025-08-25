@@ -272,9 +272,9 @@
     structure(list(name = c("lopez", "jackson", "smith", "chan", 
     "noname", "thomas"), year = c(2020, 2020, 2020, 2020, 2020, 2020
     ), state = c("VT", "OK", "WA", "NC", "WA", "OK"), county = c("chittenden", 
-    "tulsa", "king", "wake", "king", "tulsa"), calibisg_race = c("hispanic", 
-    "white_nh", "white_nh", "api", NA, "white_nh"), bisg_race = c("hispanic", 
-    "black_nh", "white_nh", "api", "white_nh", "white_nh"), in_census = c(TRUE, 
-    TRUE, TRUE, TRUE, NA, TRUE)), class = "data.frame", row.names = c(NA, 
+    "tulsa", "king", "wake", "king", "noname"), calibisg_race = c("hispanic", 
+    "white_nh", "white_nh", "api", NA, NA), bisg_race = c("hispanic", 
+    "black_nh", "white_nh", "api", "white_nh", NA), in_census = c(TRUE, 
+    TRUE, TRUE, TRUE, NA, NA)), class = "data.frame", row.names = c(NA, 
     6L))
 
