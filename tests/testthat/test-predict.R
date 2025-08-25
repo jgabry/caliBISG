@@ -166,6 +166,45 @@ test_that("race_probabilities() errors if inputs are wrong type", {
   )
 })
 
+test_that("race_probabilities() errors if inputs contain NAs", {
+  expect_error(
+    race_probabilities(
+      name   = c("johnson", NA),
+      state  = "VT",
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`name` must not contain NA values"
+  )
+  expect_error(
+    race_probabilities(
+      name   = c("lopez", "lopez"),
+      state  = c("VT", NA),
+      county = "Chittenden",
+      year   = 2020
+    ),
+    "`state` must not contain NA values"
+  )
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = c("Chittenden", NA),
+      year   = 2020
+    ),
+    "`county` must not contain NA values"
+  )
+  expect_error(
+    race_probabilities(
+      name   = "lopez",
+      state  = "VT",
+      county = "Chittenden",
+      year   = NA
+    ),
+    "`year` must be a single numeric value"
+  )
+})
+
 test_that("race_probabilities() returns correct columns for valid inputs", {
   out <- race_probabilities(
     name   = "lopez",
