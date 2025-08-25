@@ -269,11 +269,12 @@
 
 # most_probable_race() output hasn't changed
 
-    structure(list(name = c("lopez", "jackson", "smith", "chan"), 
-        year = c(2020, 2020, 2020, 2020), state = c("VT", "OK", "WA", 
-        "NC"), county = c("chittenden", "tulsa", "king", "wake"), 
-        calibisg_race = c("hispanic", "white_nh", "white_nh", "api"
-        ), bisg_race = c("hispanic", "black_nh", "white_nh", "api"
-        ), in_census = c(TRUE, TRUE, TRUE, TRUE)), class = "data.frame", row.names = c(NA, 
-    4L))
+    structure(list(name = c("lopez", "jackson", "smith", "chan", 
+    "noname", "thomas"), year = c(2020, 2020, 2020, 2020, 2020, 2020
+    ), state = c("VT", "OK", "WA", "NC", "WA", "OK"), county = c("chittenden", 
+    "tulsa", "king", "wake", "king", "noname"), calibisg_race = c("hispanic", 
+    "white_nh", "white_nh", "api", NA, NA), bisg_race = c("hispanic", 
+    "black_nh", "white_nh", "api", "white_nh", NA), in_census = c(TRUE, 
+    TRUE, TRUE, TRUE, NA, NA)), class = "data.frame", row.names = c(NA, 
+    6L))
 

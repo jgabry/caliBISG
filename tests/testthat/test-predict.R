@@ -300,12 +300,12 @@ test_that("print.compare_calibisg() handles edge cases", {
 
 test_that("most_probable_race() output hasn't changed", {
   expect_snapshot_value(
-    most_probable_race(
-      name   = c("lopez", "jackson", "smith", "chan"),
-      state  = c("VT", "OK", "WA", "NC"),
-      county = c("Chittenden", "Tulsa", "King", "Wake"),
+    suppressWarnings(most_probable_race(
+      name   = c("lopez", "jackson", "smith", "chan", "noname", "thomas"),
+      state  = c("VT", "OK", "WA", "NC", "WA", "OK"),
+      county = c("Chittenden", "Tulsa", "King", "Wake", "King", "noname"),
       year   = 2020
-    ),
+    )),
     style = "deparse"
   )
 })
