@@ -22,9 +22,9 @@ suppressMessages(download_data(year = 2020, progress = FALSE))
 test_that("race_probabilities() output hasn't changed", {
   expect_snapshot_value(
     race_probabilities(
-      name   = c("lopez", "jackson", "smith", "chan"),
-      state  = c("VT", "OK", "WA", "NC"),
-      county = c("Chittenden", "Tulsa", "King", "Wake"),
+      name   = c("lopez", "jackson", "smith", "chan", "xxx1", "lopez", "xxx2"),
+      state  = c("VT", "OK", "WA", "NC", "NC", "VT", "WA"),
+      county = c("Chittenden", "Tulsa", "King", "Wake", "Wake", "xxx", "King"),
       year   = 2020
     ),
     style = "deparse"
