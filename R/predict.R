@@ -20,7 +20,10 @@
 #'
 #'   If the `state` argument to `most_probable_race()` or `race_probabilities()`
 #'   contains multiple states, they can be processed in parallel via the
-#'   \pkg{future} package by setting a [future::plan].
+#'   \pkg{future} package by setting a [future::plan]. However, this will only
+#'   be faster if each state subset requires enough computation time so that the
+#'   cost of starting workers and transferring data is outweighed by concurrent
+#'   execution.
 #'
 #' @template calibisg-ref
 #'
@@ -219,68 +222,15 @@ race_probabilities <- function(name, state, county, year = 2020) {
     calibisg_out[, c(.demographic_columns(), .calibisg_columns(), "in_census")],
     bisg_out[, .bisg_columns(), drop = FALSE]
   )
-
-  # interleave calibisg and bisg columns for easier visual comparison
   col_order <- c(
     .demographic_columns(),
+    # interleave calibisg and bisg columns for easier visual comparison
     as.vector(rbind(.calibisg_columns(), .bisg_columns())),
     "in_census"
   )
-
   structure(out[, col_order], class = c("compare_calibisg", class(out)))
 }
-
-race_probabilities_old <- function(name, state, county, year = 2020) {
-  .validate_inputs(name, state, county, year)
-  name <- tolower(name)
-  state <- .recycle(toupper(state), size = length(name))
-  county <- .recycle(tolower(county), size = length(name))
-  .warn_if_not_downloaded(state, year)
-
-  calibisg_list <- lapply(seq_along(name), function(i) {
-    .get_single_calibisg_record(name[i], state[i], county[i], year)
-  })
-  calibisg_out <- do.call(rbind, calibisg_list)
-  bisg_out <- bisg(
-    name = calibisg_out$name,
-    state = calibisg_out$state,
-    county = calibisg_out$county,
-    year = unique(calibisg_out$year)
-  )
-
-  not_found_count_calibisg <- sum(!calibisg_out$.found)
-  if (not_found_count_calibisg > 0) {
-    warning(
-      "caliBISG is not available for ",
-      not_found_count_calibisg,
-      " input(s). Returning NA estimates for those cases.",
-      call. = FALSE
-    )
-  }
-  not_found_count_bisg <- sum(!bisg_out$.found)
-  if (not_found_count_bisg > 0) {
-    warning(
-      "Traditional BISG is not available for ",
-      not_found_count_bisg,
-      " input(s). Returning NA estimates for those cases.",
-      call. = FALSE
-    )
-  }
-
-  out <- cbind(
-    calibisg_out[, c(.demographic_columns(), .calibisg_columns(), "in_census")],
-    bisg_out[, .bisg_columns(), drop = FALSE]
-  )
-
-  # interleave calibisg and bisg columns for easier visual comparison
-  col_order <- c(
-    .demographic_columns(),
-    as.vector(rbind(.calibisg_columns(), .bisg_columns())),
-    "in_census"
-  )
-
-  structure(out[, col_order], class = c("compare_calibisg", class(out)))
-}
+utils::globalVariables(".id") # to avoid 'no visible binding for global variable' in R CMD check
 
 #' @rdname caliBISG-predict
 #' @export
