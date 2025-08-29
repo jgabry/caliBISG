@@ -30,7 +30,9 @@ Depends:
     R (>= 4.0)
 Imports: 
     httr2 (>= 1.0),
-    readr
+    readr,
+    data.table,
+    future.apply
 Suggests: 
     gitcreds,
     knitr,

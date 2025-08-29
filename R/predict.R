@@ -18,6 +18,10 @@
 #'   caliBISG data internally. Subsequent queries for the same state and year
 #'   will be faster.
 #'
+#'   If the `state` argument to `most_probable_race()` or `race_probabilities()`
+#'   contains multiple states, they can be processed in parallel via the
+#'   \pkg{future} package by setting a [future::plan].
+#'
 #' @template calibisg-ref
 #'
 #' @examples
@@ -148,7 +152,85 @@ most_probable_race <- function(name, state, county, year = 2020) {
 #'     The data frame also has class `"compare_calibisg"`, which enables defining a
 #'     custom `print()` method.
 #'
+#' @import data.table
 race_probabilities <- function(name, state, county, year = 2020) {
+  .validate_inputs(name, state, county, year)
+  name <- tolower(name)
+  state <- .recycle(toupper(state), size = length(name))
+  county <- .recycle(tolower(county), size = length(name))
+  .warn_if_not_downloaded(state, year)
+
+  input_dt <- data.table::data.table(
+    .id = seq_along(name),
+    name = name,
+    state = state,
+    county = county,
+    year = year
+  )
+  input_split <- split(input_dt, list(input_dt$state, input_dt$year), drop = TRUE)
+  calibisg_list <- future.apply::future_lapply(input_split, function(sub_dt) {
+    df <- .load_data_internal(sub_dt$state[1], sub_dt$year[1], error_if_missing = FALSE)
+    if (is.null(df)) {
+      out <- as.data.frame(sub_dt)
+      for (col in .calibisg_columns()) {
+        out[[col]] <- NA
+      }
+      out$in_census <- NA
+      out$.found <- FALSE
+      return(out)
+    }
+    dt <- data.table::as.data.table(df)
+    dt[, state := NULL]
+    merged <- merge(sub_dt, dt, by = c("name", "county", "year"), all.x = TRUE, sort = FALSE)
+    merged$.found <- !is.na(merged$in_census)
+    as.data.frame(merged)
+  })
+  calibisg_out <- data.table::rbindlist(calibisg_list, use.names = TRUE, fill = TRUE)
+  calibisg_out <- calibisg_out[order(.id)]
+  calibisg_out[, .id := NULL]
+  calibisg_out <- as.data.frame(calibisg_out)
+  not_found_count_calibisg <- sum(!calibisg_out$.found)
+  if (not_found_count_calibisg > 0) {
+    warning(
+      "caliBISG is not available for ",
+      not_found_count_calibisg,
+      " input(s). Returning NA estimates for those cases.",
+      call. = FALSE
+    )
+  }
+
+  bisg_out <- bisg(
+    name = calibisg_out$name,
+    state = calibisg_out$state,
+    county = calibisg_out$county,
+    year = unique(calibisg_out$year)
+  )
+  not_found_count_bisg <- sum(!bisg_out$.found)
+  if (not_found_count_bisg > 0) {
+    warning(
+      "Traditional BISG is not available for ",
+      not_found_count_bisg,
+      " input(s). Returning NA estimates for those cases.",
+      call. = FALSE
+    )
+  }
+
+  out <- cbind(
+    calibisg_out[, c(.demographic_columns(), .calibisg_columns(), "in_census")],
+    bisg_out[, .bisg_columns(), drop = FALSE]
+  )
+
+  # interleave calibisg and bisg columns for easier visual comparison
+  col_order <- c(
+    .demographic_columns(),
+    as.vector(rbind(.calibisg_columns(), .bisg_columns())),
+    "in_census"
+  )
+
+  structure(out[, col_order], class = c("compare_calibisg", class(out)))
+}
+
+race_probabilities_old <- function(name, state, county, year = 2020) {
   .validate_inputs(name, state, county, year)
   name <- tolower(name)
   state <- .recycle(toupper(state), size = length(name))
