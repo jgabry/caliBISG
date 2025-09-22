@@ -127,6 +127,13 @@ The first query to \code{most_probable_race()} or \code{race_probabilities()} fo
 particular state and year may take a few seconds to first load the relevant
 caliBISG data internally. Subsequent queries for the same state and year
 will be faster.
+
+If the \code{state} argument to \code{most_probable_race()} or \code{race_probabilities()}
+contains multiple states, they can be processed in parallel via the
+\pkg{future} package by setting a \link[future:plan]{future::plan}. However, this will only
+be faster if each state subset requires enough computation time so that the
+cost of starting workers and transferring data is outweighed by concurrent
+execution.
 }
 \details{
 \itemize{
