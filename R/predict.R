@@ -48,6 +48,13 @@
 #' str(probs2)
 #' print(probs2, digits = 3)
 #'
+#' best_guess(probs = probs2)
+#' best_guess(
+#'   name = c("Lopez", "Smith"),
+#'   state = c("VT", "OK"),
+#'   county = c("Chittenden", "Tulsa")
+#' )
+#'
 #' # caliBISG is not yet available for RI but we can still get
 #' # regular BISG if we input a valid county
 #' valid_counties("RI")
@@ -236,11 +243,88 @@ utils::globalVariables(".id") # to avoid 'no visible binding for global variable
 #' @export
 #'
 #' @details
+#' * `best_guess()`: Compute a single set of race probabilities, preferring
+#' caliBISG estimates when available and otherwise using BISG estimates. Can
+#' reuse probabilities from a previous call to `race_probabilities()` to avoid
+#' redundant computation.
+#'
+#' @param probs (data frame) For `best_guess()`, optionally the output of
+#'   `race_probabilities()`, which is used to avoid recomputing the
+#'   probabilities. If supplied, other arguments must be missing.
+#'
+#' @return
+#' * `best_guess()`: (data frame) A data frame with the same columns as
+#' `race_probabilities()`, except the caliBISG and BISG probability columns are
+#' replaced by a single column for each race giving the caliBISG probability
+#' when available and otherwise falling back to the BISG probability. These new
+#' columns are:
+#'      - `best_guess_aian`
+#'      - `best_guess_api`
+#'      - `best_guess_black_nh`
+#'      - `best_guess_hispanic`
+#'      - `best_guess_white_nh`
+#'      - `best_guess_other`
+#'
+best_guess <- function(name, state, county, year = 2020, probs = NULL) {
+  if (!missing(probs)) {
+    if (!missing(name) || !missing(state) || !missing(county)) {
+      stop(
+        "`probs` cannot be supplied together with the other arguments.",
+        call. = FALSE
+      )
+    }
+    if (!inherits(probs, "compare_calibisg")) {
+      stop("`probs` must be a data frame returned by race_probabilities().", call. = FALSE)
+    }
+    required_cols <- c(.demographic_columns(), .calibisg_columns(), .bisg_columns())
+    missing_cols <- setdiff(required_cols, names(probs))
+    if (length(missing_cols) > 0L) {
+      stop(
+        "`probs` is missing the following columns: ",
+        paste(missing_cols, collapse = ", "),
+        call. = FALSE
+      )
+    }
+    missing_cols <- setdiff(required_cols, names(probs))
+    if (length(missing_cols) > 0L) {
+      stop(
+        "`probs` is missing the following columns: ",
+        paste(missing_cols, collapse = ", "),
+        call. = FALSE
+      )
+    }
+  } else {
+    probs <- race_probabilities(name, state, county, year)
+  }
+
+  probs_df <- as.data.frame(probs)
+  calibisg_cols <- .calibisg_columns()
+  bisg_cols <- .bisg_columns()
+
+  calibisg_mat <- as.matrix(probs_df[, calibisg_cols, drop = FALSE])
+  bisg_mat <- as.matrix(probs_df[, bisg_cols, drop = FALSE])
+  best_guess_mat <- calibisg_mat
+  missing_calibisg <- is.na(best_guess_mat)
+  if (any(missing_calibisg)) {
+    best_guess_mat[missing_calibisg] <- bisg_mat[missing_calibisg]
+  }
+  out <- cbind(
+    probs_df[, .demographic_columns(), drop = FALSE],
+    as.data.frame(best_guess_mat)
+  )
+  names(out) <- c(.demographic_columns(), paste0("best_guess_", .column_order()))
+  out
+}
+
+#' @rdname caliBISG-predict
+#' @export
+#'
+#' @details
 #' * `print()`: Pretty print the output of `race_probabilities()`, making it
 #' easier to compare caliBISG and BISG estimates. It prints a separate
 #' table for each row in the returned data frame up to `max_print` rows.
 #'
-#' @param x (compare_calibisg) For `print()`, the object returned by
+#' @param x (data frame) For `print()`, the object returned by
 #'   `race_probabilities()`, which is a data frame with subclass
 #'   `"compare_calibisg"`.
 #' @param ... Currently unused.

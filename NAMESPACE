@@ -2,6 +2,7 @@
 
 S3method(print,compare_calibisg)
 export(available_data)
+export(best_guess)
 export(bisg)
 export(delete_data)
 export(download_data)

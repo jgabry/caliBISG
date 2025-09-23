@@ -5,6 +5,7 @@
 \alias{calibisg-predict}
 \alias{most_probable_race}
 \alias{race_probabilities}
+\alias{best_guess}
 \alias{print.compare_calibisg}
 \alias{valid_counties}
 \alias{fips_to_county}
@@ -13,6 +14,8 @@
 most_probable_race(name, state, county, year = 2020)
 
 race_probabilities(name, state, county, year = 2020)
+
+best_guess(name, state, county, year = 2020, probs = NULL)
 
 \method{print}{compare_calibisg}(
   x,
@@ -42,7 +45,11 @@ length of \code{name}. To use FIPS codes instead of county names, use the
 The default is \code{2020}, which is currently the only available year. This
 default may change in the future when more years become available.}
 
-\item{x}{(compare_calibisg) For \code{print()}, the object returned by
+\item{probs}{(data frame) For \code{best_guess()}, optionally the output of
+\code{race_probabilities()}, which is used to avoid recomputing the
+probabilities. If supplied, other arguments must be missing.}
+
+\item{x}{(data frame) For \code{print()}, the object returned by
 \code{race_probabilities()}, which is a data frame with subclass
 \code{"compare_calibisg"}.}
 
@@ -101,6 +108,22 @@ custom \code{print()} method.
 }
 
 \itemize{
+\item \code{best_guess()}: (data frame) A data frame with the same columns as
+\code{race_probabilities()}, except the caliBISG and BISG probability columns are
+replaced by a single column for each race giving the caliBISG probability
+when available and otherwise falling back to the BISG probability. These new
+columns are:
+\itemize{
+\item \code{best_guess_aian}
+\item \code{best_guess_api}
+\item \code{best_guess_black_nh}
+\item \code{best_guess_hispanic}
+\item \code{best_guess_white_nh}
+\item \code{best_guess_other}
+}
+}
+
+\itemize{
 \item \code{print()}: The input, invisibly.
 }
 
@@ -147,6 +170,13 @@ surname and location, rather than the single most probable race.
 }
 
 \itemize{
+\item \code{best_guess()}: Compute a single set of race probabilities, preferring
+caliBISG estimates when available and otherwise using BISG estimates. Can
+reuse probabilities from a previous call to \code{race_probabilities()} to avoid
+redundant computation.
+}
+
+\itemize{
 \item \code{print()}: Pretty print the output of \code{race_probabilities()}, making it
 easier to compare caliBISG and BISG estimates. It prints a separate
 table for each row in the returned data frame up to \code{max_print} rows.
@@ -180,6 +210,13 @@ probs2 <- race_probabilities(
 )
 str(probs2)
 print(probs2, digits = 3)
+
+best_guess(probs = probs2)
+best_guess(
+  name = c("Lopez", "Smith"),
+  state = c("VT", "OK"),
+  county = c("Chittenden", "Tulsa")
+)
 
 # caliBISG is not yet available for RI but we can still get
 # regular BISG if we input a valid county
