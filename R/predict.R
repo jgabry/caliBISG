@@ -288,18 +288,18 @@ best_guess <- function(name, state, county, year = 2020, probs = NULL) {
   } else {
     probs <- race_probabilities(name, state, county, year)
   }
-
   probs_df <- as.data.frame(probs)
-  calibisg_cols <- .calibisg_columns()
-  bisg_cols <- .bisg_columns()
 
+  calibisg_cols <- .calibisg_columns()
   calibisg_mat <- as.matrix(probs_df[, calibisg_cols, drop = FALSE])
+  bisg_cols <- .bisg_columns()
   bisg_mat <- as.matrix(probs_df[, bisg_cols, drop = FALSE])
   best_guess_mat <- calibisg_mat
   missing_calibisg <- is.na(best_guess_mat)
   if (any(missing_calibisg)) {
     best_guess_mat[missing_calibisg] <- bisg_mat[missing_calibisg]
   }
+
   out <- cbind(
     probs_df[, .demographic_columns(), drop = FALSE],
     as.data.frame(best_guess_mat)
