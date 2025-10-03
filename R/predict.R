@@ -285,14 +285,6 @@ best_guess <- function(name, state, county, year = 2020, probs = NULL) {
         call. = FALSE
       )
     }
-    missing_cols <- setdiff(required_cols, names(probs))
-    if (length(missing_cols) > 0L) {
-      stop(
-        "`probs` is missing the following columns: ",
-        paste(missing_cols, collapse = ", "),
-        call. = FALSE
-      )
-    }
   } else {
     probs <- race_probabilities(name, state, county, year)
   }
