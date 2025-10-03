@@ -267,6 +267,132 @@ test_that("race_probabilities() handles duplicates correctly", {
   expect_equal(out$county, rep("chittenden", 3))
 })
 
+test_that("best_guess() prioritizes caliBISG values", {
+  fake_probs <- data.frame(
+    name = c("smith", "lopez"),
+    year = c(2020L, 2020L),
+    state = c("WA", "VT"),
+    county = c("king", "chittenden"),
+    calibisg_aian = c(0.10, NA_real_),
+    calibisg_api = c(0.20, 0.25),
+    calibisg_black_nh = c(NA_real_, 0.30),
+    calibisg_hispanic = c(0.15, 0.30),
+    calibisg_white_nh = c(0.20, NA_real_),
+    calibisg_other = c(0.05, 0.45),
+    bisg_aian = c(0.12, 0.05),
+    bisg_api = c(0.18, 0.30),
+    bisg_black_nh = c(0.25, 0.20),
+    bisg_hispanic = c(0.20, 0.25),
+    bisg_white_nh = c(0.15, 0.15),
+    bisg_other = c(0.10, 0.05)
+  )
+  class(fake_probs) <- c("compare_calibisg", class(fake_probs))
+
+  out <- best_guess(probs = fake_probs)
+  expect_s3_class(out, "data.frame")
+  expect_named(out, c(.demographic_columns(), paste0("best_guess_", .column_order())))
+  expected <- data.frame(
+    name = c("smith", "lopez"),
+    year = c(2020L, 2020L),
+    state = c("WA", "VT"),
+    county = c("king", "chittenden"),
+    best_guess_aian = c(0.10, 0.05),
+    best_guess_api = c(0.20, 0.25),
+    best_guess_black_nh = c(0.25, 0.30),
+    best_guess_hispanic = c(0.15, 0.30),
+    best_guess_white_nh = c(0.20, 0.15),
+    best_guess_other = c(0.05, 0.45)
+  )
+  expect_equal(out, expected)
+})
+
+test_that("best_guess() validates the probs input", {
+  fake_probs <- data.frame(
+    name = "smith",
+    year = 2020,
+    state = "VT",
+    county = "chittenden",
+    calibisg_aian = 0.1,
+    calibisg_api = 0.2,
+    calibisg_black_nh = 0.3,
+    calibisg_hispanic = 0.1,
+    calibisg_white_nh = 0.2,
+    calibisg_other = 0.1,
+    bisg_aian = 0.2,
+    bisg_api = 0.2,
+    bisg_black_nh = 0.2,
+    bisg_hispanic = 0.2,
+    bisg_white_nh = 0.1,
+    bisg_other = 0.1
+  )
+  class(fake_probs) <- c("compare_calibisg", class(fake_probs))
+
+  expect_error(
+    best_guess(name = "smith", probs = fake_probs),
+    "`probs` cannot be supplied together with the other arguments.",
+    fixed = TRUE
+  )
+  expect_error(
+    best_guess(probs = as.vector(fake_probs)),
+    "`probs` must be a data frame",
+    fixed = TRUE
+  )
+  fake_missing <- fake_probs
+  fake_missing$calibisg_other <- NULL
+  expect_error(
+    best_guess(probs = fake_missing),
+    "`probs` is missing the following columns: calibisg_other",
+    fixed = TRUE
+  )
+  fake_missing <- fake_probs
+  fake_missing$name <- NULL
+  expect_error(
+    best_guess(probs = fake_missing),
+    "`probs` is missing the following columns: name",
+    fixed = TRUE
+  )
+})
+
+test_that("best_guess() reuses race_probabilities() when probs provided", {
+  names <- c("lopez", "jackson", "smith")
+  states <- c("VT", "OK", "WA")
+  counties <- c("Chittenden", "Tulsa", "King")
+
+  probs <- race_probabilities(
+    name = names,
+    state = states,
+    county = counties,
+    year = 2020
+  )
+  direct <- best_guess(
+    name = names,
+    state = states,
+    county = counties,
+    year = 2020
+  )
+  from_probs <- best_guess(probs = probs)
+  expect_equal(direct, from_probs)
+
+  column_order <- .column_order()
+  calibisg_cols <- paste0("calibisg_", column_order)
+  bisg_cols <- paste0("bisg_", column_order)
+  manual <- as.data.frame(probs)[, calibisg_cols]
+  for (j in seq_along(column_order)) {
+    cali_col <- calibisg_cols[j]
+    bisg_col <- bisg_cols[j]
+    missing_idx <- is.na(manual[[cali_col]])
+    if (any(missing_idx)) {
+      manual[[cali_col]][missing_idx] <- probs[[bisg_col]][missing_idx]
+    }
+  }
+  names(manual) <- paste0("best_guess_", column_order)
+  manual <- cbind(
+    probs[, .demographic_columns(), drop = FALSE],
+    manual
+  )
+  expect_equal(direct, manual)
+})
+
 test_that("print.compare_calibisg() prints correctly", {
   out <- race_probabilities(
     name   = c("lopez", "jackson", "smith"),
