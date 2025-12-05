@@ -5,7 +5,7 @@
 library(tidyverse)
 library(glue)
 
-path_root <- "/Users/jgabry/Desktop/tmp/caliBISG-data/bisg-test/"
+path_root <- "/Users/jgabry/Documents/Papers/caliBISG-data/bisg-test/"
 df_agg <- read_csv(glue("{path_root}wa_2020.csv"))
 df_cen_surs <- read_csv(glue("{path_root}df_surnames.csv"))
 df_cen_counties  <- read_csv(glue("{path_root}county_census_wa2020.csv"))

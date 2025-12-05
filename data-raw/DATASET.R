@@ -2,7 +2,7 @@ library(readr)
 library(glue)
 library(usethis)
 
-path_root <- "/Users/jgabry/Desktop/tmp/caliBISG-data/"
+path_root <- "/Users/jgabry/Documents/Papers/caliBISG-data/"
 
 csv_to_dataframe <- function(file_path) {
   as.data.frame(readr::read_csv(file_path, show_col_types = FALSE, progress = FALSE))
